@@ -1,0 +1,8 @@
+**/credentials.auto.tfvars
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform.lock.hcl
+
+terraform/data
+
+.idea
