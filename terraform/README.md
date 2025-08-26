@@ -22,6 +22,25 @@ qm template 9001
 ```
 
 ```bash
+cat > /var/lib/vz/snippets/ubuntu-24.04-cloud-vendor.yml <<'EOF'
+#cloud-config
+
+package_update: true
+
+packages:
+  - qemu-guest-agent
+
+ssh_pwauth: false
+
+runcmd:
+  - [ bash, -lc, 'systemctl start qemu-guest-agent' ]
+  - [ bash, -lc, 'systemctl try-reload-or-restart ssh' ]
+
+timezone: UTC
+EOF
+```
+
+```bash
 docker compose -f docker-compose.yml run --rm terraform init
 
 docker compose -f docker-compose.yml run --rm terraform fmt -recursive

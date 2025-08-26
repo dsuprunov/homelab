@@ -11,11 +11,11 @@ resource "proxmox_vm_qemu" "ubuntu-test-instance" {
   # automatic_reboot = true
 
   # ---------- Hardware: compute & platform ----------
-  memory      = 1024
-  balloon     = 1024
-  agent       = 1
-  boot        = "order=scsi0"
-  scsihw      = "virtio-scsi-single"
+  memory  = 1024
+  balloon = 1024
+  agent   = 1
+  boot    = "order=scsi0"
+  scsihw  = "virtio-scsi-single"
 
   cpu {
     cores = 1
@@ -54,6 +54,7 @@ resource "proxmox_vm_qemu" "ubuntu-test-instance" {
   }
 
   # ---------- Cloud-Init ----------
+  cicustom   = "vendor=local:snippets/ubuntu-24.04-cloud-vendor.yml"
   ciupgrade  = true
   nameserver = "192.168.178.1"
   ipconfig0  = "ip=192.168.178.222/24,gw=192.168.178.1"
