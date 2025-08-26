@@ -3,6 +3,6 @@
 **/*.tfstate.*
 **/.terraform.lock.hcl
 
-terraform/data
+**/.terraform
 
 .idea
