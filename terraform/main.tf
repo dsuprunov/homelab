@@ -1,24 +1,24 @@
-resource "proxmox_vm_qemu" "ubuntu-test-instance" {
+resource "proxmox_vm_qemu" "vm" {
+  for_each = var.vms
+
   # ---------- Identity & source ----------
-  vmid        = 1001
-  name        = "ubuntu-test-instance"
-  target_node = "pve"
-  clone       = "ubuntu-24.04-cloud-template"
+  vmid        = each.value.vmid
+  name        = each.value.name
+  target_node = each.value.target_node
+  clone       = each.value.template
   full_clone  = true
 
-  # ---------- Lifecycle (optional) ----------
-  # vm_state         = "running"
-  # automatic_reboot = true
-
   # ---------- Hardware: compute & platform ----------
-  memory  = 1024
-  balloon = 1024
-  agent   = 1
-  boot    = "order=scsi0"
-  scsihw  = "virtio-scsi-single"
+  memory  = each.value.memory
+  balloon = each.value.memory
+
+  agent = 1
+
+  boot   = "order=scsi0"
+  scsihw = "virtio-scsi-single"
 
   cpu {
-    cores = 1
+    cores = each.value.cores
   }
 
   # ---------- Storage ----------
@@ -26,8 +26,9 @@ resource "proxmox_vm_qemu" "ubuntu-test-instance" {
     scsi {
       scsi0 {
         disk {
-          storage = "local-lvm"
-          size    = "16G"
+          storage  = "local-lvm"
+          size     = each.value.disk
+          iothread = true
         }
       }
     }
@@ -56,9 +57,9 @@ resource "proxmox_vm_qemu" "ubuntu-test-instance" {
   # ---------- Cloud-Init ----------
   cicustom   = "vendor=local:snippets/ubuntu-24.04-cloud-vendor.yml"
   ciupgrade  = true
-  nameserver = "192.168.178.1"
-  ipconfig0  = "ip=192.168.178.222/24,gw=192.168.178.1"
+  nameserver = each.value.nameserver
+  ipconfig0  = each.value.ipconfig
   skip_ipv6  = true
-  ciuser     = "dms"
-  sshkeys    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+  ciuser     = each.value.user
+  sshkeys    = each.value.ssh_key
 }
