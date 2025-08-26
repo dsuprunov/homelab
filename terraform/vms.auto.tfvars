@@ -1,9 +1,11 @@
 vms = {
   test-1 = {
-    vmid        = 1101
+    vmid        = 211
     name        = "test-1"
     template    = "ubuntu-24.04-cloud-template"
     target_node = "pve"
+    state       = "running"
+    onboot      = true
     memory      = 1024
     disk        = "16G"
     cores       = 1
@@ -14,10 +16,12 @@ vms = {
   }
 
   test-2 = {
-    vmid        = 1102
+    vmid        = 212
     name        = "test-2"
     template    = "ubuntu-24.04-cloud-template"
     target_node = "pve"
+    state       = "running"
+    onboot      = true
     memory      = 1024
     disk        = "16G"
     cores       = 1
@@ -28,10 +32,12 @@ vms = {
   }
 
   test-3 = {
-    vmid        = 1103
+    vmid        = 213
     name        = "test-3"
     template    = "ubuntu-24.04-cloud-template"
     target_node = "pve"
+    state       = "running"
+    onboot      = true
     memory      = 1024
     disk        = "16G"
     cores       = 1

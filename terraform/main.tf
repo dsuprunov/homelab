@@ -8,6 +8,11 @@ resource "proxmox_vm_qemu" "vm" {
   clone       = each.value.template
   full_clone  = true
 
+  # ---------- Lifecycle ----------
+  vm_state = each.value.state
+  onboot   = each.value.onboot
+  # automatic_reboot = true
+
   # ---------- Hardware: compute & platform ----------
   memory  = each.value.memory
   balloon = each.value.memory
@@ -57,9 +62,10 @@ resource "proxmox_vm_qemu" "vm" {
   # ---------- Cloud-Init ----------
   cicustom   = "vendor=local:snippets/ubuntu-24.04-cloud-vendor.yml"
   ciupgrade  = true
-  nameserver = each.value.nameserver
+  nameserver = try(each.value.nameserver, null)
   ipconfig0  = each.value.ipconfig
   skip_ipv6  = true
   ciuser     = each.value.user
+  cipassword = "dms"
   sshkeys    = each.value.ssh_key
 }

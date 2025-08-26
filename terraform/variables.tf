@@ -17,11 +17,13 @@ variable "vms" {
     name        = string
     template    = string
     target_node = string
+    state       = string
+    onboot      = bool
     memory      = number
     disk        = string
     cores       = number
     ipconfig    = string
-    nameserver  = string
+    nameserver  = optional(string)
     user        = string
     ssh_key     = string
   }))
