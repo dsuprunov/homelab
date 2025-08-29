@@ -16,3 +16,22 @@ output "vm" {
     }
   }
 }
+
+output "ct" {
+  value = {
+    for k, ct in var.ct : k => {
+      vmid        = ct.vmid
+      name        = ct.name
+      template    = ct.template
+      target_node = ct.target_node
+      start       = ct.start
+      onboot      = ct.onboot
+      memory      = ct.memory
+      disk        = ct.disk
+      cores       = ct.cores
+      ip          = ct.ip
+      gw          = try(ct.gw, null)
+      nameserver  = try(ct.nameserver, null)
+    }
+  }
+}

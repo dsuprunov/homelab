@@ -1,10 +1,8 @@
 ```bash
-ssh root@192.168.178.201
-
 wget https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
 
 qm create 9001 \
-  --name ubuntu-24.04-cloud-template \
+  --name ubuntu-24.04-cloud \
   --machine q35 --ostype l26 \
   --memory 1024 --balloon 1024 \
   --cpu host --cores 1 --sockets 1 --numa 0 \
@@ -38,6 +36,16 @@ runcmd:
 
 timezone: UTC
 EOF
+```
+
+```bash
+pveam update
+
+pveam available --section system
+
+pveam download local debian-12-standard_12.7-1_amd64.tar.zst
+
+pveam list local
 ```
 
 ```bash

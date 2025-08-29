@@ -28,3 +28,21 @@ variable "vm" {
     ssh_key     = string
   }))
 }
+
+variable "ct" {
+  type = map(object({
+    vmid        = number
+    name        = string
+    template    = string
+    target_node = string
+    start       = string
+    onboot      = bool
+    memory      = number
+    disk        = string
+    cores       = number
+    ip          = string
+    nameserver  = optional(string)
+    gw          = optional(string)
+    ssh_key     = string
+  }))
+}

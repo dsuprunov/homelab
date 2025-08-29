@@ -1,8 +1,8 @@
 vm = {
-  test-1 = {
+  test-vm-1 = {
     vmid        = 211
-    name        = "test-1"
-    template    = "ubuntu-24.04-cloud-template"
+    name        = "test-vm-1"
+    template    = "ubuntu-24.04-cloud"
     target_node = "pve"
     state       = "running"
     onboot      = true
@@ -15,10 +15,10 @@ vm = {
     ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
   }
 
-  test-2 = {
+  test-vm-2 = {
     vmid        = 212
-    name        = "test-2"
-    template    = "ubuntu-24.04-cloud-template"
+    name        = "test-vm-2"
+    template    = "ubuntu-24.04-cloud"
     target_node = "pve"
     state       = "running"
     onboot      = true
@@ -31,10 +31,10 @@ vm = {
     ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
   }
 
-  test-3 = {
+  test-vm-3 = {
     vmid        = 213
-    name        = "test-3"
-    template    = "ubuntu-24.04-cloud-template"
+    name        = "test-vm-3"
+    template    = "ubuntu-24.04-cloud"
     target_node = "pve"
     state       = "running"
     onboot      = true

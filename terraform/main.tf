@@ -1,3 +1,6 @@
+#
+# vm
+#
 resource "proxmox_vm_qemu" "vm" {
   for_each = var.vm
 
@@ -13,7 +16,7 @@ resource "proxmox_vm_qemu" "vm" {
   onboot   = each.value.onboot
   # automatic_reboot = true
 
-  # ---------- Hardware: compute & platform ----------
+  # ---------- Hardware ----------
   memory  = each.value.memory
   balloon = each.value.memory
 
@@ -68,4 +71,44 @@ resource "proxmox_vm_qemu" "vm" {
   ciuser     = each.value.user
   cipassword = "dms"
   sshkeys    = each.value.ssh_key
+}
+
+#
+# ct
+#
+resource "proxmox_lxc" "ct" {
+  for_each = var.ct
+
+  # ---------- Identity & source ----------
+  vmid        = each.value.vmid
+  hostname    = each.value.name
+  target_node = each.value.target_node
+  ostemplate  = each.value.template
+
+  # ---------- Lifecycle ----------
+  onboot = each.value.onboot
+  start  = each.value.start
+
+  # ---------- Hardware ----------
+  cores        = each.value.cores
+  memory       = each.value.memory
+  unprivileged = true
+
+  # ---------- Storage ----------
+  rootfs {
+    storage = "local-lvm"
+    size    = each.value.disk
+  }
+
+  # ---------- Network ----------
+  network {
+    name   = "eth0"
+    bridge = "vmbr0"
+    ip     = each.value.ip
+    gw     = try(each.value.gw, null)
+  }
+  nameserver = try(each.value.nameserver, null)
+
+  # ---------- Misc ----------
+  ssh_public_keys = each.value.ssh_key
 }

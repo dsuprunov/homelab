@@ -27,7 +27,7 @@ timezone: UTC
 EOF
 
 qm create 9001 \
-  --name ubuntu-24.04-cloud-template --ostype l26 \
+  --name ubuntu-24.04-cloud --ostype l26 \
   --memory 1024 --cpu host --cores 1 --sockets 1 --numa 0 --agent 1 --balloon 0 \
   --machine q35 --bios ovmf \
   --efidisk0 local-lvm:0,efitype=4m,pre-enrolled-keys=1 \

@@ -1,0 +1,48 @@
+ct = {
+  test-ct-1 = {
+    vmid        = 221
+    name        = "test-ct-1"
+    template    = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+    target_node = "pve"
+    start       = true
+    onboot      = true
+    memory      = 1024
+    disk        = "8G"
+    cores       = 1
+    ip          = "192.168.178.221/24"
+    gw          = "192.168.178.1"
+    nameserver  = "192.168.178.1"
+    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+  }
+
+  test-ct-2 = {
+    vmid        = 222
+    name        = "test-ct-2"
+    template    = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+    target_node = "pve"
+    start       = true
+    onboot      = true
+    memory      = 1024
+    disk        = "8G"
+    cores       = 1
+    ip          = "192.168.178.222/24"
+    nameserver  = "192.168.178.1"
+    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+  }
+
+  test-ct-3 = {
+    vmid        = 223
+    name        = "test-ct-3"
+    template    = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+    target_node = "pve"
+    start       = true
+    onboot      = false
+    memory      = 1024
+    disk        = "8G"
+    cores       = 2
+    ip          = "192.168.178.223/24"
+    gw          = "192.168.178.1"
+    nameserver  = "192.168.178.1"
+    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+  }
+}
