@@ -1,6 +1,6 @@
-output "vms" {
+output "vm" {
   value = {
-    for k, vm in var.vms : k => {
+    for k, vm in var.vm : k => {
       vmid        = vm.vmid
       name        = vm.name
       template    = vm.template
@@ -11,7 +11,7 @@ output "vms" {
       disk        = vm.disk
       cores       = vm.cores
       ipconfig    = vm.ipconfig
-      nameserver  = vm.nameserver
+      nameserver  = try(vm.nameserver, null)
       user        = vm.user
     }
   }

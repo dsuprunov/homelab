@@ -1,4 +1,4 @@
-vms = {
+vm = {
   test-1 = {
     vmid        = 211
     name        = "test-1"

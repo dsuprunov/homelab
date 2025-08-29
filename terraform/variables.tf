@@ -11,7 +11,7 @@ variable "proxmox_api_token_secret" {
   sensitive = true
 }
 
-variable "vms" {
+variable "vm" {
   type = map(object({
     vmid        = number
     name        = string

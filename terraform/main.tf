@@ -1,5 +1,5 @@
 resource "proxmox_vm_qemu" "vm" {
-  for_each = var.vms
+  for_each = var.vm
 
   # ---------- Identity & source ----------
   vmid        = each.value.vmid
