@@ -26,6 +26,7 @@ ct = {
     disk        = "8G"
     cores       = 1
     ip          = "192.168.178.222/24"
+    gw          = "192.168.178.1"
     nameserver  = "192.168.178.1"
     ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
   }
