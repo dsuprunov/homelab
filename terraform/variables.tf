@@ -41,8 +41,8 @@ variable "ct" {
     disk        = string
     cores       = number
     ip          = string
-    nameserver  = optional(string)
     gw          = optional(string)
+    nameserver  = optional(string)
     ssh_key     = string
   }))
 }
