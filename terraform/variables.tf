@@ -26,6 +26,7 @@ variable "vm" {
     nameserver  = optional(string)
     user        = string
     ssh_key     = string
+    tags        = optional(list(string))
   }))
 }
 
@@ -35,7 +36,7 @@ variable "ct" {
     name        = string
     template    = string
     target_node = string
-    start       = string
+    start       = bool
     onboot      = bool
     memory      = number
     disk        = string
@@ -44,5 +45,6 @@ variable "ct" {
     gw          = optional(string)
     nameserver  = optional(string)
     ssh_key     = string
+    tags        = optional(list(string))
   }))
 }

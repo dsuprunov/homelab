@@ -67,6 +67,9 @@ resource "proxmox_vm_qemu" "vm" {
   skip_ipv6  = true
   ciuser     = each.value.user
   sshkeys    = each.value.ssh_key
+
+  # ---------- Misc ----------
+  tags  = try(join(";", each.value.tags), null)
 }
 
 #
@@ -105,6 +108,10 @@ resource "proxmox_lxc" "ct" {
   }
   nameserver = try(each.value.nameserver, null)
 
-  # ---------- Misc ----------
+  # ---------- User ----------
   ssh_public_keys = each.value.ssh_key
+
+  # ---------- Misc ----------
+  tags            = try(join(";", each.value.tags), null)
+
 }
