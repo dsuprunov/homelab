@@ -39,9 +39,7 @@ resource "proxmox_vm_qemu" "vm" {
           iothread = true
         }
       }
-    }
-    ide {
-      ide1 {
+      scsi2 {
         cloudinit {
           storage = "local-lvm"
         }
@@ -63,13 +61,11 @@ resource "proxmox_vm_qemu" "vm" {
   }
 
   # ---------- Cloud-Init ----------
-  cicustom   = "vendor=local:snippets/ubuntu-24.04-cloud-vendor.yml"
   ciupgrade  = true
   nameserver = try(each.value.nameserver, null)
   ipconfig0  = each.value.ipconfig
   skip_ipv6  = true
   ciuser     = each.value.user
-  cipassword = "dms"
   sshkeys    = each.value.ssh_key
 }
 

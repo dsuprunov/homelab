@@ -12,7 +12,7 @@ ct = {
     ip          = "192.168.178.221/24"
     gw          = "192.168.178.1"
     nameserver  = "192.168.178.1"
-    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
 
   test-ct-2 = {
@@ -28,7 +28,7 @@ ct = {
     ip          = "192.168.178.222/24"
     gw          = "192.168.178.1"
     nameserver  = "192.168.178.1"
-    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
 
   test-ct-3 = {
@@ -44,6 +44,6 @@ ct = {
     ip          = "192.168.178.223/24"
     gw          = "192.168.178.1"
     nameserver  = "192.168.178.1"
-    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8wQ3QpMwyZmfg1Hl97WByICUFVDKbT8yiyus7LWSW8 dsuprunov@gmail.com"
+    ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
 }

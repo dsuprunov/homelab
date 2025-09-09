@@ -2,7 +2,7 @@
 wget https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
 
 qm create 9001 \
-  --name ubuntu-24.04-cloud \
+  --name ubuntu-24.04-cloudimg \
   --machine q35 --ostype l26 \
   --memory 1024 --balloon 1024 \
   --cpu host --cores 1 --sockets 1 --numa 0 \
@@ -11,7 +11,6 @@ qm create 9001 \
   --bios ovmf --efidisk0 local-lvm:1,efitype=4m,pre-enrolled-keys=1 \
   --boot order=scsi0 \
   --net0 virtio,bridge=vmbr0,firewall=1 \
-  --ide2 local-lvm:cloudinit \
   --serial0 socket --vga serial0 \
   --rng0 source=/dev/urandom \
   --agent 1
@@ -19,24 +18,6 @@ qm create 9001 \
 qm template 9001
 ```
 
-```bash
-cat > /var/lib/vz/snippets/ubuntu-24.04-cloud-vendor.yml <<'EOF'
-#cloud-config
-
-package_update: true
-
-packages:
-  - qemu-guest-agent
-
-ssh_pwauth: false
-
-runcmd:
-  - [ bash, -lc, 'systemctl start qemu-guest-agent' ]
-  - [ bash, -lc, 'systemctl try-reload-or-restart ssh' ]
-
-timezone: UTC
-EOF
-```
 
 ```bash
 pveam update
