@@ -1,0 +1,12 @@
+services:
+  ansible:
+    build: .
+    container_name: ansible
+    image: ansible
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=false
+    volumes:
+      - .:/ansible
+    working_dir: /ansible
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["tail -f /dev/null"]
