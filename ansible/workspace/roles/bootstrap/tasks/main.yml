@@ -17,3 +17,30 @@
     state: started
     enabled: yes
   when: not ansible_check_mode
+
+#
+# dms
+#
+- name: Create user dms
+  user:
+    name: dms
+    shell: /bin/bash
+    create_home: yes
+    groups: sudo
+    append: yes
+
+- name: Add SSH key
+  authorized_key:
+    user: dms
+    state: present
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
+  when: not ansible_check_mode
+
+- name: Configure passwordless sudo
+  lineinfile:
+    path: /etc/sudoers.d/dms
+    line: "dms ALL=(ALL) NOPASSWD:ALL"
+    create: yes
+    validate: "visudo -cf %s"
+    mode: '0440'
+  when: not ansible_check_mode
