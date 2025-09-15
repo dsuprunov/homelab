@@ -17,9 +17,9 @@ output "vm" {
   }
 }
 
-output "ct" {
+output "lxc" {
   value = {
-    for k, ct in var.ct : k => {
+    for k, ct in var.lxc : k => {
       vmid        = ct.vmid
       name        = ct.name
       template    = ct.template

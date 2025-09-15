@@ -69,14 +69,14 @@ resource "proxmox_vm_qemu" "vm" {
   sshkeys    = each.value.ssh_key
 
   # ---------- Misc ----------
-  tags  = try(join(";", each.value.tags), null)
+  tags = try(join(";", each.value.tags), null)
 }
 
 #
-# ct
+# lxc
 #
 resource "proxmox_lxc" "ct" {
-  for_each = var.ct
+  for_each = var.lxc
 
   # ---------- Identity & source ----------
   vmid        = each.value.vmid
@@ -112,6 +112,6 @@ resource "proxmox_lxc" "ct" {
   ssh_public_keys = each.value.ssh_key
 
   # ---------- Misc ----------
-  tags            = try(join(";", each.value.tags), null)
+  tags = try(join(";", each.value.tags), null)
 
 }

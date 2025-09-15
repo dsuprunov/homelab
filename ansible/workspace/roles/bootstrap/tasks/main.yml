@@ -1,0 +1,19 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Set timezone to UTC
+  timezone:
+    name: UTC
+
+- name: Install qemu-guest-agent
+  apt:
+    name: qemu-guest-agent
+    state: present
+
+- name: Start and enable qemu-guest-agent
+  systemd:
+    name: qemu-guest-agent
+    state: started
+    enabled: yes
+  when: not ansible_check_mode

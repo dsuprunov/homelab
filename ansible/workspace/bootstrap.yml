@@ -1,0 +1,5 @@
+- name: Bootstrap Ubuntu/Debian VMs
+  hosts: test
+  become: yes
+  roles:
+    - bootstrap

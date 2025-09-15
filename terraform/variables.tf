@@ -30,7 +30,7 @@ variable "vm" {
   }))
 }
 
-variable "ct" {
+variable "lxc" {
   type = map(object({
     vmid        = number
     name        = string

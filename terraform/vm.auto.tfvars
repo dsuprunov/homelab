@@ -11,7 +11,7 @@ vm = {
     cores       = 1
     ipconfig    = "ip=192.168.178.211/24,gw=192.168.178.1"
     nameserver  = "192.168.178.1"
-    user        = "dms"
+    user        = "ansible"
     ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
 
@@ -27,7 +27,7 @@ vm = {
     cores       = 1
     ipconfig    = "ip=192.168.178.212/24,gw=192.168.178.1"
     nameserver  = "192.168.178.1"
-    user        = "dms"
+    user        = "ansible"
     ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
 
@@ -43,7 +43,7 @@ vm = {
     cores       = 1
     ipconfig    = "ip=192.168.178.213/24,gw=192.168.178.1"
     nameserver  = "192.168.178.1"
-    user        = "dms"
+    user        = "ansible"
     ssh_key     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
 }

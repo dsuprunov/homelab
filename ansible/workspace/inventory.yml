@@ -1,10 +1,10 @@
 test:
   hosts:
-    test_vm_1:
+    test-vm-1:
       ansible_host: 192.168.178.211
-    test_vm_2:
+    test-vm-2:
       ansible_host: 192.168.178.212
-    test_vm_3:
+    test-vm-3:
       ansible_host: 192.168.178.213
   vars:
-    ansible_user: dms
+    ansible_user: ansible
