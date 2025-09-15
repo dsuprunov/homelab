@@ -1,4 +1,4 @@
-test:
+all:
   hosts:
     test-vm-1:
       ansible_host: 192.168.178.211
@@ -8,3 +8,13 @@ test:
       ansible_host: 192.168.178.213
   vars:
     ansible_user: ansible
+
+test:
+  hosts:
+    test-vm-1:
+    test-vm-2:
+    test-vm-3:
+
+docker:
+  hosts:
+    test-vm-1:
