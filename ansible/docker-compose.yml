@@ -4,9 +4,10 @@ services:
     container_name: ansible
     image: ansible
     environment:
-      - ANSIBLE_HOST_KEY_CHECKING=false
+      - SSH_AUTH_SOCK=/ssh-agent
     volumes:
-      - .:/ansible
+      - ${SSH_AUTH_SOCK}:/ssh-agent
+      - ./workspace:/ansible
     working_dir: /ansible
     entrypoint: ["/bin/sh", "-c"]
     command: ["tail -f /dev/null"]
