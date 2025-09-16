@@ -18,3 +18,7 @@ test:
 docker:
   hosts:
     test-vm-1:
+
+pihole:
+  hosts:
+    test-vm-1:

@@ -1,0 +1,46 @@
+- name: Configure
+  ansible.builtin.set_fact:
+    _pihole_bind_ip: "{{ pihole_bind_ip | default(ansible_default_ipv4.address) }}"
+    _pihole_password: "{{ pihole_password | default('qwerty') }}"
+    _pihole_http_port: "{{ pihole_http_port | default(20080) }}"
+    _pihole_https_port: "{{ pihole_https_port | default(20443) }}"
+
+- name: Ensure /opt/pihole exists
+  ansible.builtin.file:
+    path: /opt/pihole
+    state: directory
+    mode: "0755"
+
+- name: Write /opt/pihole/docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/pihole/docker-compose.yml
+    mode: "0644"
+    content: |
+      services:
+        pihole:
+          container_name: pihole
+          image: pihole/pihole:latest
+          restart: unless-stopped
+          ports:
+            - "{{ _pihole_bind_ip }}:53:53/tcp"
+            - "{{ _pihole_bind_ip }}:53:53/udp"
+            - "{{ _pihole_http_port }}:80/tcp"
+            - "{{ _pihole_https_port }}:443/tcp"
+          environment:
+            TZ: 'Europe/Berlin'
+            FTLCONF_webserver_api_password: '{{ _pihole_password }}'
+            FTLCONF_dns_listeningMode: 'all'
+          cap_add:
+            - NET_ADMIN
+            - SYS_TIME
+            - SYS_NICE
+
+- name: Deploy/Update Pi-hole
+  community.docker.docker_compose_v2:
+    project_src: /opt/pihole
+    files: ["docker-compose.yml"]
+    state: present
+    pull: always
+    recreate: auto
+    remove_orphans: true
+  when: not ansible_check_mode
