@@ -26,6 +26,11 @@ docker exec -it ansible ansible-playbook docker.yml
 ```
 
 ```bash
+mkdir -p workspace/roles/pihole/vars
+docker exec -it ansible sh -lc '
+  ansible-vault encrypt_string "<YOUR_PASSWORD>" --name webpassword > roles/pihole/vars/main.yml
+'
+
 docker exec -it ansible ansible-playbook pihole.yml --syntax-check
 docker exec -it ansible ansible-playbook pihole.yml --check
 docker exec -it ansible ansible-playbook pihole.yml

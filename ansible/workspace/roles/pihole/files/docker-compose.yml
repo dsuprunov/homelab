@@ -11,8 +11,19 @@ services:
     environment:
       TZ: 'Etc/UTC'
       FTLCONF_dns_listeningMode: 'all'
-      FTLCONF_webserver_api_password: 'qwerty'
-      PIHOLE_UID: "${PIHOLE_UID}"
-      PIHOLE_GID: "${PIHOLE_GID}"
+      WEBPASSWORD_FILE: webpassword
     volumes:
-      - ./etc-pihole:/etc/pihole
+      - data:/etc/pihole
+    secrets:
+      - webpassword
+    cap_add:
+      - NET_ADMIN
+      - SYS_TIME
+      - SYS_NICE
+
+volumes:
+  data: {}
+
+secrets:
+  webpassword:
+    file: ./webpassword.txt

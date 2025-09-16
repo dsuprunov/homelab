@@ -10,38 +10,10 @@
       }}
   changed_when: false
 
-- name: Create user group
-  ansible.builtin.group:
-    name: pihole
-    system: true
-    state: present
-
-- name: Create user
-  ansible.builtin.user:
-    name: pihole
-    group: pihole
-    home: /nonexistent
-    shell: /usr/sbin/nologin
-    create_home: false
-    system: true
-    state: present
-
-- name: Get uid
-  ansible.builtin.command: id -u pihole
-  register: pihole_uid
-  changed_when: false
-
-- name: Get gid
-  ansible.builtin.command: id -g pihole
-  register: pihole_gid
-  changed_when: false
-
 - name: Create
   ansible.builtin.file:
     path: "/opt/pihole"
     state: directory
-    owner: pihole
-    group: pihole
     mode: "0755"
 
 - name: Copy docker-compose.yml
@@ -58,8 +30,13 @@
       PIHOLE_IP={{ pihole.ip }}
       PIHOLE_HTTP_PORT={{ pihole.http_port }}
       PIHOLE_HTTPS_PORT={{ pihole.https_port }}
-      PIHOLE_UID={{ pihole_uid.stdout | trim }}
-      PIHOLE_GID={{ pihole_gid.stdout | trim }}
+
+- name: Write Pi-hole secret
+  copy:
+    dest: /opt/pihole/webpassword.txt
+    mode: "0600"
+    content: "{{ webpassword }}"
+  no_log: true
 
 - name: Deploy/Update
   community.docker.docker_compose_v2:
