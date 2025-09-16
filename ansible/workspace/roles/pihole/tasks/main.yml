@@ -1,43 +1,69 @@
-- name: Configure
+- name: Config
   ansible.builtin.set_fact:
-    _pihole_bind_ip: "{{ pihole_bind_ip | default(ansible_default_ipv4.address) }}"
-    _pihole_password: "{{ pihole_password | default('qwerty') }}"
-    _pihole_http_port: "{{ pihole_http_port | default(20080) }}"
-    _pihole_https_port: "{{ pihole_https_port | default(20443) }}"
+    pihole: >-
+      {{
+        {
+          'ip': ansible_default_ipv4.address,
+          'http_port': 20080,
+          'https_port': 20443,
+        }
+      }}
+  changed_when: false
 
-- name: Ensure /opt/pihole exists
+- name: Create user group
+  ansible.builtin.group:
+    name: pihole
+    system: true
+    state: present
+
+- name: Create user
+  ansible.builtin.user:
+    name: pihole
+    group: pihole
+    home: /nonexistent
+    shell: /usr/sbin/nologin
+    create_home: false
+    system: true
+    state: present
+
+- name: Get uid
+  ansible.builtin.command: id -u pihole
+  register: pihole_uid
+  changed_when: false
+
+- name: Get gid
+  ansible.builtin.command: id -g pihole
+  register: pihole_gid
+  changed_when: false
+
+- name: Create
   ansible.builtin.file:
-    path: /opt/pihole
+    path: "/opt/pihole"
     state: directory
+    owner: pihole
+    group: pihole
     mode: "0755"
 
-- name: Write /opt/pihole/docker-compose.yml
+- name: Copy docker-compose.yml
   ansible.builtin.copy:
-    dest: /opt/pihole/docker-compose.yml
+    src: docker-compose.yml
+    dest: "/opt/pihole/docker-compose.yml"
+    mode: "0644"
+
+- name: Create .env
+  ansible.builtin.copy:
+    dest: "/opt/pihole/.env"
     mode: "0644"
     content: |
-      services:
-        pihole:
-          container_name: pihole
-          image: pihole/pihole:latest
-          restart: unless-stopped
-          ports:
-            - "{{ _pihole_bind_ip }}:53:53/tcp"
-            - "{{ _pihole_bind_ip }}:53:53/udp"
-            - "{{ _pihole_http_port }}:80/tcp"
-            - "{{ _pihole_https_port }}:443/tcp"
-          environment:
-            TZ: 'Europe/Berlin'
-            FTLCONF_webserver_api_password: '{{ _pihole_password }}'
-            FTLCONF_dns_listeningMode: 'all'
-          cap_add:
-            - NET_ADMIN
-            - SYS_TIME
-            - SYS_NICE
+      PIHOLE_IP={{ pihole.ip }}
+      PIHOLE_HTTP_PORT={{ pihole.http_port }}
+      PIHOLE_HTTPS_PORT={{ pihole.https_port }}
+      PIHOLE_UID={{ pihole_uid.stdout | trim }}
+      PIHOLE_GID={{ pihole_gid.stdout | trim }}
 
-- name: Deploy/Update Pi-hole
+- name: Deploy/Update
   community.docker.docker_compose_v2:
-    project_src: /opt/pihole
+    project_src: "/opt/pihole"
     files: ["docker-compose.yml"]
     state: present
     pull: always
