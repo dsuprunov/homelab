@@ -2,11 +2,12 @@
 >
 > We reserve service accounts **UID/GID** in the **3000–3999** range.
 > - 3001 - `test-vm-nfs`
+> - 3002 - `vm-pi-hole` 
 
-### test-vm-nas
+### vm-nas
 
 ```bash
-qm clone 9002 202 --name test-vm-nas --full 1
+qm clone 9002 202 --name vm-nas --full 1
 
 qm resize 202 scsi0 16G
 
@@ -82,30 +83,33 @@ sudo exportfs -ra && sudo exportfs -v
 ### per-client: test-vm-nfs (192.168.178.211, UID/GID=3001)
 
 ```bash
-sudo groupadd -g 3001 test-vm-nfs
-sudo useradd -u 3001 -g 3001 -s /usr/sbin/nologin -M test-vm-nfs
+SHARE="test-vm-nfs"
+CLIENT_IP="192.168.178.211/32"
+SVC_UID=3001
+SVC_GID=3001
 
-sudo test -d /srv/storage/disk1/lost+found || echo "ERROR: /srv/storage/disk1 is not mounted; mount it first" 
+sudo groupadd -g "$SVC_GID" "$SHARE"
+sudo useradd -u "$SVC_UID" -g "$SVC_GID" -s /usr/sbin/nologin -M "$SHARE"
 
-sudo mkdir -p /srv/storage/disk1/test-vm-nfs
-sudo chown test-vm-nfs:test-vm-nfs /srv/storage/disk1/test-vm-nfs
-sudo chmod 2770 /srv/storage/disk1/test-vm-nfs
-sudo setfacl -b /srv/storage/disk1/test-vm-nfs
-sudo setfacl -k /srv/storage/disk1/test-vm-nfs
+sudo test -d /srv/storage/disk1/lost+found || echo "ERROR: /srv/storage/disk1 is not mounted; mount it first"
 
-sudo mkdir -p /srv/nfs/test-vm-nfs
-grep -qE "^[^#].*\s/srv/nfs/test-vm-nfs\s" /etc/fstab || echo "/srv/storage/disk1/test-vm-nfs /srv/nfs/test-vm-nfs none bind 0 0" | sudo tee -a /etc/fstab
+sudo mkdir -p "/srv/storage/disk1/$SHARE"
+sudo chown "$SHARE:$SHARE" "/srv/storage/disk1/$SHARE"
+sudo chmod 2770 "/srv/storage/disk1/$SHARE"
+sudo setfacl -b "/srv/storage/disk1/$SHARE"
+sudo setfacl -k "/srv/storage/disk1/$SHARE"
+
+sudo mkdir -p "/srv/nfs/$SHARE"
+grep -qE "^[^#].*\s/srv/nfs/$SHARE\s" /etc/fstab || echo "/srv/storage/disk1/$SHARE /srv/nfs/$SHARE none bind 0 0" | sudo tee -a /etc/fstab
 
 sudo systemctl daemon-reload
-sudo mount /srv/nfs/test-vm-nfs
+sudo mount "/srv/nfs/$SHARE"
 
-findmnt -T /srv/nfs/test-vm-nfs
-
-echo "/srv/nfs/test-vm-nfs 192.168.178.211/32(rw,all_squash,sync,no_subtree_check,anonuid=3001,anongid=3001)" | sudo tee /etc/exports.d/test-vm-nfs.exports
+echo "/srv/nfs/$SHARE $CLIENT_IP(rw,all_squash,sync,no_subtree_check,anonuid=$SVC_UID,anongid=$SVC_GID)" | sudo tee "/etc/exports.d/$SHARE.exports"
 sudo exportfs -ra
 
 sudo exportfs -v
-findmnt -T /srv/nfs/test-vm-nfs
+findmnt -T "/srv/nfs/$SHARE"
 sudo cat /proc/fs/nfsd/versions
-ls -ld /srv/storage/disk1/test-vm-nfs
+ls -ld "/srv/storage/disk1/$SHARE"
 ```
