@@ -22,28 +22,17 @@ sudo apt install -y qemu-guest-agent nfs-common
 sudo systemctl enable --now qemu-guest-agent
 systemctl status qemu-guest-agent
 
-#
-# test client setup
-#
-
-getent group 3001 >/dev/null || sudo groupadd -g 3001 test-vm-nfs
-id -nG ubuntu | grep -qw test-vm-nfs || sudo usermod -aG test-vm-nfs ubuntu
-
 sudo mkdir -p /mnt/test-vm-nfs
-
 grep -qE "^[^#].*\s/mnt/test-vm-nfs\s" /etc/fstab || echo "192.168.178.202:/test-vm-nfs /mnt/test-vm-nfs nfs nfsvers=4.2,_netdev,x-systemd.automount,nosuid,nodev,noexec,nofail 0 0" | sudo tee -a /etc/fstab
-
 sudo systemctl daemon-reload
 sudo systemctl restart remote-fs.target
 
-groups ubuntu
 findmnt -T /mnt/test-vm-nfs || echo "Will automount on first access"
-
-sudo -u ubuntu -g test-vm-nfs touch /mnt/test-vm-nfs/test-file
+touch /mnt/test-vm-nfs/test-file
 ls -la /mnt/test-vm-nfs/test-file
-
 ls -l /mnt/test-vm-nfs
 findmnt -T /mnt/test-vm-nfs -o TARGET,SOURCE,FSTYPE,OPTIONS
+nfsstat -m
 
 dd if=/dev/zero of=/mnt/test-vm-nfs/test-4G.bin bs=1M count=4096 status=progress conv=fdatasync
 ls -lh /mnt/test-vm-nfs/test-4G.bin
