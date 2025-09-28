@@ -17,6 +17,7 @@ resource "proxmox_vm_qemu" "vm" {
   # automatic_reboot = true
 
   # ---------- Hardware ----------
+  bios    = "ovmf"
   memory  = each.value.memory
   balloon = each.value.memory
 
@@ -34,9 +35,11 @@ resource "proxmox_vm_qemu" "vm" {
     scsi {
       scsi0 {
         disk {
-          storage  = "local-lvm"
-          size     = each.value.disk
-          iothread = true
+          storage    = "local-lvm"
+          size       = each.value.disk
+          iothread   = true
+          discard    = true
+          emulatessd = true
         }
       }
       scsi2 {

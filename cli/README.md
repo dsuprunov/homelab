@@ -21,12 +21,12 @@ qm template 9001
 
 qm clone 9001 211 --name test-vm-211 --full 1
 
-qm resize 211 scsi0 16G
+qm resize 211 scsi0 8G
 
 qm set 211 \
   --scsi2 local-lvm:cloudinit \
   --ipconfig0 ip=192.168.178.211/24,gw=192.168.178.1 \
-  --nameserver 192.168.178.201 \
+  --nameserver 192.168.178.1 \
   --ciuser dms \
   --sshkeys ~/.ssh/homelab-ed25519.pub
   
@@ -56,12 +56,12 @@ qm template 9002
 
 qm clone 9002 212 --name test-vm-212 --full 1
 
-qm resize 212 scsi0 16G
+qm resize 212 scsi0 8G
 
 qm set 212 \
   --scsi2 local-lvm:cloudinit \
   --ipconfig0 ip=192.168.178.212/24,gw=192.168.178.1 \
-  --nameserver 192.168.178.201 \
+  --nameserver 192.168.178.1 \
   --ciuser dms \
   --sshkeys ~/.ssh/homelab-ed25519.pub
   
