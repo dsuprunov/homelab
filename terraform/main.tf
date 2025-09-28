@@ -6,7 +6,7 @@ resource "proxmox_vm_qemu" "vm" {
 
   # ---------- Identity & source ----------
   vmid        = each.value.vmid
-  name        = each.value.name
+  name        = each.key
   target_node = each.value.target_node
   clone       = each.value.template
   full_clone  = true
@@ -72,7 +72,7 @@ resource "proxmox_vm_qemu" "vm" {
   sshkeys    = each.value.ssh_key
 
   # ---------- Misc ----------
-  tags = try(join(";", each.value.tags), null)
+  tags = join(";", coalesce(each.value.tags, []))
 }
 
 #
@@ -83,7 +83,7 @@ resource "proxmox_lxc" "ct" {
 
   # ---------- Identity & source ----------
   vmid        = each.value.vmid
-  hostname    = each.value.name
+  hostname    = each.key
   target_node = each.value.target_node
   ostemplate  = each.value.template
 
@@ -115,6 +115,5 @@ resource "proxmox_lxc" "ct" {
   ssh_public_keys = each.value.ssh_key
 
   # ---------- Misc ----------
-  tags = try(join(";", each.value.tags), null)
-
+  tags = join(";", coalesce(each.value.tags, []))
 }
