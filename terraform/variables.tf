@@ -14,6 +14,7 @@ variable "proxmox_api_token_secret" {
 variable "vm" {
   type = map(object({
     vmid        = number
+    tags        = optional(list(string), [])
     template    = string
     target_node = string
     state       = string
@@ -25,13 +26,13 @@ variable "vm" {
     nameserver  = optional(string)
     user        = string
     ssh_key     = string
-    tags        = optional(list(string), [])
   }))
 }
 
 variable "lxc" {
   type = map(object({
     vmid        = number
+    tags        = optional(list(string), [])
     template    = string
     target_node = string
     start       = bool
@@ -43,6 +44,5 @@ variable "lxc" {
     gw          = optional(string)
     nameserver  = optional(string)
     ssh_key     = string
-    tags        = optional(list(string), [])
   }))
 }

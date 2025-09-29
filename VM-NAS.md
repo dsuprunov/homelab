@@ -38,7 +38,7 @@ lsblk -o NAME,SIZE,MODEL,SERIAL,TYPE,MOUNTPOINT
 DATA_DISK="/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
 
 #
-# NFS Option — Clean state (wipe/create new partition)
+# NFS Option A — Clean state (wipe/create new partition)
 #
 sudo wipefs -a -n "$DATA_DISK"
 sudo wipefs -a    "$DATA_DISK"

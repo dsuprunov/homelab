@@ -1,6 +1,7 @@
 vm = {
   vm-nas = {
     vmid        = 202
+    tags        = ["debian", "nas"]
     template    = "debian-13-ci"
     target_node = "pve"
     state       = "running"
@@ -16,6 +17,7 @@ vm = {
 
   vm-pi-hole = {
     vmid        = 203
+    tags        = ["ubuntu", "pi-hole"]
     template    = "ubuntu-24.04-ci"
     target_node = "pve"
     state       = "running"
@@ -34,6 +36,7 @@ vm = {
   #
   vm-k8s-lb-01 = {
     vmid        = 222
+    tags        = ["ubuntu", "k8s"]
     template    = "ubuntu-24.04-ci"
     target_node = "pve"
     state       = "running"
@@ -48,6 +51,7 @@ vm = {
   }
   vm-k8s-lb-02 = {
     vmid        = 223
+    tags        = ["ubuntu", "k8s"]
     template    = "ubuntu-24.04-ci"
     target_node = "pve"
     state       = "running"

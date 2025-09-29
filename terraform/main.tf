@@ -72,7 +72,7 @@ resource "proxmox_vm_qemu" "vm" {
   sshkeys    = each.value.ssh_key
 
   # ---------- Misc ----------
-  tags = join(";", coalesce(each.value.tags, []))
+  tags = length(try(each.value.tags, [])) > 0 ? join(";", sort(each.value.tags)) : null
 }
 
 #
@@ -115,5 +115,5 @@ resource "proxmox_lxc" "ct" {
   ssh_public_keys = each.value.ssh_key
 
   # ---------- Misc ----------
-  tags = join(";", coalesce(each.value.tags, []))
+  tags = length(try(each.value.tags, [])) > 0 ? join(";", sort(each.value.tags)) : null
 }

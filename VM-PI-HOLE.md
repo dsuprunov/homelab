@@ -76,8 +76,8 @@ services:
       TZ: 'Etc/UTC'
       FTLCONF_dns_listeningMode: "all"
       WEBPASSWORD_FILE: webpassword
-      PIHOLE_UID: "3002"
-      PIHOLE_GID: "3002"
+      PIHOLE_UID: "3001"
+      PIHOLE_GID: "3001"
     volumes:
       - pihole-data:/etc/pihole:rw,nocopy
     secrets:
