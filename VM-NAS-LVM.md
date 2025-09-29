@@ -19,8 +19,7 @@ lsblk -no NAME,SIZE,TYPE "$(readlink -f ${NAS_DISK_ID})"
 #
 # Option A — Clean state (wipe/create new VG on whole disk)
 #
-sgdisk --zap-all ${NAS_DISK_ID}
-wipefs -a -f ${NAS_DISK_ID}
+sgdisk --zap-all ${NAS_DISK_ID} && wipefs -a -f ${NAS_DISK_ID}
 
 pvcreate ${NAS_DISK_ID}
 vgcreate ${NAS_LVM_GROUP} ${NAS_DISK_ID}
