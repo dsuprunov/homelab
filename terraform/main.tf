@@ -73,6 +73,10 @@ resource "proxmox_vm_qemu" "vm" {
 
   # ---------- Misc ----------
   tags = length(try(each.value.tags, [])) > 0 ? join(";", sort(each.value.tags)) : null
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 #
@@ -116,4 +120,8 @@ resource "proxmox_lxc" "ct" {
 
   # ---------- Misc ----------
   tags = length(try(each.value.tags, [])) > 0 ? join(";", sort(each.value.tags)) : null
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }

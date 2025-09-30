@@ -52,4 +52,13 @@ qm set 202 \
   --onboot 1
   
 qm start 202
+
+lvs
+lvs -o vg_name,lv_name,lv_size,lv_attr,devices
+```
+
+```bash
+qm set 202 \
+  --scsihw virtio-scsi-single \
+  --scsi1 nas-lvm:vm-202-disk-1,discard=on,iothread=1,ssd=1
 ```
