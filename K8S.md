@@ -2,8 +2,8 @@
 |------------|-------------------------------|-----------------|-------:|-----:|------:|
 | Ingress IP |                               | 192.168.178.211 |        |      |       |
 | API VIP    | `k8s-api.home.arpa`           | 192.168.178.221 |        |      |       |
-| LB #1      | `vm-k8s-lb-01.home.arpa`      | 192.168.178.222 | 1 vCPU | 1 GB |  8 GB |
-| LB #2      | `vm-k8s-lb-02.home.arpa`      | 192.168.178.223 | 1 vCPU | 1 GB |  8 GB |
+| LB #1      | `vm-k8s-api-lb-01.home.arpa`  | 192.168.178.222 | 1 vCPU | 1 GB |  8 GB |
+| LB #2      | `vm-k8s-api-lb-02.home.arpa`  | 192.168.178.223 | 1 vCPU | 1 GB |  8 GB |
 | Control #1 | `vm-k8s-control-01.home.arpa` | 192.168.178.224 | 1 vCPU | 3 GB | 20 GB |
 | Control #2 | `vm-k8s-control-02.home.arpa` | 192.168.178.225 | 1 vCPU | 3 GB | 20 GB |
 | Control #3 | `vm-k8s-control-03.home.arpa` | 192.168.178.226 | 1 vCPU | 3 GB | 20 GB |
@@ -11,7 +11,7 @@
 | Worker #2  | `vm-k8s-worker-02.home.arpa`  | 192.168.178.228 | 1 vCPU | 4 GB | 40 GB |
 | Worker #3  | `vm-k8s-worker-03.home.arpa`  | 192.168.178.229 | 1 vCPU | 4 GB | 40 GB |
 
-### vm-k8s-lb-01
+### vm-k8s-api-lb-01
 
 ```bash
 qm clone 9001 222 --name vm-k8s-lb-01 --full 1
@@ -39,26 +39,27 @@ global
     log /dev/log local0
     log /dev/log local1 notice
     maxconn 20480
-    daemon
 
 defaults
     log     global
     mode    tcp
+    option  tcplog
     option  dontlognull
     timeout connect 5s
     timeout client  1m
     timeout server  1m
+    default-server  inter 2s fall 2 rise 2
 
-frontend k8s_api
+frontend k8s-api
     bind 192.168.178.221:6443
-    default_backend k8s_api_be
+    default_backend k8s-api-backend
 
-backend k8s_api_be
+backend k8s-api-backend
     balance roundrobin
     option  tcp-check
-    server cp1 192.168.178.224:6443 check
-#    server cp2 192.168.178.225:6443 check
-#    server cp3 192.168.178.226:6443 check
+    server cp01 192.168.178.224:6443 check
+    server cp02 192.168.178.225:6443 check
+    server cp03 192.168.178.226:6443 check
 EOF
 
 sudo systemctl enable --now haproxy
@@ -77,6 +78,14 @@ vrrp_instance VI_51 {
   virtual_router_id 51
   priority 101
   advert_int 1
+  nopreempt
+  garp_master_delay 1
+  garp_master_repeat 2
+  
+  authentication {
+    auth_type PASS
+    auth_pass 1fta7ix8tt
+  }
 
   unicast_src_ip 192.168.178.222
   unicast_peer {
@@ -98,7 +107,7 @@ sudo systemctl enable --now keepalived
 ip a | grep 192.168.178.221
 ```
 
-### vm-k8s-lb-02
+### vm-k8s-api-lb-02
 
 ```bash
 qm clone 9001 223 --name vm-k8s-lb-02 --full 1
@@ -126,26 +135,27 @@ global
     log /dev/log local0
     log /dev/log local1 notice
     maxconn 20480
-    daemon
 
 defaults
     log     global
     mode    tcp
+    option  tcplog
     option  dontlognull
     timeout connect 5s
     timeout client  1m
     timeout server  1m
+    default-server  inter 2s fall 2 rise 2
 
-frontend k8s_api
+frontend k8s-api
     bind 192.168.178.221:6443
-    default_backend k8s_api_be
+    default_backend k8s-api-backend
 
-backend k8s_api_be
+backend k8s-api-backend
     balance roundrobin
     option  tcp-check
-    server cp1 192.168.178.224:6443 check
-#    server cp2 192.168.178.225:6443 check
-#    server cp3 192.168.178.226:6443 check
+    server cp01 192.168.178.224:6443 check
+    server cp02 192.168.178.225:6443 check
+    server cp03 192.168.178.226:6443 check
 EOF
 
 sudo systemctl enable --now haproxy
@@ -164,6 +174,14 @@ vrrp_instance VI_51 {
   virtual_router_id 51
   priority 100
   advert_int 1
+  nopreempt
+  garp_master_delay 1
+  garp_master_repeat 2
+  
+  authentication {
+    auth_type PASS
+    auth_pass 1fta7ix8tt
+  }
 
   unicast_src_ip 192.168.178.223
   unicast_peer {

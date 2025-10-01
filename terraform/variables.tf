@@ -11,14 +11,24 @@ variable "proxmox_api_token_secret" {
   sensitive = true
 }
 
+variable "proxmox_root_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "proxmox_root_password" {
+  type      = string
+  sensitive = true
+}
+
 variable "vm" {
   type = map(object({
     vmid        = number
     tags        = optional(list(string), [])
     template    = string
-    target_node = string
-    state       = string
-    onboot      = bool
+    target_node = optional(string, "pve")
+    state       = optional(string, "running")
+    onboot      = optional(bool, true)
     memory      = number
     disk        = string
     cores       = number
@@ -26,23 +36,22 @@ variable "vm" {
     nameserver  = optional(string)
     user        = string
     ssh_key     = string
-  }))
-}
-
-variable "lxc" {
-  type = map(object({
-    vmid        = number
-    tags        = optional(list(string), [])
-    template    = string
-    target_node = string
-    start       = bool
-    onboot      = bool
-    memory      = number
-    disk        = string
-    cores       = number
-    ip          = string
-    gw          = optional(string)
-    nameserver  = optional(string)
-    ssh_key     = string
+    attachments = optional(object({
+      scsi1 = optional(object({
+        disk = optional(object({
+          storage    = string
+          size       = string
+          iothread   = optional(bool, true)
+          discard    = optional(bool, true)
+          emulatessd = optional(bool, true)
+        }))
+        passthrough = optional(object({
+          file       = string
+          iothread   = optional(bool, true)
+          discard    = optional(bool, true)
+          emulatessd = optional(bool, true)
+        }))
+      }))
+    }))
   }))
 }

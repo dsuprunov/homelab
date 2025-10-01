@@ -12,26 +12,6 @@ output "vm" {
       ipconfig = vm.ipconfig
       # nameserver = try(vm.nameserver, null)
       user = vm.user
-      # tags       = join(";", coalesce(vm.tags, []))
-    }
-  }
-}
-
-output "lxc" {
-  value = {
-    for k, lxc in var.lxc : k => {
-      vmid = lxc.vmid
-      # template = lxc.template
-      # target_node = lxc.target_node
-      # start       = lxc.start
-      # onboot      = lxc.onboot
-      # memory     = lxc.memory
-      # disk       = lxc.disk
-      # cores      = lxc.cores
-      ip = lxc.ip
-      # gw         = try(lxc.gw, null)
-      # nameserver = try(lxc.nameserver, null)
-      # tags       = join(";", coalesce(lxc.tags, []))
     }
   }
 }
