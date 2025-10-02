@@ -65,6 +65,12 @@ EOF
 sudo systemctl enable --now haproxy
 
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
+dmitry.suprunov@arqiver-prod-control-1:~$ more /etc/keepalived/keepalived.conf
+global_defs {
+  script_user root
+  enable_script_security
+}
+
 vrrp_script chk_haproxy {
   script "/usr/bin/pgrep -x haproxy"
   interval 2
@@ -84,7 +90,7 @@ vrrp_instance VI_51 {
   
   authentication {
     auth_type PASS
-    auth_pass 1fta7ix8tt
+    auth_pass 1fta7ix8
   }
 
   unicast_src_ip 192.168.178.222
@@ -161,6 +167,11 @@ EOF
 sudo systemctl enable --now haproxy
 
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
+global_defs {
+  script_user root
+  enable_script_security
+}
+
 vrrp_script chk_haproxy {
   script "/usr/bin/pgrep -x haproxy"
   interval 2
@@ -180,7 +191,7 @@ vrrp_instance VI_51 {
   
   authentication {
     auth_type PASS
-    auth_pass 1fta7ix8tt
+    auth_pass 1fta7ix8
   }
 
   unicast_src_ip 192.168.178.223
@@ -201,4 +212,10 @@ EOF
 sudo systemctl enable --now keepalived
 
 ip a | grep 192.168.178.221
+```
+
+```bash
+ip -br a
+sudo journalctl -u keepalived -b
+sudo journalctl -u keepalived -b | egrep -i 'MASTER|BACKUP|FAULT|state'
 ```
