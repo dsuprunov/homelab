@@ -36,6 +36,7 @@ sudo sysctl -p /etc/sysctl.d/99-nonlocal-bind.conf
 
 sudo tee /etc/haproxy/haproxy.cfg >/dev/null <<'EOF'
 global
+    node vm-k8s-api-lb-01
     user haproxy
     group haproxy
     log /dev/log local0
@@ -51,6 +52,14 @@ defaults
     timeout client  1m
     timeout server  1m
     default-server  inter 2s fall 2 rise 2
+    
+listen stats
+    bind 192.168.178.222:8404
+    mode http
+    stats enable
+    stats uri /stats
+    stats refresh 5s
+    stats show-node
 
 frontend k8s-api
     bind 192.168.178.221:6443
@@ -67,6 +76,7 @@ EOF
 sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl enable --now haproxy
 
+sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
 global_defs {
   script_user keepalived_script
@@ -110,7 +120,6 @@ vrrp_instance VI_51 {
 }
 EOF
 
-sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
 sudo keepalived -t
 sudo systemctl enable --now keepalived
 ```
@@ -140,6 +149,7 @@ sudo sysctl -p /etc/sysctl.d/99-nonlocal-bind.conf
 
 sudo tee /etc/haproxy/haproxy.cfg >/dev/null <<'EOF'
 global
+    node vm-k8s-api-lb-02
     user haproxy
     group haproxy
     log /dev/log local0
@@ -155,6 +165,14 @@ defaults
     timeout client  1m
     timeout server  1m
     default-server  inter 2s fall 2 rise 2
+    
+listen stats
+    bind 192.168.178.223:8404
+    mode http
+    stats enable
+    stats uri /stats
+    stats refresh 5s
+    stats show-node
 
 frontend k8s-api
     bind 192.168.178.221:6443
@@ -171,6 +189,7 @@ EOF
 sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl enable --now haproxy
 
+sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
 global_defs {
   script_user keepalived_script
@@ -214,7 +233,6 @@ vrrp_instance VI_51 {
 }
 EOF
 
-sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
 sudo keepalived -t
 sudo systemctl enable --now keepalived
 ```
