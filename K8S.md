@@ -32,10 +32,12 @@ sudo apt install -y qemu-guest-agent haproxy keepalived
 sudo systemctl enable --now qemu-guest-agent
 
 echo 'net.ipv4.ip_nonlocal_bind = 1' | sudo tee /etc/sysctl.d/99-nonlocal-bind.conf
-sudo sysctl --system
+sudo sysctl -p /etc/sysctl.d/99-nonlocal-bind.conf
 
 sudo tee /etc/haproxy/haproxy.cfg >/dev/null <<'EOF'
 global
+    user haproxy
+    group haproxy
     log /dev/log local0
     log /dev/log local1 notice
     maxconn 20480
@@ -62,12 +64,12 @@ backend k8s-api-backend
     server cp03 192.168.178.226:6443 check
 EOF
 
+sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl enable --now haproxy
 
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
-dmitry.suprunov@arqiver-prod-control-1:~$ more /etc/keepalived/keepalived.conf
 global_defs {
-  script_user root
+  script_user keepalived_script
   enable_script_security
 }
 
@@ -108,9 +110,9 @@ vrrp_instance VI_51 {
 }
 EOF
 
+sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
+sudo keepalived -t
 sudo systemctl enable --now keepalived
-
-ip a | grep 192.168.178.221
 ```
 
 ### vm-k8s-api-lb-02
@@ -134,10 +136,12 @@ sudo apt install -y qemu-guest-agent haproxy keepalived
 sudo systemctl enable --now qemu-guest-agent
 
 echo 'net.ipv4.ip_nonlocal_bind = 1' | sudo tee /etc/sysctl.d/99-nonlocal-bind.conf
-sudo sysctl --system
+sudo sysctl -p /etc/sysctl.d/99-nonlocal-bind.conf
 
 sudo tee /etc/haproxy/haproxy.cfg >/dev/null <<'EOF'
 global
+    user haproxy
+    group haproxy
     log /dev/log local0
     log /dev/log local1 notice
     maxconn 20480
@@ -164,11 +168,12 @@ backend k8s-api-backend
     server cp03 192.168.178.226:6443 check
 EOF
 
+sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl enable --now haproxy
 
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
 global_defs {
-  script_user root
+  script_user keepalived_script
   enable_script_security
 }
 
@@ -209,13 +214,16 @@ vrrp_instance VI_51 {
 }
 EOF
 
+sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
+sudo keepalived -t
 sudo systemctl enable --now keepalived
-
-ip a | grep 192.168.178.221
 ```
 
 ```bash
 ip -br a
+
 sudo journalctl -u keepalived -b
 sudo journalctl -u keepalived -b | egrep -i 'MASTER|BACKUP|FAULT|state'
+
+sudo journalctl -u haproxy -b
 ```
