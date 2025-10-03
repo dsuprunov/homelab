@@ -43,7 +43,7 @@ vm = {
     memory     = 1024
     disk       = "8G"
     ipconfig   = "ip=192.168.178.222/24,gw=192.168.178.1"
-    nameserver = "192.168.178.1"
+    nameserver = "192.168.178.203"
     user       = "ubuntu"
     ssh_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }
@@ -56,7 +56,20 @@ vm = {
     memory     = 1024
     disk       = "8G"
     ipconfig   = "ip=192.168.178.223/24,gw=192.168.178.1"
-    nameserver = "192.168.178.1"
+    nameserver = "192.168.178.203"
+    user       = "ubuntu"
+    ssh_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
+  }
+
+  vm-k8s-control-01 = {
+    vmid       = 224
+    tags       = ["ubuntu", "k8s", "control"]
+    template   = "ubuntu-24.04-ci"
+    cores      = 2
+    memory     = 3072
+    disk       = "16G"
+    ipconfig   = "ip=192.168.178.224/24,gw=192.168.178.1"
+    nameserver = "192.168.178.203"
     user       = "ubuntu"
     ssh_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
   }

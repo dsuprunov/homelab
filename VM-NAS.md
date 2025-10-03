@@ -27,7 +27,7 @@ ssh debian@192.168.178.202
 sudo apt update
 sudo apt install -y qemu-guest-agent nfs-kernel-server parted acl
 
-sudo systemctl enable --now qemu-guest-agent
+sudo systemctl start qemu-guest-agent
 sudo systemctl status qemu-guest-agent
 
 sudo systemctl enable --now fstrim.timer

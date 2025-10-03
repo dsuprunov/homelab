@@ -18,7 +18,7 @@ resource "proxmox_vm_qemu" "vm-nas" {
   bios    = "ovmf"
   machine = "q35"
   cpu {
-    cores   = 1
+    cores   = each.value.cores
     sockets = 1
     type    = "host"
     numa    = false

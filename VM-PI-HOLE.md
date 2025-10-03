@@ -23,8 +23,7 @@ ssh ubuntu@192.168.178.203
 
 sudo apt update
 sudo apt install -y qemu-guest-agent nfs-common
-
-sudo systemctl enable --now qemu-guest-agent
+sudo systemctl start qemu-guest-agent
 
 #
 # Docker

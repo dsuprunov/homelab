@@ -19,7 +19,7 @@ ssh ubuntu@192.168.178.211
 sudo apt update
 sudo apt install -y qemu-guest-agent nfs-common
 
-sudo systemctl enable --now qemu-guest-agent
+sudo systemctl start qemu-guest-agent
 systemctl status qemu-guest-agent
 
 sudo mkdir -p /mnt/test-vm-nfs
