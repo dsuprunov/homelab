@@ -101,12 +101,21 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
 
-sudo kubeadm config images pull
-kubeadm config images list
+# sudo kubeadm config images pull
+# kubeadm config images list
 
 #
 # Sanity checks
 #
+uname -r # 5.10+ required
+
+[ "$(stat -fc %T /sys/fs/cgroup)" = "cgroup2fs" ] \
+  && echo "OK: cgroup v2 (cgroup2fs) detected" \
+  || echo "INFO: cgroup v2 not default; Cilium will auto-mount a private cgroup v2"
+  
+mount | grep -q ' on /sys/fs/bpf ' && echo "OK: bpffs mounted" \
+  || echo "INFO: bpffs not mounted; Cilium will auto-mount /sys/fs/bpf"
+
 getent hosts k8s-api.home.arpa
 containerd --version
 sudo test -S /run/containerd/containerd.sock && echo "CRI socket OK" || echo "CRI socket MISSING"
@@ -120,6 +129,12 @@ sudo install -d -m 0750 /etc/kubernetes/kubeadm
 cat <<'EOF' | sudo tee /etc/kubernetes/kubeadm/kubeadm.yaml >/dev/null
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
+
+skipPhases:
+  - addon/kube-proxy
+  
+nodeRegistration:
+  criSocket: "unix:///run/containerd/containerd.sock"
 
 localAPIEndpoint:
   advertiseAddress: "192.168.178.224"
@@ -148,10 +163,11 @@ kind: KubeletConfiguration
 serverTLSBootstrap: true
 EOF
 
+sudo chmod 640 /etc/kubernetes/kubeadm/kubeadm.yaml
+
 #
 # Validate and initialize the control plane
 #
-sudo chmod 640 /etc/kubernetes/kubeadm/kubeadm.yaml
 sudo kubeadm config validate --config /etc/kubernetes/kubeadm/kubeadm.yaml
 sudo kubeadm init --config /etc/kubernetes/kubeadm/kubeadm.yaml --upload-certs
 
@@ -178,17 +194,18 @@ sudo systemctl restart kubelet
 # ===== END: pause-image mismatch fix =====
 #
 
-# kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending | awk '{print $1}'
-CSR_NAME=$(kubectl get csr | grep Pending | awk '{print $1}')
-echo $CSR_NAME
-kubectl certificate approve $CSR_NAME
-
 #
 # kubectl config for the current user
 #
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+# kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending | awk '{print $1}'
+CSR_NAME=$(kubectl get csr | grep Pending | awk '{print $1}')
+echo $CSR_NAME
+kubectl certificate approve $CSR_NAME
 
 #
 # Post-init checks
@@ -199,7 +216,7 @@ timedatectl timesync-status
 kubectl describe node $(hostname) | grep Taints
 kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
 
-kubectl taint nodes vm-k8s-control-01 node-role.kubernetes.io/control-plane:NoSchedule
+# kubectl taint nodes vm-k8s-control-01 node-role.kubernetes.io/control-plane:NoSchedule
 
 kubectl get nodes -o wide
 kubectl get pods -A -o wide
