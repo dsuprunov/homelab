@@ -10,3 +10,8 @@
 | Worker #1  | `vm-k8s-worker-01.home.arpa`  | 192.168.178.227 | 1 vCPU | 4 GB | 40 GB |
 | Worker #2  | `vm-k8s-worker-02.home.arpa`  | 192.168.178.228 | 1 vCPU | 4 GB | 40 GB |
 | Worker #3  | `vm-k8s-worker-03.home.arpa`  | 192.168.178.229 | 1 vCPU | 4 GB | 40 GB |
+
+```bash
+kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl >/dev/null
+source /etc/bash_completion
+```

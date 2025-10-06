@@ -31,7 +31,7 @@ sudo systemctl start qemu-guest-agent
 sudo systemctl status qemu-guest-agent.service
 
 #
-# System configuration (swap, kernel modules, sysctl)
+# System configuration
 #
 sudo swapoff -a
 sudo sed -ri 's/^\s*([^#]\S+\s+\S+\s+swap\s+\S+.*)$/# \1/g' /etc/fstab
@@ -66,7 +66,6 @@ echo \
   $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
-
 sudo apt-get install -y containerd.io
 
 #
@@ -201,9 +200,8 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-
-# kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending | awk '{print $1}'
-CSR_NAME=$(kubectl get csr | grep Pending | awk '{print $1}')
+kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending
+CSR_NAME=$(kubectl get csr --sort-by=.metadata.creationTimestamp | grep control | grep Pending | tail -n1 | awk '{print $1}')
 echo $CSR_NAME
 kubectl certificate approve $CSR_NAME
 
@@ -224,4 +222,92 @@ kubectl get --raw='/readyz?verbose'
 kubectl get --raw='/livez?verbose'
 curl --cacert /etc/kubernetes/pki/ca.crt https://k8s-api.home.arpa:6443/readyz?verbose
 curl --cacert /etc/kubernetes/pki/ca.crt https://k8s-api.home.arpa:6443/livez?verbose
+
+#
+# Install Helm
+#
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+sudo chmod 700 get_helm.sh
+sudo ./get_helm.sh
+
+#
+# Install Cilium
+#
+helm repo add cilium https://helm.cilium.io/
+helm repo update
+
+sudo install -d -m 0755 /etc/kubernetes/cilium
+
+cat <<'EOF' | sudo tee /etc/kubernetes/cilium/values.yaml >/dev/null
+kubeProxyReplacement: true
+k8sServiceHost: "k8s-api.home.arpa"
+k8sServicePort: 6443
+
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - 10.244.0.0/16
+    clusterPoolIPv4MaskSize: 24
+    
+operator:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              io.cilium/app: operator
+EOF
+
+cat <<'EOF' | sudo tee /etc/kubernetes/cilium/values.operator-1.yaml >/dev/null
+operator:
+  replicas: 1
+EOF
+
+cat <<'EOF' | sudo tee /etc/kubernetes/cilium/values.operator-2.yaml >/dev/null
+operator:
+  replicas: 2
+EOF
+
+helm upgrade --install cilium cilium/cilium \
+  --version 1.18.2 \
+  --namespace kube-system \
+  -f /etc/kubernetes/cilium/values.yaml \
+  -f /etc/kubernetes/cilium/values.operator-1.yaml
+  
+watch kubectl get pods -n kube-system
+kubectl get nodes -o wide
+kubectl -n kube-system rollout status ds/cilium
+kubectl -n kube-system rollout status deploy/coredns
+
+kubectl -n kube-system exec "$(kubectl -n kube-system get pod -l k8s-app=cilium -o name | head -n1)" \
+  -- cilium status
+  
+# https://github.com/cilium/cilium-cli/releases
+wget https://github.com/cilium/cilium-cli/releases/download/v0.18.7/cilium-linux-amd64.tar.gz
+tar xzvfC cilium-linux-amd64.tar.gz .
+sudo install -m 0755 ./cilium /usr/local/bin/cilium
+rm ./cilium-linux-amd64.tar.gz; rm ./cilium
+
+cilium connectivity test \
+  --single-node \
+  --tolerations node-role.kubernetes.io/control-plane \
+  --ip-families ipv4 \
+  --print-flows
+
+kubectl delete ns cilium-test-1 --wait=true
+
+#
+# after worker-nn was added
+#
+cilium connectivity test --ip-families ipv4 --print-flows
 ```
