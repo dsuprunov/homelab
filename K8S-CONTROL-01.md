@@ -390,4 +390,17 @@ kubectl -n metallb-test-1 describe svc metallb-test
 curl -s http://192.168.178.211 | grep Welcome
 
 kubectl delete namespace metallb-test-1
+
+#
+# metrics-server
+#
+helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+helm repo update
+helm upgrade --install metrics-server metrics-server/metrics-server \
+  --version 3.13.0 \
+  -n kube-system 
+  
+kubectl -n kube-system get deploy,pods -l app.kubernetes.io/name=metrics-server -o wide
+kubectl top nodes
+kubectl top pods -A
 ```
