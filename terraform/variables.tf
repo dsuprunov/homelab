@@ -30,6 +30,7 @@ variable "vm" {
     state       = optional(string, "running")
     onboot      = optional(bool, true)
     memory      = number
+    balloon     = optional(number)
     disk        = string
     cores       = number
     ipconfig    = string

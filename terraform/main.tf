@@ -1,7 +1,7 @@
 #
 # vm
 #
-resource "proxmox_vm_qemu" "vm-nas" {
+resource "proxmox_vm_qemu" "vm" {
   for_each = var.vm
 
   # Identity & source
@@ -24,7 +24,7 @@ resource "proxmox_vm_qemu" "vm-nas" {
     numa    = false
   }
   memory  = each.value.memory
-  balloon = each.value.memory
+  balloon = coalesce(each.value.balloon, each.value.memory)
   boot    = "order=scsi0"
   scsihw  = "virtio-scsi-single"
   serial {

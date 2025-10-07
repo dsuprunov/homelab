@@ -249,23 +249,6 @@ ipam:
     clusterPoolIPv4PodCIDRList:
       - 10.244.0.0/16
     clusterPoolIPv4MaskSize: 24
-    
-operator:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              io.cilium/app: operator
 EOF
 
 cat <<'EOF' | sudo tee /etc/kubernetes/cilium/values.operator-1.yaml >/dev/null
@@ -304,10 +287,107 @@ cilium connectivity test \
   --ip-families ipv4 \
   --print-flows
 
-kubectl delete ns cilium-test-1 --wait=true
+kubectl delete ns cilium-test-1
 
 #
 # after worker-nn was added
 #
 cilium connectivity test --ip-families ipv4 --print-flows
+
+#
+# metallb
+#
+helm repo add metallb https://metallb.github.io/metallb
+helm repo update
+helm upgrade --install metallb metallb/metallb \
+  --version 0.15.2 \
+  -n metallb-system --create-namespace
+  
+kubectl label ns metallb-system \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/warn=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  --overwrite
+
+sudo install -d -m 0755 /etc/kubernetes/metallb
+
+cat <<'EOF' | sudo tee /etc/kubernetes/metallb/01-ip-pool-and-l2adv.yaml >/dev/null
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: metallb-pool
+  namespace: metallb-system
+  labels:
+    k8s.home.arpa/pool: external-v4
+spec:
+  addresses:
+    - 192.168.178.211/32
+
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: external-v4
+  namespace: metallb-system
+spec:
+  ipAddressPoolSelectors:
+    - matchLabels:
+        k8s.home.arpa/pool: external-v4
+EOF
+
+kubectl apply -f /etc/kubernetes/metallb/01-ip-pool-and-l2adv.yaml
+kubectl -n metallb-system get ipaddresspools.metallb.io,l2advertisements.metallb.io
+
+kubectl -n metallb-system get pods -o wide
+kubectl -n metallb-system get svc -o wide
+
+#
+# metallb 2e2 test
+#
+kubectl create namespace metallb-test-1
+
+cat <<'EOF' | kubectl -n metallb-test-1 apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metallb-test
+  labels:
+    app.kubernetes.io/name: metallb-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metallb-test
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: metallb-test
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.29-alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-test
+  labels:
+    app.kubernetes.io/name: metallb-test
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: metallb-test
+  ports:
+    - port: 80
+      targetPort: 80
+EOF
+
+kubectl -n metallb-test-1 get svc metallb-test
+kubectl -n metallb-test-1 describe svc metallb-test
+
+curl -s http://192.168.178.211 | grep Welcome
+
+kubectl delete namespace metallb-test-1
 ```
