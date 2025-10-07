@@ -14,7 +14,7 @@ qm start 222
 
 ssh ubuntu@192.168.178.222
 
-sudo apt update
+sudo apt update -y
 sudo apt install -y qemu-guest-agent haproxy keepalived
 sudo systemctl start qemu-guest-agent
 
@@ -64,6 +64,7 @@ sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl enable --now haproxy
 
 sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
+
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
 global_defs {
   script_user keepalived_script
@@ -127,7 +128,7 @@ qm start 223
 
 ssh ubuntu@192.168.178.223
 
-sudo apt update
+sudo apt update -y
 sudo apt install -y qemu-guest-agent haproxy keepalived
 sudo systemctl start qemu-guest-agent
 
@@ -177,6 +178,7 @@ sudo haproxy -c -f /etc/haproxy/haproxy.cfg
 sudo systemctl enable --now haproxy
 
 sudo useradd --system --user-group --no-create-home --shell /usr/sbin/nologin --home-dir /nonexistent keepalived_script
+
 sudo tee /etc/keepalived/keepalived.conf >/dev/null <<'EOF'
 global_defs {
   script_user keepalived_script

@@ -2,9 +2,9 @@
 
 ```bash
 qm clone 9001 227 --name vm-k8s-worker-01 --full 1
-qm resize 227 scsi0 40G
+qm resize 227 scsi0 64G
 qm set 227 \
-  --sockets 1 --cores 1 \
+  --sockets 1 --cores 4 \
   --memory 4096 \
   --scsi2 local-lvm:cloudinit \
   --ipconfig0 ip=192.168.178.227/24,gw=192.168.178.1 \
@@ -28,7 +28,6 @@ PAUSE_VERSION="3.10.1"
 sudo apt-get update -y
 sudo apt-get install -y qemu-guest-agent
 sudo systemctl start qemu-guest-agent
-sudo systemctl status qemu-guest-agent.service
 
 #
 # System configuration
@@ -65,11 +64,12 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  
 sudo apt-get update
 sudo apt-get install -y containerd.io
 
 #
-# Configure containerd (SystemdCgroup, CRI socket)
+# Configure containerd
 #
 sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
@@ -83,18 +83,14 @@ sudo systemctl restart containerd.service
 sudo systemctl enable --now containerd.service
 
 #
-# Kubernetes APT repository
+# Kubernetes
 #
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
 sudo mkdir -p -m 755 /etc/apt/keyrings
 curl -fsSL "https://pkgs.k8s.io/core:/stable:/${K8S_VERSION}/deb/Release.key" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
-
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${K8S_VERSION}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-#
-# Install Kubernetes components
-#
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm 
 sudo apt-mark hold kubelet kubeadm 

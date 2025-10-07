@@ -20,8 +20,7 @@ ssh ubuntu@192.168.178.203
 #
 # System
 #
-
-sudo apt update
+sudo apt update -y
 sudo apt install -y qemu-guest-agent nfs-common
 sudo systemctl start qemu-guest-agent
 
@@ -37,6 +36,7 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  
 sudo apt-get update
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -46,21 +46,20 @@ sudo systemctl status docker
 #
 # pi-hole
 #
-sudo -i
+sudo mount -t nfs4 192.168.178.202:/vm-pi-hole /mnt
+sudo mkdir -p /mnt/pihole && chmod 2770 /mnt/pihole
+sudo umount /mnt
 
-mount -t nfs4 192.168.178.202:/vm-pi-hole /mnt
-mkdir -p /mnt/pihole && chmod 2770 /mnt/pihole
-umount /mnt
+sudo install -d -m 0755 /root/pi-hole
 
-mkdir -p /root/pi-hole
+echo 'admin' | sudo tee /root/pi-hole/.webpassword >/dev/null 
+sudo chmod 600 /root/pi-hole/.webpassword
 
-echo "admin" > /root/pi-hole/.webpassword && chmod 600 /root/pi-hole/.webpassword
-
-cat > /root/pi-hole/.env <<'EOF'
+cat <<'EOF' | sudo tee /root/pi-hole/.env >/dev/null
 PIHOLE_IP=192.168.178.203
 EOF 
 
-cat > /root/pi-hole/docker-compose.yml <<'EOF'
+cat <<'EOF' | sudo tee /root/pi-hole/docker-compose.yml >/dev/null
 services:
   pihole:
     container_name: pihole
@@ -99,8 +98,8 @@ secrets:
     file: ./.webpassword
 EOF
 
-docker compose -f /root/pi-hole/docker-compose.yml up -d
+sudo docker compose -f /root/pi-hole/docker-compose.yml up -d
 
-docker inspect pihole
-docker logs -f pihole
+sudo docker inspect pihole
+sudo docker logs -f pihole
 ```

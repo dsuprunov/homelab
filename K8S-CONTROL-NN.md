@@ -2,7 +2,7 @@
 
 ```bash
 qm clone 9001 225 --name vm-k8s-control-02 --full 1
-qm resize 225 scsi0 16G
+qm resize 225 scsi0 32G
 qm set 225 \
   --sockets 1 --cores 2 \
   --memory 3072 \
@@ -69,7 +69,7 @@ sudo apt-get update
 sudo apt-get install -y containerd.io
 
 #
-# Configure containerd (SystemdCgroup, CRI socket)
+# Configure containerd
 #
 sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
@@ -83,18 +83,14 @@ sudo systemctl restart containerd.service
 sudo systemctl enable --now containerd.service
 
 #
-# Kubernetes APT repository
+# Kubernetes
 #
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
 sudo mkdir -p -m 755 /etc/apt/keyrings
 curl -fsSL "https://pkgs.k8s.io/core:/stable:/${K8S_VERSION}/deb/Release.key" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
-
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${K8S_VERSION}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-#
-# Install Kubernetes components
-#
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl

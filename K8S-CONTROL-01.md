@@ -2,7 +2,7 @@
 
 ```bash
 qm clone 9001 224 --name vm-k8s-control-01 --full 1
-qm resize 224 scsi0 16G
+qm resize 224 scsi0 32G
 qm set 224 \
   --sockets 1 --cores 2 \
   --memory 3072 \
@@ -28,7 +28,6 @@ PAUSE_VERSION="3.10.1"
 sudo apt-get update -y
 sudo apt-get install -y qemu-guest-agent
 sudo systemctl start qemu-guest-agent
-sudo systemctl status qemu-guest-agent.service
 
 #
 # System configuration
@@ -65,11 +64,12 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  
 sudo apt-get update
 sudo apt-get install -y containerd.io
 
 #
-# Configure containerd (SystemdCgroup, CRI socket)
+# Configure containerd
 #
 sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
@@ -83,18 +83,14 @@ sudo systemctl restart containerd.service
 sudo systemctl enable --now containerd.service
 
 #
-# Kubernetes APT repository
+# Kubernetes 
 #
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
 sudo mkdir -p -m 755 /etc/apt/keyrings
 curl -fsSL "https://pkgs.k8s.io/core:/stable:/${K8S_VERSION}/deb/Release.key" | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
-
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${K8S_VERSION}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-#
-# Install Kubernetes components
-#
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
@@ -125,6 +121,7 @@ sysctl net.ipv4.ip_forward
 # kubeadm configuration
 #
 sudo install -d -m 0750 /etc/kubernetes/kubeadm
+
 cat <<'EOF' | sudo tee /etc/kubernetes/kubeadm/kubeadm.yaml >/dev/null
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
@@ -163,10 +160,6 @@ serverTLSBootstrap: true
 EOF
 
 sudo chmod 640 /etc/kubernetes/kubeadm/kubeadm.yaml
-
-#
-# Validate and initialize the control plane
-#
 sudo kubeadm config validate --config /etc/kubernetes/kubeadm/kubeadm.yaml
 sudo kubeadm init --config /etc/kubernetes/kubeadm/kubeadm.yaml --upload-certs
 
@@ -272,8 +265,7 @@ kubectl get nodes -o wide
 kubectl -n kube-system rollout status ds/cilium
 kubectl -n kube-system rollout status deploy/coredns
 
-kubectl -n kube-system exec "$(kubectl -n kube-system get pod -l k8s-app=cilium -o name | head -n1)" \
-  -- cilium status
+kubectl -n kube-system exec "$(kubectl -n kube-system get pod -l k8s-app=cilium -o name | head -n1)" -- cilium status
   
 # https://github.com/cilium/cilium-cli/releases
 wget https://github.com/cilium/cilium-cli/releases/download/v0.18.7/cilium-linux-amd64.tar.gz
@@ -303,6 +295,8 @@ helm upgrade --install metallb metallb/metallb \
   --version 0.15.2 \
   -n metallb-system --create-namespace
   
+watch kubectl get pods -n metallb-system
+  
 kubectl label ns metallb-system \
   pod-security.kubernetes.io/enforce=privileged \
   pod-security.kubernetes.io/warn=privileged \
@@ -311,7 +305,7 @@ kubectl label ns metallb-system \
 
 sudo install -d -m 0755 /etc/kubernetes/metallb
 
-cat <<'EOF' | sudo tee /etc/kubernetes/metallb/01-ip-pool-and-l2adv.yaml >/dev/null
+cat <<'EOF' | sudo tee /etc/kubernetes/metallb/pool.yaml >/dev/null
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
@@ -335,7 +329,7 @@ spec:
         k8s.home.arpa/pool: external-v4
 EOF
 
-kubectl apply -f /etc/kubernetes/metallb/01-ip-pool-and-l2adv.yaml
+kubectl apply -f /etc/kubernetes/metallb/pool.yaml
 kubectl -n metallb-system get ipaddresspools.metallb.io,l2advertisements.metallb.io
 
 kubectl -n metallb-system get pods -o wide
@@ -398,8 +392,9 @@ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 helm repo update
 helm upgrade --install metrics-server metrics-server/metrics-server \
   --version 3.13.0 \
-  -n kube-system 
+  -n kube-system
   
+watch kubectl get pods -n kube-system    
 kubectl -n kube-system get deploy,pods -l app.kubernetes.io/name=metrics-server -o wide
 kubectl top nodes
 kubectl top pods -A
