@@ -13,6 +13,13 @@
 | Worker #2   | `vm-k8s-worker-02.home.arpa`  | 192.168.178.228 | 1 vCPU | 4 GB |  64 GB |        |
 | Worker #3   | `vm-k8s-worker-03.home.arpa`  | 192.168.178.229 | 1 vCPU | 4 GB |  64 GB |        |
 
+### Kubernetes apps
+
+|              Hostname (FQDN) | CNAME           |
+|-----------------------------:|-----------------|
+| `dummy-portal.k8s.home.arpa` | `k8s.home.arpa` | 
+|  `nginx-hello.k8s.home.arpa` | `k8s.home.arpa` |
+
 ### Links
 
 - K8S API LB #1 http://192.168.178.222:8404/stats

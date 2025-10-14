@@ -54,7 +54,7 @@ EOF
 sudo sysctl -p /etc/sysctl.d/99-kubernetes-cri.conf
 
 #
-# Install containerd (from Docker repository)
+# Install containerd
 #
 sudo apt-get install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -68,9 +68,6 @@ echo \
 sudo apt-get update
 sudo apt-get install -y containerd.io
 
-#
-# Configure containerd
-#
 sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
 sudo sed -ri 's/(SystemdCgroup\s*=\s*)false/\1true/' /etc/containerd/config.toml

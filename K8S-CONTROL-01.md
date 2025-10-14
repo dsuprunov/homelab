@@ -53,7 +53,7 @@ EOF
 sudo sysctl -p /etc/sysctl.d/99-kubernetes-cri.conf
 
 #
-# Install containerd (from Docker repository)
+# Install containerd
 #
 sudo apt-get install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -68,9 +68,6 @@ echo \
 sudo apt-get update
 sudo apt-get install -y containerd.io
 
-#
-# Configure containerd
-#
 sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
 sudo sed -ri 's/(SystemdCgroup\s*=\s*)false/\1true/' /etc/containerd/config.toml
@@ -260,7 +257,7 @@ helm upgrade --install cilium cilium/cilium \
   -f /etc/kubernetes/cilium/values.yaml \
   -f /etc/kubernetes/cilium/values.operator-1.yaml
   
-watch kubectl get pods -n kube-system
+watch kubectl get pods -n kube-system -o wide
 kubectl get nodes -o wide
 kubectl -n kube-system rollout status ds/cilium
 kubectl -n kube-system rollout status deploy/coredns
@@ -282,12 +279,12 @@ cilium connectivity test \
 kubectl delete ns cilium-test-1
 
 #
-# after worker-nn was added
+# After worker-nn was added
 #
 cilium connectivity test --ip-families ipv4 --print-flows
 
 #
-# metallb
+# MetalLB
 #
 helm repo add metallb https://metallb.github.io/metallb
 helm repo update
@@ -295,7 +292,7 @@ helm upgrade --install metallb metallb/metallb \
   --version 0.15.2 \
   -n metallb-system --create-namespace
   
-watch kubectl get pods -n metallb-system
+watch kubectl get pods -n metallb-system -o wide
   
 kubectl label ns metallb-system \
   pod-security.kubernetes.io/enforce=privileged \
@@ -336,26 +333,32 @@ kubectl -n metallb-system get pods -o wide
 kubectl -n metallb-system get svc -o wide
 
 #
-# metallb 2e2 test
+# MetalLB Tests
 #
-kubectl create namespace metallb-test-1
+sudo install -d -m 0755 /etc/kubernetes/metallb-tests
 
-cat <<'EOF' | kubectl -n metallb-test-1 apply -f -
+cat <<'EOF' | sudo tee /etc/kubernetes/metallb-tests/e2e.yaml >/dev/null
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-tests
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metallb-test
-  labels:
-    app.kubernetes.io/name: metallb-test
+  name: metallb-test-e2e
+  namespace: metallb-tests
+  labels: 
+    app.kubernetes.io/name: metallb-test-e2e
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: metallb-test
+      app.kubernetes.io/name: metallb-test-e2e
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: metallb-test
+        app.kubernetes.io/name: metallb-test-e2e
     spec:
       containers:
         - name: nginx
@@ -366,24 +369,24 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: metallb-test
+  name: metallb-test-e2e
+  namespace: metallb-tests
   labels:
-    app.kubernetes.io/name: metallb-test
+    app.kubernetes.io/name: metallb-test-e2e
 spec:
   type: LoadBalancer
   selector:
-    app.kubernetes.io/name: metallb-test
+    app.kubernetes.io/name: metallb-test-e2e
   ports:
     - port: 80
       targetPort: 80
 EOF
 
-kubectl -n metallb-test-1 get svc metallb-test
-kubectl -n metallb-test-1 describe svc metallb-test
-
+kubectl apply -f /etc/kubernetes/metallb-tests/e2e.yaml
+kubectl -n metallb-tests get svc metallb-test-e2e
+kubectl -n metallb-tests describe svc metallb-test-e2e
 curl -s http://192.168.178.211 | grep Welcome
-
-kubectl delete namespace metallb-test-1
+kubectl delete namespace metallb-tests
 
 #
 # metrics-server
@@ -394,8 +397,154 @@ helm upgrade --install metrics-server metrics-server/metrics-server \
   --version 3.13.0 \
   -n kube-system
   
-watch kubectl get pods -n kube-system    
+watch kubectl get pods -n kube-system -o wide   
 kubectl -n kube-system get deploy,pods -l app.kubernetes.io/name=metrics-server -o wide
 kubectl top nodes
-kubectl top pods -A
+kubectl top pods -A --sort-by=memory
+
+#
+# Envoy Gateway
+#
+helm template eg oci://docker.io/envoyproxy/gateway-crds-helm \
+  --version v1.5.3 \
+  --set crds.gatewayAPI.enabled=true \
+  --set crds.gatewayAPI.channel=standard \
+  --set crds.envoyGateway.enabled=true \
+  | kubectl apply --server-side -f -
+
+helm install eg oci://docker.io/envoyproxy/gateway-helm \
+  --version v1.5.3 \
+  -n envoy-gateway-system \
+  --create-namespace \
+  --skip-crds
+  
+watch kubectl get pods -n envoy-gateway-system
+
+sudo install -d -m 0755 /etc/kubernetes/envoy-gateway
+
+cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway/envoyproxy.yaml >/dev/null
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: eg-default
+  namespace: envoy-gateway-system
+spec:
+  mergeGateways: true
+  provider:
+    type: Kubernetes
+    kubernetes:
+EOF
+
+kubectl apply -f /etc/kubernetes/envoy-gateway/envoyproxy.yaml
+
+cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway/gatewayclass.yaml >/dev/null
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: eg-default
+    namespace: envoy-gateway-system
+EOF
+
+kubectl apply -f /etc/kubernetes/envoy-gateway/gatewayclass.yaml
+
+kubectl get gatewayclass eg
+
+#
+# Envoy Gateway Tests
+#
+sudo install -d -m 0755 /etc/kubernetes/envoy-gateway-tests
+
+cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway-tests/e2e.yaml >/dev/null
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: envoy-gateway-tests
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy-gateway-test-e2e-deploy
+  namespace: envoy-gateway-tests
+  labels:
+    app.kubernetes.io/name: envoy-gateway-test-e2e
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: envoy-gateway-test-e2e
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: envoy-gateway-test-e2e
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.29-alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy-gateway-test-e2e-svc
+  namespace: envoy-gateway-tests
+  labels:
+    app.kubernetes.io/name: envoy-gateway-test-e2e
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: envoy-gateway-test-e2e
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-gateway-test-e2e-gw
+  namespace: envoy-gateway-tests
+  labels:
+    app.kubernetes.io/name: envoy-gateway-test-e2e
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      hostname: envoy-gateway-test-e2e.k8s.home.arpa
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: envoy-gateway-test-e2e-route
+  namespace: envoy-gateway-tests
+  labels:
+    app.kubernetes.io/name: envoy-gateway-test-e2e
+spec:
+  parentRefs:
+    - name: envoy-gateway-test-e2e-gw
+      sectionName: http
+  hostnames:
+    - envoy-gateway-test-e2e.k8s.home.arpa
+  rules:
+    - backendRefs:
+        - name: envoy-gateway-test-e2e-svc
+          port: 80
+EOF
+
+kubectl apply -f /etc/kubernetes/envoy-gateway-tests/e2e.yaml
+kubectl -n envoy-gateway-tests rollout status deploy/envoy-gateway-test-e2e-deploy --timeout=120s
+kubectl -n envoy-gateway-tests wait gateway/envoy-gateway-test-e2e-gw --for=condition=Programmed --timeout=180s
+kubectl -n envoy-gateway-tests get gateway envoy-gateway-test-e2e-gw
+curl -sS --fail -H "Host: envoy-gateway-test-e2e.k8s.home.arpa" http://192.168.178.211/ | grep -i "Welcome"
+kubectl delete namespace envoy-gateway-tests
 ```

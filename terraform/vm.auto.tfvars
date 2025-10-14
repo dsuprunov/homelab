@@ -111,25 +111,25 @@ vm = {
     }
   }
 
-  vm-k8s-worker-02 = {
-    vmid       = 228
-    tags       = ["ubuntu", "k8s", "worker"]
-    template   = "ubuntu-24.04-ci"
-    cores      = 4
-    memory     = 4096
-    balloon    = 0
-    disk       = "64G"
-    ipconfig   = "ip=192.168.178.228/24,gw=192.168.178.1"
-    nameserver = "192.168.178.203"
-    user       = "ubuntu"
-    ssh_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
-    attachments = {
-      scsi1 = {
-        disk = {
-          storage = "local-lvm"
-          size    = "16G"
-        }
-      }
-    }
-  }
+  # vm-k8s-worker-02 = {
+  #   vmid       = 228
+  #   tags       = ["ubuntu", "k8s", "worker"]
+  #   template   = "ubuntu-24.04-ci"
+  #   cores      = 4
+  #   memory     = 4096
+  #   balloon    = 0
+  #   disk       = "64G"
+  #   ipconfig   = "ip=192.168.178.228/24,gw=192.168.178.1"
+  #   nameserver = "192.168.178.203"
+  #   user       = "ubuntu"
+  #   ssh_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"
+  #   attachments = {
+  #     scsi1 = {
+  #       disk = {
+  #         storage = "local-lvm"
+  #         size    = "16G"
+  #       }
+  #     }
+  #   }
+  # }
 }
