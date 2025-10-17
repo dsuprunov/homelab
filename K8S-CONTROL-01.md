@@ -309,7 +309,7 @@ metadata:
   name: metallb-pool
   namespace: metallb-system
   labels:
-    k8s.home.arpa/pool: external-v4
+    k8s.home.arpa/pool: metallb-pool-ingress
 spec:
   addresses:
     - 192.168.178.211/32
@@ -318,12 +318,12 @@ spec:
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: external-v4
+  name: metallb-pool-ingress
   namespace: metallb-system
 spec:
   ipAddressPoolSelectors:
     - matchLabels:
-        k8s.home.arpa/pool: external-v4
+        k8s.home.arpa/pool: metallb-pool-ingress
 EOF
 
 kubectl apply -f /etc/kubernetes/metallb/pool.yaml
@@ -405,14 +405,14 @@ kubectl top pods -A --sort-by=memory
 #
 # Envoy Gateway
 #
-helm template eg oci://docker.io/envoyproxy/gateway-crds-helm \
+helm template envoy-gateway oci://docker.io/envoyproxy/gateway-crds-helm \
   --version v1.5.3 \
   --set crds.gatewayAPI.enabled=true \
   --set crds.gatewayAPI.channel=standard \
   --set crds.envoyGateway.enabled=true \
   | kubectl apply --server-side -f -
 
-helm install eg oci://docker.io/envoyproxy/gateway-helm \
+helm install envoy-gateway oci://docker.io/envoyproxy/gateway-helm \
   --version v1.5.3 \
   -n envoy-gateway-system \
   --create-namespace \
@@ -426,13 +426,10 @@ cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway/envoyproxy.yaml >/dev/null
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
-  name: eg-default
+  name: envoy-gateway-default
   namespace: envoy-gateway-system
 spec:
   mergeGateways: true
-  provider:
-    type: Kubernetes
-    kubernetes:
 EOF
 
 kubectl apply -f /etc/kubernetes/envoy-gateway/envoyproxy.yaml
@@ -441,19 +438,19 @@ cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway/gatewayclass.yaml >/dev/nul
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: eg
+  name: envoy-gateway
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
   parametersRef:
     group: gateway.envoyproxy.io
     kind: EnvoyProxy
-    name: eg-default
+    name: envoy-gateway-default
     namespace: envoy-gateway-system
 EOF
 
 kubectl apply -f /etc/kubernetes/envoy-gateway/gatewayclass.yaml
 
-kubectl get gatewayclass eg
+kubectl get gatewayclass envoy-gateway
 
 #
 # Envoy Gateway Tests
@@ -512,7 +509,7 @@ metadata:
   labels:
     app.kubernetes.io/name: envoy-gateway-test-e2e
 spec:
-  gatewayClassName: eg
+  gatewayClassName: envoy-gateway
   listeners:
     - name: http
       hostname: envoy-gateway-test-e2e.k8s.home.arpa
