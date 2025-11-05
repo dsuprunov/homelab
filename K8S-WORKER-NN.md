@@ -2,6 +2,7 @@
 
 ```bash
 ssh ubuntu@192.168.178.227
+ssh ubuntu@192.168.178.228
 
 #
 # Settings
@@ -19,7 +20,7 @@ sudo systemctl start qemu-guest-agent
 #
 # System configuration
 #
-timedatectl status
+timedatectl status | grep synchronized
 
 sudo swapoff -a
 sudo sed -ri 's/^\s*([^#]\S+\s+\S+\s+swap\s+\S+.*)$/# \1/g' /etc/fstab
@@ -62,9 +63,6 @@ sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
 sudo sed -ri "s#(SystemdCgroup\s*=\s*)false#\1true#" /etc/containerd/config.toml
 sudo sed -ri "s#^(\s*sandbox_image = ).*#\1\"registry.k8s.io/pause:${PAUSE_VERSION}\"#" /etc/containerd/config.toml
 
-grep SystemdCgroup /etc/containerd/config.toml  # should be `true`
-grep sandbox_image /etc/containerd/config.toml  # should be ${PAUSE_VERSION}
-
 sudo systemctl restart containerd.service
 sudo systemctl enable --now containerd.service
 
@@ -96,7 +94,7 @@ grep -n "sandbox_image *= *\"registry.k8s.io/pause:${PAUSE_VERSION}\"" /etc/cont
 #
 # Run at control-NN node
 #
-JOIN_CMD=$(sudo kubeadm token create --ttl 24h0m0s --print-join-command); echo "$JOIN_CMD"
+sudo kubeadm token create --ttl 24h0m0s --print-join-command
 
 #
 # Run at worker-NN node
@@ -109,12 +107,10 @@ sudo kubeadm join k8s-api.home.arpa:6443 --token <token> \
 # Run at control-NN node
 #
 kubectl label node vm-k8s-worker-01 node-role.kubernetes.io/worker='' --overwrite
+kubectl label node vm-k8s-worker-02 node-role.kubernetes.io/worker='' --overwrite
 
 kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending
-CSR_NAME=$(kubectl get csr --sort-by=.metadata.creationTimestamp | grep worker | grep Pending | tail -n1 | awk '{print $1}')
-kubectl certificate approve $CSR_NAME
+kubectl certificate approve $(kubectl get csr --sort-by=.metadata.creationTimestamp | grep worker | grep Pending | tail -n1 | awk '{print $1}')
 
 kubectl get nodes -o wide
-kubectl -n kube-system get pods -o wide -l k8s-app=cilium
-kubectl get ciliumnodes.cilium.io -o wide
 ```

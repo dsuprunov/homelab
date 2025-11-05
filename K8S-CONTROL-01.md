@@ -9,6 +9,7 @@ ssh ubuntu@192.168.178.224
 K8S_VERSION="v1.34"
 PAUSE_VERSION="3.10.1"
 CILIUM_VERSION="1.18.3"
+GATEWAY_API_VERSION="v1.2.0"
 
 #
 # VM agent (QEMU Guest Agent)
@@ -20,7 +21,7 @@ sudo systemctl start qemu-guest-agent
 #
 # System configuration
 #
-timedatectl status
+timedatectl status | grep synchronized
 
 sudo swapoff -a
 sudo sed -ri 's/^\s*([^#]\S+\s+\S+\s+swap\s+\S+.*)$/# \1/g' /etc/fstab
@@ -62,9 +63,6 @@ sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
 sudo sed -ri "s#(SystemdCgroup\s*=\s*)false#\1true#" /etc/containerd/config.toml
 sudo sed -ri "s#^(\s*sandbox_image = ).*#\1\"registry.k8s.io/pause:${PAUSE_VERSION}\"#" /etc/containerd/config.toml
-
-grep SystemdCgroup /etc/containerd/config.toml  # should be `true`
-grep sandbox_image /etc/containerd/config.toml  # should be ${PAUSE_VERSION}
 
 sudo systemctl restart containerd.service
 sudo systemctl enable --now containerd.service
@@ -109,7 +107,6 @@ nodeRegistration:
 localAPIEndpoint:
   advertiseAddress: "192.168.178.224"
   bindPort: 6443
-
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
@@ -159,8 +156,7 @@ echo 'source <(kubectl completion bash)' >>~/.bashrc
 source ~/.bashrc
 
 kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending
-CSR_NAME=$(kubectl get csr --sort-by=.metadata.creationTimestamp | grep control | grep Pending | tail -n1 | awk '{print $1}')
-kubectl certificate approve $CSR_NAME
+kubectl certificate approve $(kubectl get csr --sort-by=.metadata.creationTimestamp | grep control | grep Pending | tail -n1 | awk '{print $1}')
 
 #
 # Post-init checks
@@ -176,7 +172,7 @@ curl --cacert /etc/kubernetes/pki/ca.crt https://k8s-api.home.arpa:6443/livez?ve
 #
 # Gateway API CRDs
 #
-kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml
 
 #
 # Install Helm
