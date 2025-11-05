@@ -1,19 +1,6 @@
 ### vm-k8s-control-01
 
 ```bash
-qm clone 9001 224 --name vm-k8s-control-01 --full 1
-qm resize 224 scsi0 32G
-qm set 224 \
-  --sockets 1 --cores 2 \
-  --memory 3072 \
-  --scsi2 local-lvm:cloudinit \
-  --ipconfig0 ip=192.168.178.224/24,gw=192.168.178.1 \
-  --nameserver 192.168.178.203 \
-  --ciuser ubuntu \
-  --sshkeys ~/.ssh/homelab-ed25519.pub \
-  --onboot 1
-qm start 224
-
 ssh ubuntu@192.168.178.224
 
 #
@@ -21,6 +8,7 @@ ssh ubuntu@192.168.178.224
 #
 K8S_VERSION="v1.34"
 PAUSE_VERSION="3.10.1"
+CILIUM_VERSION="1.18.3"
 
 #
 # VM agent (QEMU Guest Agent)
@@ -32,6 +20,8 @@ sudo systemctl start qemu-guest-agent
 #
 # System configuration
 #
+timedatectl status
+
 sudo swapoff -a
 sudo sed -ri 's/^\s*([^#]\S+\s+\S+\s+swap\s+\S+.*)$/# \1/g' /etc/fstab
 free -h; swapon --show; grep -E '^\s*[^#].*\s+swap\s+' /etc/fstab || printf "\nfstab: swap disabled\n"
@@ -70,11 +60,11 @@ sudo apt-get install -y containerd.io
 
 sudo mkdir -p -m 755 /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
-sudo sed -ri 's/(SystemdCgroup\s*=\s*)false/\1true/' /etc/containerd/config.toml
+sudo sed -ri "s#(SystemdCgroup\s*=\s*)false#\1true#" /etc/containerd/config.toml
+sudo sed -ri "s#^(\s*sandbox_image = ).*#\1\"registry.k8s.io/pause:${PAUSE_VERSION}\"#" /etc/containerd/config.toml
 
-sudo sed -ri \
-  "s~^\s*sandbox_image\s*=.*~sandbox_image = \"registry.k8s.io/pause:${PAUSE_VERSION}\"~" /etc/containerd/config.toml \
-  || printf 'Add under [plugins."io.containerd.grpc.v1.cri"]: sandbox_image = "registry.k8s.io/pause:%s"\n' "${PAUSE_VERSION}"
+grep SystemdCgroup /etc/containerd/config.toml  # should be `true`
+grep sandbox_image /etc/containerd/config.toml  # should be ${PAUSE_VERSION}
 
 sudo systemctl restart containerd.service
 sudo systemctl enable --now containerd.service
@@ -82,6 +72,7 @@ sudo systemctl enable --now containerd.service
 #
 # Kubernetes 
 #
+sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
 sudo mkdir -p -m 755 /etc/apt/keyrings
@@ -93,26 +84,15 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
 
-# sudo kubeadm config images pull
-# kubeadm config images list
-
 #
 # Sanity checks
 #
 uname -r # 5.10+ required
-
-[ "$(stat -fc %T /sys/fs/cgroup)" = "cgroup2fs" ] \
-  && echo "OK: cgroup v2 (cgroup2fs) detected" \
-  || echo "INFO: cgroup v2 not default; Cilium will auto-mount a private cgroup v2"
-  
-mount | grep -q ' on /sys/fs/bpf ' && echo "OK: bpffs mounted" \
-  || echo "INFO: bpffs not mounted; Cilium will auto-mount /sys/fs/bpf"
-
 getent hosts k8s-api.home.arpa
 containerd --version
 sudo test -S /run/containerd/containerd.sock && echo "CRI socket OK" || echo "CRI socket MISSING"
-grep -n 'SystemdCgroup *= *true' /etc/containerd/config.toml || echo "SystemdCgroup NOT SET"
-sysctl net.ipv4.ip_forward
+grep -n "SystemdCgroup *= *true" /etc/containerd/config.toml || echo "SystemdCgroup NOT SET"
+grep -n "sandbox_image *= *\"registry.k8s.io/pause:${PAUSE_VERSION}\"" /etc/containerd/config.toml || echo "Pause image ${PAUSE_VERSION} NOT SET"
 
 #
 # kubeadm configuration
@@ -123,9 +103,6 @@ cat <<'EOF' | sudo tee /etc/kubernetes/kubeadm/kubeadm.yaml >/dev/null
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
 
-skipPhases:
-  - addon/kube-proxy
-  
 nodeRegistration:
   criSocket: "unix:///run/containerd/containerd.sock"
 
@@ -136,6 +113,9 @@ localAPIEndpoint:
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
+
+proxy:
+  disabled: true
 
 clusterName: "homelab"
 controlPlaneEndpoint: "k8s-api.home.arpa:6443"
@@ -148,7 +128,15 @@ apiServer:
   certSANs:
     - "k8s-api.home.arpa"
     - "192.168.178.221"
-    
+
+controllerManager:
+  extraArgs:
+  - name: allocate-node-cidrs
+    value: "true"
+  - name: cluster-cidr
+    value: "10.244.0.0/16"
+  - name: node-cidr-mask-size
+    value: "24"    
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
@@ -160,29 +148,6 @@ sudo chmod 640 /etc/kubernetes/kubeadm/kubeadm.yaml
 sudo kubeadm config validate --config /etc/kubernetes/kubeadm/kubeadm.yaml
 sudo kubeadm init --config /etc/kubernetes/kubeadm/kubeadm.yaml --upload-certs
 
-# 
-# If kubeadm warns about pause image mismatch, align containerd to what kubeadm expects 
-#
-# W1002 detected that the sandbox image "registry.k8s.io/pause:3.8" of the container runtime is inconsistent
-# with that used by kubeadm. It is recommended to use "registry.k8s.io/pause:3.10.1" as the CRI sandbox image.
-#
-# ===== BEGIN: pause-image mismatch fix =====
-PAUSE_VERSION="$(
-  curl -fsSL \
-  "https://raw.githubusercontent.com/kubernetes/kubernetes/$(kubeadm version -o short)/cmd/kubeadm/app/constants/constants.go" \
-  | sed -n 's/^\s*PauseVersion\s*=\s*"\(.*\)".*/\1/p'
-)"
-echo "Using pause:${PAUSE_VERSION}"
-sudo sed -ri \
-  "s~^\s*sandbox_image\s*=.*~sandbox_image = \"registry.k8s.io/pause:${PAUSE_VERSION}\"~" /etc/containerd/config.toml \
-  || printf 'Add under [plugins."io.containerd.grpc.v1.cri"]: sandbox_image = "registry.k8s.io/pause:%s"\n' "${PAUSE_VERSION}"
-grep -n 'sandbox_image' /etc/containerd/config.toml
-sudo systemctl restart containerd
-sudo systemctl restart kubelet
-#
-# ===== END: pause-image mismatch fix =====
-#
-
 #
 # kubectl config for the current user
 #
@@ -190,28 +155,28 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
+echo 'source <(kubectl completion bash)' >>~/.bashrc
+source ~/.bashrc
+
 kubectl get csr --sort-by=.metadata.creationTimestamp | grep Pending
 CSR_NAME=$(kubectl get csr --sort-by=.metadata.creationTimestamp | grep control | grep Pending | tail -n1 | awk '{print $1}')
-echo $CSR_NAME
 kubectl certificate approve $CSR_NAME
 
 #
 # Post-init checks
 #
-timedatectl status
-timedatectl timesync-status
-
-kubectl describe node $(hostname) | grep Taints
 kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
-
-# kubectl taint nodes vm-k8s-control-01 node-role.kubernetes.io/control-plane:NoSchedule
-
 kubectl get nodes -o wide
 kubectl get pods -A -o wide
 kubectl get --raw='/readyz?verbose'
 kubectl get --raw='/livez?verbose'
 curl --cacert /etc/kubernetes/pki/ca.crt https://k8s-api.home.arpa:6443/readyz?verbose
 curl --cacert /etc/kubernetes/pki/ca.crt https://k8s-api.home.arpa:6443/livez?verbose
+
+#
+# Gateway API CRDs
+#
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
 
 #
 # Install Helm
@@ -233,160 +198,113 @@ kubeProxyReplacement: true
 k8sServiceHost: "k8s-api.home.arpa"
 k8sServicePort: 6443
 
+devices: "eth0"
+
+nodePort:
+  directRoutingDevice: "eth0"
+
 ipam:
-  mode: cluster-pool
-  operator:
-    clusterPoolIPv4PodCIDRList:
-      - 10.244.0.0/16
-    clusterPoolIPv4MaskSize: 24
-EOF
-
-cat <<'EOF' | sudo tee /etc/kubernetes/cilium/values.operator-1.yaml >/dev/null
-operator:
-  replicas: 1
-EOF
-
-cat <<'EOF' | sudo tee /etc/kubernetes/cilium/values.operator-2.yaml >/dev/null
-operator:
-  replicas: 2
+  mode: kubernetes
+    
+socketLB:
+  enabled: true
+  hostNamespaceOnly: true
+  
+cni:
+  exclusive: true
+  
+l2announcements:
+  enabled: true
+  
+envoy:
+  enabled: true
+  
+gatewayAPI:
+  enabled: true
+  
+debug:
+  enabled: false
 EOF
 
 helm upgrade --install cilium cilium/cilium \
-  --version 1.18.2 \
+  --version ${CILIUM_VERSION} \
   --namespace kube-system \
-  -f /etc/kubernetes/cilium/values.yaml \
-  -f /etc/kubernetes/cilium/values.operator-1.yaml
+  -f /etc/kubernetes/cilium/values.yaml
   
 watch kubectl get pods -n kube-system -o wide
 kubectl get nodes -o wide
 kubectl -n kube-system rollout status ds/cilium
 kubectl -n kube-system rollout status deploy/coredns
 
-kubectl -n kube-system exec "$(kubectl -n kube-system get pod -l k8s-app=cilium -o name | head -n1)" -- cilium status
-  
-# https://github.com/cilium/cilium-cli/releases
-wget https://github.com/cilium/cilium-cli/releases/download/v0.18.7/cilium-linux-amd64.tar.gz
-tar xzvfC cilium-linux-amd64.tar.gz .
-sudo install -m 0755 ./cilium /usr/local/bin/cilium
-rm ./cilium-linux-amd64.tar.gz; rm ./cilium
+kubectl -n kube-system exec ds/cilium -- cilium status
 
-cilium connectivity test \
-  --single-node \
-  --tolerations node-role.kubernetes.io/control-plane \
-  --ip-families ipv4 \
-  --print-flows
-
-kubectl delete ns cilium-test-1
-
-#
-# After worker-nn was added
-#
-cilium connectivity test --ip-families ipv4 --print-flows
-
-#
-# MetalLB
-#
-helm repo add metallb https://metallb.github.io/metallb
-helm repo update
-helm upgrade --install metallb metallb/metallb \
-  --version 0.15.2 \
-  -n metallb-system --create-namespace
-  
-watch kubectl get pods -n metallb-system -o wide
-  
-kubectl label ns metallb-system \
-  pod-security.kubernetes.io/enforce=privileged \
-  pod-security.kubernetes.io/warn=privileged \
-  pod-security.kubernetes.io/audit=privileged \
-  --overwrite
-
-sudo install -d -m 0755 /etc/kubernetes/metallb
-
-cat <<'EOF' | sudo tee /etc/kubernetes/metallb/pool.yaml >/dev/null
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
+cat <<'EOF' | sudo tee /etc/kubernetes/cilium/lb-ip-pool.yaml >/dev/null
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
 metadata:
-  name: metallb-pool
-  namespace: metallb-system
-  labels:
-    k8s.home.arpa/pool: metallb-pool-ingress
+  name: ingress-vip
 spec:
-  addresses:
-    - 192.168.178.211/32
-
----
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: metallb-pool-ingress
-  namespace: metallb-system
-spec:
-  ipAddressPoolSelectors:
-    - matchLabels:
-        k8s.home.arpa/pool: metallb-pool-ingress
+  blocks:
+    - start: "192.168.178.211"
+      stop:  "192.168.178.211"
 EOF
 
-kubectl apply -f /etc/kubernetes/metallb/pool.yaml
-kubectl -n metallb-system get ipaddresspools.metallb.io,l2advertisements.metallb.io
+kubectl apply -f /etc/kubernetes/cilium/lb-ip-pool.yaml
 
-kubectl -n metallb-system get pods -o wide
-kubectl -n metallb-system get svc -o wide
+cat <<'EOF' | sudo tee /etc/kubernetes/cilium/cilium-l2-policy.yaml >/dev/null
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: l2-gateway-vip
+spec:
+  interfaces:
+    - "^eth0$"
+  loadBalancerIPs: true
+EOF
 
-#
-# MetalLB Tests
-#
-sudo install -d -m 0755 /etc/kubernetes/metallb-tests
+kubectl apply -f /etc/kubernetes/cilium/cilium-l2-policy.yaml
 
-cat <<'EOF' | sudo tee /etc/kubernetes/metallb-tests/e2e.yaml >/dev/null
+cat <<'EOF' | sudo tee /etc/kubernetes/cilium/cilium-gateway.yaml >/dev/null
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: metallb-tests
+  name: cilium-gateway
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
 metadata:
-  name: metallb-test-e2e
-  namespace: metallb-tests
-  labels: 
-    app.kubernetes.io/name: metallb-test-e2e
+  name: public
+  namespace: cilium-gateway
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: metallb-test-e2e
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: metallb-test-e2e
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:1.29-alpine
-          ports:
-            - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: metallb-test-e2e
-  namespace: metallb-tests
-  labels:
-    app.kubernetes.io/name: metallb-test-e2e
-spec:
-  type: LoadBalancer
-  selector:
-    app.kubernetes.io/name: metallb-test-e2e
-  ports:
-    - port: 80
-      targetPort: 80
+  gatewayClassName: cilium
+  addresses:
+    - type: IPAddress
+      value: 192.168.178.211
+  listeners:
+    - name: http-k8s-home-arpa
+      hostname: "*.k8s.home.arpa"
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    # - name: http-xxx-com
+    #   hostname: xxx.com
+    #   port: 80
+    #   protocol: HTTP
+    #   allowedRoutes:
+    #     namespaces:
+    #       from: All
+    # - name: http-yyy-net
+    #   hostname: yyy.net
+    #   port: 80
+    #   protocol: HTTP
+    #   allowedRoutes:
+    #     namespaces:
+    #       from: All
 EOF
 
-kubectl apply -f /etc/kubernetes/metallb-tests/e2e.yaml
-kubectl -n metallb-tests get svc metallb-test-e2e
-kubectl -n metallb-tests describe svc metallb-test-e2e
-curl -s http://192.168.178.211 | grep Welcome
-kubectl delete namespace metallb-tests
+kubectl apply -f /etc/kubernetes/cilium/cilium-gateway.yaml
 
 #
 # metrics-server
@@ -398,150 +316,6 @@ helm upgrade --install metrics-server metrics-server/metrics-server \
   -n kube-system
   
 watch kubectl get pods -n kube-system -o wide   
-kubectl -n kube-system get deploy,pods -l app.kubernetes.io/name=metrics-server -o wide
 kubectl top nodes
 kubectl top pods -A --sort-by=memory
-
-#
-# Envoy Gateway
-#
-helm template envoy-gateway oci://docker.io/envoyproxy/gateway-crds-helm \
-  --version v1.5.3 \
-  --set crds.gatewayAPI.enabled=true \
-  --set crds.gatewayAPI.channel=standard \
-  --set crds.envoyGateway.enabled=true \
-  | kubectl apply --server-side -f -
-
-helm install envoy-gateway oci://docker.io/envoyproxy/gateway-helm \
-  --version v1.5.3 \
-  -n envoy-gateway-system \
-  --create-namespace \
-  --skip-crds
-  
-watch kubectl get pods -n envoy-gateway-system
-
-sudo install -d -m 0755 /etc/kubernetes/envoy-gateway
-
-cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway/envoyproxy.yaml >/dev/null
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: EnvoyProxy
-metadata:
-  name: envoy-gateway-default
-  namespace: envoy-gateway-system
-spec:
-  mergeGateways: true
-EOF
-
-kubectl apply -f /etc/kubernetes/envoy-gateway/envoyproxy.yaml
-
-cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway/gatewayclass.yaml >/dev/null
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: envoy-gateway
-spec:
-  controllerName: gateway.envoyproxy.io/gatewayclass-controller
-  parametersRef:
-    group: gateway.envoyproxy.io
-    kind: EnvoyProxy
-    name: envoy-gateway-default
-    namespace: envoy-gateway-system
-EOF
-
-kubectl apply -f /etc/kubernetes/envoy-gateway/gatewayclass.yaml
-
-kubectl get gatewayclass envoy-gateway
-
-#
-# Envoy Gateway Tests
-#
-sudo install -d -m 0755 /etc/kubernetes/envoy-gateway-tests
-
-cat <<'EOF' | sudo tee /etc/kubernetes/envoy-gateway-tests/e2e.yaml >/dev/null
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: envoy-gateway-tests
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: envoy-gateway-test-e2e-deploy
-  namespace: envoy-gateway-tests
-  labels:
-    app.kubernetes.io/name: envoy-gateway-test-e2e
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: envoy-gateway-test-e2e
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: envoy-gateway-test-e2e
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:1.29-alpine
-          ports:
-            - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: envoy-gateway-test-e2e-svc
-  namespace: envoy-gateway-tests
-  labels:
-    app.kubernetes.io/name: envoy-gateway-test-e2e
-spec:
-  type: ClusterIP
-  selector:
-    app.kubernetes.io/name: envoy-gateway-test-e2e
-  ports:
-    - port: 80
-      targetPort: 80
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: envoy-gateway-test-e2e-gw
-  namespace: envoy-gateway-tests
-  labels:
-    app.kubernetes.io/name: envoy-gateway-test-e2e
-spec:
-  gatewayClassName: envoy-gateway
-  listeners:
-    - name: http
-      hostname: envoy-gateway-test-e2e.k8s.home.arpa
-      port: 80
-      protocol: HTTP
-      allowedRoutes:
-        namespaces:
-          from: Same
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: envoy-gateway-test-e2e-route
-  namespace: envoy-gateway-tests
-  labels:
-    app.kubernetes.io/name: envoy-gateway-test-e2e
-spec:
-  parentRefs:
-    - name: envoy-gateway-test-e2e-gw
-      sectionName: http
-  hostnames:
-    - envoy-gateway-test-e2e.k8s.home.arpa
-  rules:
-    - backendRefs:
-        - name: envoy-gateway-test-e2e-svc
-          port: 80
-EOF
-
-kubectl apply -f /etc/kubernetes/envoy-gateway-tests/e2e.yaml
-kubectl -n envoy-gateway-tests rollout status deploy/envoy-gateway-test-e2e-deploy --timeout=120s
-kubectl -n envoy-gateway-tests wait gateway/envoy-gateway-test-e2e-gw --for=condition=Programmed --timeout=180s
-kubectl -n envoy-gateway-tests get gateway envoy-gateway-test-e2e-gw
-curl -sS --fail -H "Host: envoy-gateway-test-e2e.k8s.home.arpa" http://192.168.178.211/ | grep -i "Welcome"
-kubectl delete namespace envoy-gateway-tests
 ```

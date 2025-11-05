@@ -11,15 +11,15 @@ variable "proxmox_api_token_secret" {
   sensitive = true
 }
 
-variable "proxmox_root_username" {
-  type      = string
-  sensitive = true
-}
-
-variable "proxmox_root_password" {
-  type      = string
-  sensitive = true
-}
+# variable "proxmox_root_username" {
+#   type      = string
+#   sensitive = true
+# }
+#
+# variable "proxmox_root_password" {
+#   type      = string
+#   sensitive = true
+# }
 
 variable "vm" {
   type = map(object({
