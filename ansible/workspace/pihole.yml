@@ -1,7 +1,0 @@
-- name: Bootstrap + Docker + Pi-hole
-  hosts: docker
-  become: yes
-  roles:
-    - bootstrap
-    - docker
-    - pihole

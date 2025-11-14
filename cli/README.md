@@ -68,7 +68,7 @@ qm set 212 \
 qm start 212
 ```
 
-### LXC  Debian 12 Standart
+### LXC  Debian 12 Standard
 
 ```bash
 pveam update

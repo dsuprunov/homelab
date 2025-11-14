@@ -1,5 +1,0 @@
-- name: Bootstrap
-  hosts: test
-  become: yes
-  roles:
-    - bootstrap
