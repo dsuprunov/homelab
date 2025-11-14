@@ -10,8 +10,8 @@
 | Control #2  | `vm-k8s-control-02.home.arpa` | 192.168.178.225 | 2 vCPU | 3 GB |  32 GB |        |
 | Control #3  | `vm-k8s-control-03.home.arpa` | 192.168.178.226 | 2 vCPU | 3 GB |  32 GB |        |
 | Worker #1   | `vm-k8s-worker-01.home.arpa`  | 192.168.178.227 | 4 vCPU | 4 GB |  64 GB |   32GB |
-| Worker #2   | `vm-k8s-worker-02.home.arpa`  | 192.168.178.228 | 1 vCPU | 4 GB |  64 GB |   32GB |
-| Worker #3   | `vm-k8s-worker-03.home.arpa`  | 192.168.178.229 | 1 vCPU | 4 GB |  64 GB |        |
+| Worker #2   | `vm-k8s-worker-02.home.arpa`  | 192.168.178.228 | 4 vCPU | 4 GB |  64 GB |   32GB |
+| Worker #3   | `vm-k8s-worker-03.home.arpa`  | 192.168.178.229 | 4 vCPU | 4 GB |  64 GB |   32GB |
 
 ### Kubernetes apps
 
