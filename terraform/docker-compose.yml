@@ -1,6 +1,7 @@
 services:
   terraform:
     image: hashicorp/terraform:1.14.3
+    user: "${PUID}:${PGID}"
     volumes:
       - .:/terraform
     environment:
