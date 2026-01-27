@@ -1,14 +1,16 @@
 resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
-  name = "test-ubuntu"
-
+  # --- Identity / placement ---
+  name      = "test-ubuntu"
   node_name = "pve"
   vm_id     = 222
+  tags      = ["test", "ubuntu"]
 
-  tags        = ["test", "ubuntu"]
+  # --- Lifecycle / power state ---
+  started         = true
+  on_boot         = true
+  stop_on_destroy = true # ToDo
 
-  started = true
-  on_boot = true
-
+  # --- Firmware / machine / boot ---
   bios          = "ovmf"
   machine       = "q35"
   scsi_hardware = "virtio-scsi-single"
@@ -20,17 +22,17 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     type         = "4m"
   }
 
+  # --- Guest agent ---
   agent {
     enabled = false # NOTE: qemu-guest-agent must be installed+enabled inside the template/VM.
   }
 
-  stop_on_destroy = true # ToDo
-
+  # --- Compute ---
   cpu {
-    cores        = 1
-    type         = "host"
-    sockets      = 1
-    numa         = false
+    cores   = 1
+    type    = "host"
+    sockets = 1
+    numa    = false
   }
 
   memory {
@@ -38,18 +40,30 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     floating  = 0 # NOTE: floating=0 disables ballooning
   }
 
-   disk {
-     datastore_id = "local-lvm"
-     import_from  = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
-     interface    = "scsi0"
-     iothread     = true
-     discard      = "on"
-     size         = 8
-     ssd          = true
-     cache        = "none"
-     aio          = "io_uring"
-   }
+  # --- Storage ---
+  disk {
+    datastore_id = "local-lvm"
+    import_from  = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
 
+    interface = "scsi0"
+    size      = 8
+
+    # performance / behavior
+    aio      = "io_uring"
+    cache    = "none"
+    discard  = "on"
+    iothread = true
+    ssd      = true
+  }
+
+  # --- Networking ---
+  network_device {
+    bridge   = "vmbr0"
+    model    = "virtio"
+    firewall = true
+  }
+
+  # --- Cloud-init / initial provisioning ---
   initialization {
     datastore_id = "local-lvm"
 
@@ -72,12 +86,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     }
   }
 
-  network_device {
-    bridge = "vmbr0"
-    model  = "virtio"
-    firewall = true
-  }
-
+  # --- Console / devices ---
   serial_device {
     device = "socket"
   }
@@ -90,6 +99,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     source = "/dev/urandom"
   }
 
+  # --- Guest OS hint ---
   operating_system {
     type = "l26"
   }
@@ -100,6 +110,6 @@ resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
   datastore_id = "local"
   node_name    = "pve"
 
-  url          = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img"
-  file_name    = "ubuntu-24.04-server-cloudimg-amd64.qcow2"
+  url       = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img"
+  file_name = "ubuntu-24.04-server-cloudimg-amd64.qcow2"
 }
