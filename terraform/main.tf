@@ -1,0 +1,1 @@
+data "proxmox_virtual_environment_version" "this" {}
