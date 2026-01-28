@@ -25,18 +25,13 @@ module "proxmox_vm" {
   vm_id     = each.value.vm_id
   tags      = each.value.tags
 
-  started = each.value.started
-  on_boot = each.value.on_boot
-
-  qemu_agent_enabled = each.value.qemu_agent_enabled
-  qemu_agent_timeout = each.value.qemu_agent_timeout
-
   cores   = each.value.cores
   sockets = each.value.sockets
   memory  = each.value.memory
   balloon = each.value.balloon
 
-  disk                   = each.value.disk
+  disks = each.value.disks
+
   datastore_id           = each.value.datastore_id
   cloudinit_datastore_id = each.value.cloudinit_datastore_id
 
@@ -50,4 +45,10 @@ module "proxmox_vm" {
   ssh_keys     = each.value.ssh_keys
 
   import_from = proxmox_virtual_environment_download_file.cloud_image[each.value.image].id
+
+  started = each.value.started
+  on_boot = each.value.on_boot
+
+  qemu_agent_enabled = each.value.qemu_agent_enabled
+  qemu_agent_timeout = each.value.qemu_agent_timeout
 }

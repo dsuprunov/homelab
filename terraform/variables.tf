@@ -40,15 +40,17 @@ variable "vms" {
 
     image = string
 
-    qemu_agent_enabled = optional(bool, false)
-    qemu_agent_timeout = optional(string, null)
-
     cores   = optional(number, 1)
     sockets = optional(number, 1)
     memory  = optional(number, 1024)
     balloon = optional(number, 0)
 
-    disk                   = optional(number, 8)
+    disks = list(object({
+      interface    = string
+      size         = number
+      datastore_id = optional(string, null)
+    }))
+
     datastore_id           = optional(string, "local-lvm")
     cloudinit_datastore_id = optional(string, "local-lvm")
 
@@ -63,5 +65,8 @@ variable "vms" {
 
     started = optional(bool, true)
     on_boot = optional(bool, true)
+
+    qemu_agent_enabled = optional(bool, false)
+    qemu_agent_timeout = optional(string, null)
   }))
 }

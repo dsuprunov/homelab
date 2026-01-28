@@ -42,18 +42,23 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   # --- Storage ---
-  disk {
-    datastore_id = var.datastore_id
-    import_from  = var.import_from
+  dynamic "disk" {
+    for_each = { for d in var.disks : d.interface => d }
+    iterator = d
 
-    interface = "scsi0"
-    size      = var.disk
+    content {
+      datastore_id = coalesce(d.value.datastore_id, var.datastore_id)
 
-    aio      = "io_uring"
-    cache    = "none"
-    discard  = "on"
-    iothread = true
-    ssd      = true
+      interface   = d.key
+      size        = d.value.size
+      import_from = d.key == "scsi0" ? var.import_from : null
+
+      aio      = "io_uring"
+      cache    = "none"
+      discard  = "on"
+      iothread = true
+      ssd      = true
+    }
   }
 
   # --- Networking ---

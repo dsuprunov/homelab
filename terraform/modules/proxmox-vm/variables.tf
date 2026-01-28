@@ -55,9 +55,12 @@ variable "balloon" {
   default = 0
 }
 
-variable "disk" {
-  type    = number
-  default = 8
+variable "disks" {
+  type = list(object({
+    interface    = string
+    size         = number
+    datastore_id = optional(string, null)
+  }))
 }
 
 variable "datastore_id" {

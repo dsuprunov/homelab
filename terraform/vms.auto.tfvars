@@ -1,14 +1,16 @@
 vms = {
   test-1-ip = {
     vm_id = 224
-    tags  = ["ubuntu", "k8s", "control"]
+    tags  = ["ubuntu", "a"]
     image = "ubuntu_24_04"
-
-    # qemu_agent_enabled = false
 
     cores  = 1
     memory = 1024
-    disk   = 8
+
+    disks = [
+      { interface = "scsi0", size = 8 },
+      { interface = "scsi1", size = 8 },
+    ]
 
     ipv4_address = "192.168.178.224/24"
     ipv4_gateway = "192.168.178.1"
@@ -16,22 +18,72 @@ vms = {
 
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
-  }
-
-  test-2-dhcp = {
-    vm_id = 225
-    tags  = ["ubuntu", "k8s", "worker"]
-    image = "ubuntu_24_04"
 
     # qemu_agent_enabled = false
+  }
+
+  test-2-ip = {
+    vm_id = 225
+    tags  = ["ubuntu", "b"]
+    image = "ubuntu_24_04"
 
     cores  = 1
     memory = 1024
-    disk   = 8
+
+    disks = [
+      { interface = "scsi0", size = 8 },
+      { interface = "scsi1", size = 16 },
+    ]
+
+    ipv4_address = "192.168.178.225/24"
+    ipv4_gateway = "192.168.178.1"
+    nameservers  = ["192.168.178.1"]
+
+    user     = "ubuntu"
+    ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
+
+    # qemu_agent_enabled = false
+  }
+
+  test-3-ip = {
+    vm_id = 226
+    tags  = ["ubuntu", "b"]
+    image = "ubuntu_24_04"
+
+    cores  = 1
+    memory = 1024
+
+    disks = [
+      { interface = "scsi0", size = 8 },
+    ]
+
+    ipv4_address = "192.168.178.226/24"
+    ipv4_gateway = "192.168.178.1"
+    nameservers  = ["192.168.178.1"]
+
+    user     = "ubuntu"
+    ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
+
+    # qemu_agent_enabled = false
+  }
+
+  test-4-dhcp = {
+    vm_id = 227
+    tags  = ["ubuntu", "c"]
+    image = "ubuntu_24_04"
+
+    cores  = 1
+    memory = 1024
+
+    disks = [
+      { interface = "scsi0", size = 8 },
+    ]
 
     ipv4_address = "dhcp"
 
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
+
+    # qemu_agent_enabled = false
   }
 }
