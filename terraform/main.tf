@@ -49,5 +49,5 @@ module "proxmox_vm" {
   user         = each.value.user
   ssh_keys     = each.value.ssh_keys
 
-  import_from = proxmox_virtual_environment_download_file.cloud_image[each.value.cloud_image].id
+  import_from = proxmox_virtual_environment_download_file.cloud_image[each.value.image].id
 }

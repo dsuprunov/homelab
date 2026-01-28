@@ -38,7 +38,7 @@ variable "vms" {
     node_name = optional(string, "pve")
     tags      = optional(list(string), [])
 
-    cloud_image = string
+    image = string
 
     qemu_agent_enabled = optional(bool, false)
     qemu_agent_timeout = optional(string, null)

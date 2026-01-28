@@ -1,8 +1,9 @@
 vms = {
   test-1 = {
-    vm_id              = 224
-    tags               = ["ubuntu", "k8s", "control"]
-    cloud_image        = "ubuntu_24_04"
+    vm_id = 224
+    tags  = ["ubuntu", "k8s", "control"]
+    image = "ubuntu_24_04"
+
     qemu_agent_enabled = false
 
     cores  = 2
@@ -18,9 +19,10 @@ vms = {
   }
 
   test-2 = {
-    vm_id              = 225
-    tags               = ["ubuntu", "k8s", "worker"]
-    cloud_image        = "ubuntu_24_04"
+    vm_id = 225
+    tags  = ["ubuntu", "k8s", "worker"]
+    image = "ubuntu_24_04"
+
     qemu_agent_enabled = false
 
     cores  = 2
@@ -36,9 +38,9 @@ vms = {
   }
 
   test-3 = {
-    vm_id       = 226
-    tags        = ["ubuntu", "k8s", "worker"]
-    cloud_image = "ubuntu_24_04"
+    vm_id = 226
+    tags  = ["ubuntu", "k8s", "worker"]
+    image = "ubuntu_24_04"
 
     cores  = 1
     memory = 1024
