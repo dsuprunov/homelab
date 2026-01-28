@@ -2,10 +2,14 @@ output "id" {
   value = proxmox_virtual_environment_vm.vm.id
 }
 
-output "vm_id" {
-  value = proxmox_virtual_environment_vm.vm.vm_id
+output "name" {
+  value = var.name
 }
 
-output "name" {
-  value = proxmox_virtual_environment_vm.vm.name
+output "ip" {
+  value = var.ipv4_address
+}
+
+output "tags" {
+  value = var.tags
 }
