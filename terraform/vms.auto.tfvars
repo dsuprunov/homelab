@@ -1,7 +1,7 @@
 vms = {
-  test-1-ip = {
+  test-224 = {
     vm_id = 224
-    tags  = ["ubuntu", "a"]
+    tags  = ["ubuntu", "test", "ip"]
     image = "ubuntu_24_04"
 
     cores  = 1
@@ -19,12 +19,13 @@ vms = {
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
 
-    # qemu_agent_enabled = false
+    qemu_agent_enabled            = true
+    cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
   }
 
-  test-2-ip = {
+  test-225 = {
     vm_id = 225
-    tags  = ["ubuntu", "b"]
+    tags  = ["ubuntu", "test", "ip"]
     image = "ubuntu_24_04"
 
     cores  = 1
@@ -45,31 +46,31 @@ vms = {
     # qemu_agent_enabled = false
   }
 
-  test-3-ip = {
-    vm_id = 226
-    tags  = ["ubuntu", "b"]
-    image = "ubuntu_24_04"
+  # test-226 = {
+  #   vm_id = 226
+  #   tags  = ["ubuntu", "test"]
+  #   image = "ubuntu_24_04"
+  #
+  #   cores  = 1
+  #   memory = 1024
+  #
+  #   disks = [
+  #     { interface = "scsi0", size = 8 },
+  #   ]
+  #
+  #   ipv4_address = "192.168.178.226/24"
+  #   ipv4_gateway = "192.168.178.1"
+  #   nameservers  = ["192.168.178.1"]
+  #
+  #   user     = "ubuntu"
+  #   ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
+  #
+  #   # qemu_agent_enabled = false
+  # }
 
-    cores  = 1
-    memory = 1024
-
-    disks = [
-      { interface = "scsi0", size = 8 },
-    ]
-
-    ipv4_address = "192.168.178.226/24"
-    ipv4_gateway = "192.168.178.1"
-    nameservers  = ["192.168.178.1"]
-
-    user     = "ubuntu"
-    ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
-
-    # qemu_agent_enabled = false
-  }
-
-  test-4-dhcp = {
+  test-227 = {
     vm_id = 227
-    tags  = ["ubuntu", "c"]
+    tags  = ["ubuntu", "test", "dhcp"]
     image = "ubuntu_24_04"
 
     cores  = 1
@@ -84,6 +85,7 @@ vms = {
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
 
-    # qemu_agent_enabled = false
+    qemu_agent_enabled            = true
+    cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
   }
 }

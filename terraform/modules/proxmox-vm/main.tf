@@ -72,6 +72,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
   initialization {
     datastore_id = var.cloudinit_datastore_id
 
+    vendor_data_file_id = var.cloud_config_vendor_data_file
+
     user_account {
       username = var.user
       keys     = var.ssh_keys

@@ -110,3 +110,8 @@ variable "ssh_keys" {
 variable "import_from" {
   type = string
 }
+
+variable "cloud_config_vendor_data_file" {
+  type    = string
+  default = null
+}

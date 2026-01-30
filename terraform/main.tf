@@ -51,4 +51,6 @@ module "proxmox_vm" {
 
   qemu_agent_enabled = each.value.qemu_agent_enabled
   qemu_agent_timeout = each.value.qemu_agent_timeout
+
+  cloud_config_vendor_data_file = each.value.cloud_config_vendor_data_file
 }
