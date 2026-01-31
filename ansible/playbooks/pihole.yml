@@ -1,0 +1,81 @@
+---
+- name: Install pi-hole on Debian
+  hosts: vms
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: Ensure pihole group exists
+      ansible.builtin.group:
+        name: pihole
+        system: true
+
+    - name: Ensure pihole user and group exist
+      ansible.builtin.user:
+        name: pihole
+        group: pihole
+        shell: /usr/sbin/nologin
+        system: true
+        create_home: false
+
+    - name: Ensure /etc/pihole directory exists
+      ansible.builtin.file:
+        path: /etc/pihole
+        state: directory
+        owner: pihole
+        group: pihole
+        mode: "0775"
+
+    - name: Create /etc/pihole/pihole.toml
+      ansible.builtin.copy:
+        dest: /etc/pihole/pihole.toml
+        owner: pihole
+        group: pihole
+        mode: "0644"
+        force: false
+        content: |
+          [dns]
+          interface = "{{ ansible_facts['default_ipv4']['interface'] }}"
+          upstreams = ["8.8.8.8", "8.8.4.4"]
+          queryLogging = true
+
+    - name: Download pihole installer
+      ansible.builtin.get_url:
+        url: https://install.pi-hole.net
+        dest: /tmp/install-pihole.sh
+        mode: "0755"
+
+    - name: Run pihole installer (unattended)
+      ansible.builtin.command: >
+        bash /tmp/install-pihole.sh --unattended
+      args:
+        creates: /usr/local/bin/pihole
+
+    - name: Build gravity database
+      ansible.builtin.command: pihole -g
+
+    - name: Show pihole status
+      ansible.builtin.command: pihole status
+      register: pihole_status
+      changed_when: false
+
+    - name: Print status
+      ansible.builtin.debug:
+        var: pihole_status.stdout_lines
+
+    - name: Show pihole version
+      ansible.builtin.command: pihole -v
+      register: pihole_version
+      changed_when: false
+
+    - name: Print pihole version
+      ansible.builtin.debug:
+        var: pihole_version.stdout_lines

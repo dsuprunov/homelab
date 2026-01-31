@@ -1,0 +1,13 @@
+services:
+  ansible:
+    build:
+      context: .
+    image: ansible:2.20.2
+    container_name: ansible
+    working_dir: /ansible
+    environment:
+      SSH_AUTH_SOCK: /ssh-agent
+      ANSIBLE_CONFIG: /ansible/ansible.cfg
+    volumes:
+      - .:/ansible
+      - ${SSH_AUTH_SOCK}:/ssh-agent

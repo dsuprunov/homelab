@@ -1,13 +1,12 @@
-```bash
-PUID=$(id -u) PGID=$(id -g) docker compose -f docker-compose.yml run --rm terraform init
 
-PUID=$(id -u) PGID=$(id -g) docker compose -f docker-compose.yml run --rm terraform fmt -recursive
+docker compose -f docker-compose.yml run --rm terraform init
 
-PUID=$(id -u) PGID=$(id -g) docker compose -f docker-compose.yml run --rm terraform validate
+docker compose -f docker-compose.yml run --rm terraform fmt -recursive
 
-PUID=$(id -u) PGID=$(id -g) docker compose -f docker-compose.yml run --rm terraform plan
+docker compose -f docker-compose.yml run --rm terraform validate
 
-PUID=$(id -u) PGID=$(id -g) docker compose -f docker-compose.yml run --rm terraform apply -auto-approve
+docker compose -f docker-compose.yml run --rm terraform plan
 
-PUID=$(id -u) PGID=$(id -g) docker compose -f docker-compose.yml run --rm terraform destroy -auto-approve
-```
+docker compose -f docker-compose.yml run --rm terraform apply -auto-approve
+
+docker compose -f docker-compose.yml run --rm terraform destroy -auto-approve
