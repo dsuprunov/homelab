@@ -1,8 +1,22 @@
-**/credentials.auto.tfvars
+# ---- Terraform ----
+**/.terraform/
+**/.terraform.lock.hcl.bak
 **/*.tfstate
 **/*.tfstate.*
-**/.terraform.lock.hcl
+**/crash.log
+**/crash.*.log
+terraform/credentials.auto.tfvars
+terraform/.env
+terraform/*.pem
+terraform/*.key
 
-**/.terraform
+# ---- Ansible ----
+ansible/.ansible/
+ansible/*.retry
+ansible/.env
+ansible/.vault_pass
+ansible/collections/
+ansible/roles/**/.gitkeep
 
-.idea
+# ---- Other ----
+.idea/

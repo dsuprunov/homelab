@@ -1,17 +1,12 @@
-output "vm" {
+output "vms" {
+  description = "VMs: id, name, ip, tags"
   value = {
-    for k, vm in var.vm : k => {
-      vmid = vm.vmid
-      # template = vm.template
-      # target_node = vm.target_node
-      # state       = vm.state
-      # onboot      = vm.onboot
-      # memory     = vm.memory
-      # disk       = vm.disk
-      # cores      = vm.cores
-      ipconfig = vm.ipconfig
-      # nameserver = try(vm.nameserver, null)
-      user = vm.user
+    for vm_name, m in module.proxmox_vm :
+    vm_name => {
+      id   = m.id
+      name = m.name
+      ip   = m.ip
+      tags = join(", ", m.tags)
     }
   }
 }

@@ -1,7 +1,10 @@
 services:
   terraform:
-    image: hashicorp/terraform:1.13.0
+    image: hashicorp/terraform:1.14.3
     volumes:
       - .:/terraform
+    environment:
+      TF_IN_AUTOMATION: "1"
+      TF_INPUT: "0"
+      TF_CLI_ARGS: "-no-color"
     working_dir: /terraform
-    network_mode: host

@@ -1,100 +1,56 @@
-#
-# vm
-#
-resource "proxmox_vm_qemu" "vm" {
-  for_each = var.vm
+resource "proxmox_virtual_environment_download_file" "cloud_image" {
+  for_each = var.cloud_images
 
-  # Identity & source
-  vmid        = each.value.vmid
-  name        = each.key
-  tags        = join(";", sort(each.value.tags))
-  target_node = each.value.target_node
-  clone       = each.value.template
-  full_clone  = true
-  onboot      = each.value.onboot
-  vm_state    = each.value.state
+  content_type = each.value.content_type
+  datastore_id = each.value.datastore_id
+  node_name    = each.value.node_name
 
-  # Hardware
-  bios    = "ovmf"
-  machine = "q35"
-  cpu {
-    cores   = each.value.cores
-    sockets = 1
-    type    = "host"
-    numa    = false
+  url       = each.value.url
+  file_name = each.value.file_name
+  # overwrite           = true
+  # overwrite_unmanaged = true
+}
+
+module "proxmox_vm" {
+  for_each = var.vms
+
+  source = "./modules/proxmox-vm"
+
+  providers = {
+    proxmox = proxmox
   }
+
+  name      = each.key
+  node_name = each.value.node_name
+  vm_id     = each.value.vm_id
+  tags      = each.value.tags
+
+  cores   = each.value.cores
+  sockets = each.value.sockets
   memory  = each.value.memory
-  balloon = coalesce(each.value.balloon, each.value.memory)
-  boot    = "order=scsi0"
-  scsihw  = "virtio-scsi-single"
-  serial {
-    id   = 0
-    type = "socket"
-  }
-  vga {
-    type = "serial0"
-  }
-  rng {
-    source = "/dev/urandom"
-  }
-  agent = 1
+  balloon = each.value.balloon
 
-  # Network
-  network {
-    id       = 0
-    model    = "virtio"
-    bridge   = "vmbr0"
-    firewall = true
-  }
+  disks = each.value.disks
 
-  # Disk
-  disks {
-    scsi {
-      scsi0 {
-        disk {
-          storage    = "local-lvm"
-          size       = each.value.disk
-          emulatessd = true
-          iothread   = true
-          discard    = true
-        }
-      }
-      dynamic "scsi1" {
-        for_each = try(each.value.attachments.scsi1, null) == null ? [] : [each.value.attachments.scsi1]
-        content {
-          dynamic "disk" {
-            for_each = try(scsi1.value.disk, null) == null ? [] : [scsi1.value.disk]
-            content {
-              storage    = disk.value.storage
-              size       = disk.value.size
-              iothread   = disk.value.iothread
-              discard    = disk.value.discard
-              emulatessd = disk.value.emulatessd
-            }
-          }
-          dynamic "passthrough" {
-            for_each = try(scsi1.value.passthrough, null) == null ? [] : [scsi1.value.passthrough]
-            content {
-              file       = passthrough.value.file
-              iothread   = passthrough.value.iothread
-              discard    = passthrough.value.discard
-              emulatessd = passthrough.value.emulatessd
-            }
-          }
-        }
-      }
-      scsi2 {
-        cloudinit {
-          storage = "local-lvm"
-        }
-      }
-    }
-  }
+  datastore_id           = each.value.datastore_id
+  cloudinit_datastore_id = each.value.cloudinit_datastore_id
 
-  # Cloud-Init
-  ipconfig0  = each.value.ipconfig
-  nameserver = try(each.value.nameserver, null)
-  skip_ipv6  = true
-  ciuser     = each.value.user
-  sshkeys    = each.value.ssh_key
+  bridge   = each.value.bridge
+  firewall = each.value.firewall
+
+  ipv4_address = each.value.ipv4_address
+  ipv4_gateway = each.value.ipv4_gateway
+  nameservers  = each.value.nameservers
+  user         = each.value.user
+  ssh_keys     = each.value.ssh_keys
+
+  import_from = proxmox_virtual_environment_download_file.cloud_image[each.value.image].id
+
+  started = each.value.started
+  on_boot = each.value.on_boot
+
+  qemu_agent_enabled = each.value.qemu_agent_enabled
+  qemu_agent_timeout = each.value.qemu_agent_timeout
+
+  cloud_config_vendor_data_file = each.value.cloud_config_vendor_data_file
 }
