@@ -1,11 +1,11 @@
 ---
-- name: Install pi-hole on Debian
-  hosts: vms
+- name: DNS | install & configure Pi-hole
+  hosts: dns
   become: true
   gather_facts: true
 
   tasks:
-    - name: Install required packages
+    - name: pi-hole | install prerequisite packages
       ansible.builtin.apt:
         update_cache: true
         name:
@@ -13,12 +13,12 @@
           - ca-certificates
         state: present
 
-    - name: Ensure pihole group exists
+    - name: pi-hole | ensure group exists
       ansible.builtin.group:
         name: pihole
         system: true
 
-    - name: Ensure pihole user and group exist
+    - name: pi-hole | ensure user exists
       ansible.builtin.user:
         name: pihole
         group: pihole
@@ -26,7 +26,7 @@
         system: true
         create_home: false
 
-    - name: Ensure /etc/pihole directory exists
+    - name: pi-hole | ensure /etc/pihole exists
       ansible.builtin.file:
         path: /etc/pihole
         state: directory
@@ -34,7 +34,7 @@
         group: pihole
         mode: "0775"
 
-    - name: Create /etc/pihole/pihole.toml
+    - name: pi-hole | write config /etc/pihole/pihole.toml
       ansible.builtin.copy:
         dest: /etc/pihole/pihole.toml
         owner: pihole
@@ -47,35 +47,35 @@
           upstreams = ["8.8.8.8", "8.8.4.4"]
           queryLogging = true
 
-    - name: Download pihole installer
+    - name: pi-hole | download installer
       ansible.builtin.get_url:
         url: https://install.pi-hole.net
         dest: /tmp/install-pihole.sh
         mode: "0755"
 
-    - name: Run pihole installer (unattended)
+    - name: pi-hole | run installer (unattended)
       ansible.builtin.command: >
         bash /tmp/install-pihole.sh --unattended
       args:
         creates: /usr/local/bin/pihole
 
-    - name: Build gravity database
+    - name: pi-hole | update gravity
       ansible.builtin.command: pihole -g
 
-    - name: Show pihole status
+    - name: pi-hole | get status
       ansible.builtin.command: pihole status
       register: pihole_status
       changed_when: false
 
-    - name: Print status
+    - name: pi-hole | show status
       ansible.builtin.debug:
         var: pihole_status.stdout_lines
 
-    - name: Show pihole version
+    - name: pi-hole | get version
       ansible.builtin.command: pihole -v
       register: pihole_version
       changed_when: false
 
-    - name: Print pihole version
+    - name: pi-hole | show version
       ansible.builtin.debug:
         var: pihole_version.stdout_lines

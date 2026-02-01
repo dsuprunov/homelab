@@ -11,4 +11,6 @@ RUN apt-get update && \
 
 RUN pip install --no-cache-dir "ansible-core==${ANSIBLE_CORE_VERSION}"
 
+RUN ansible-galaxy collection install community.general
+
 RUN ansible --version

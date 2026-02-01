@@ -18,10 +18,18 @@ docker compose run --rm ansible ansible --version
 docker compose run --rm ansible ansible-inventory --graph
 
 docker compose run --rm ansible ansible -m ping vms
+
+docker compose run --rm ansible ansible-playbook playbooks/*
 ```
 
-### Install pihole
+### Install Pi-hole
 
 ```bash
 docker compose run --rm ansible ansible-playbook playbooks/pihole.yml
+```
+
+### Prepare k8s node
+
+```bash
+docker compose run --rm ansible ansible-playbook playbooks/k8s.yml
 ```
