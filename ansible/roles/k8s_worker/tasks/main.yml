@@ -1,0 +1,4 @@
+---
+- name: k8s | worker placeholder
+  ansible.builtin.debug:
+    msg: "k8s worker placeholder for {{ inventory_hostname }}"

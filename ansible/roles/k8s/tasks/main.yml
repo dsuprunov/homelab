@@ -1,0 +1,147 @@
+---
+- name: system | assert swap is disabled
+  ansible.builtin.shell: swapon --show
+  register: swap_status
+  changed_when: false
+  failed_when: swap_status.stdout != ""
+
+- name: kernel | configure modules-load
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/99-k8s-containerd.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      overlay
+      br_netfilter
+
+- name: kernel | load configured modules immediately
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: sysctl | configure parameters
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-k8s-cri.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward                 = 1
+
+- name: sysctl | apply settings
+  ansible.builtin.command: sysctl --system
+  changed_when: false
+
+- name: runtime | install runc binary
+  ansible.builtin.get_url:
+    url: "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
+    dest: /usr/local/sbin/runc
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: runtime | smoke test
+  ansible.builtin.command: runc --version
+  register: runc_smoke
+  changed_when: false
+  failed_when: runc_smoke.rc != 0
+
+- name: containerd | download
+  ansible.builtin.get_url:
+    url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+    dest: "/tmp/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+    mode: '0644'
+
+- name: containerd | extract
+  ansible.builtin.unarchive:
+    src: "/tmp/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+    dest: /usr/local
+    remote_src: true
+
+- name: containerd | smoke test
+  ansible.builtin.command: containerd --version
+  register: containerd_smoke
+  changed_when: false
+  failed_when: containerd_smoke.rc != 0
+
+- name: containerd | install systemd unit file
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/containerd/containerd/v{{ containerd_version }}/containerd.service"
+    dest: /etc/systemd/system/containerd.service
+    owner: root
+    group: root
+    mode: '0644'
+  register: containerd_unit
+
+- name: containerd | daemon reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: containerd_unit.changed
+
+- name: containerd | ensure config directory exists
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: containerd | generate config defaults
+  ansible.builtin.shell: |
+    containerd config default > /etc/containerd/config.toml
+  args:
+    executable: /bin/bash
+    creates: /etc/containerd/config.toml
+  register: containerd_config_defaults
+
+- name: containerd | configure SystemdCgroup=true
+  ansible.builtin.replace:
+    path: /etc/containerd/config.toml
+    regexp: '(^\s*SystemdCgroup\s*=\s*)false'
+    replace: '\1true'
+  register: containerd_config_cgroup
+
+- name: containerd | configure pause image version
+  ansible.builtin.replace:
+    path: /etc/containerd/config.toml
+    regexp: "(^\\s*sandbox\\s*=\\s*)'[^']+'"
+    replace: "\\1'registry.k8s.io/pause:{{ pause_version }}'"
+  register: containerd_config_sandbox
+
+- name: containerd | enable and start service
+  ansible.builtin.systemd:
+    name: containerd
+    enabled: true
+    state: started
+
+- name: containerd | restart service
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+  when:
+    - containerd_unit.changed
+      or containerd_config_defaults.changed
+      or containerd_config_cgroup.changed
+      or containerd_config_sandbox.changed
+
+- name: containerd | smoke test (systemd active)
+  ansible.builtin.command: systemctl is-active containerd
+  register: containerd_service_active
+  changed_when: false
+  failed_when: containerd_service_active.stdout | trim != "active"
+
+- name: containerd | show service status
+  ansible.builtin.command: systemctl status containerd --no-pager
+  changed_when: false
+
+- name: debug | display versions
+  ansible.builtin.debug:
+    msg:
+      - "runc: {{ runc_smoke.stdout }}"
+      - "containerd: {{ containerd_smoke.stdout }}"

@@ -1,0 +1,4 @@
+---
+- name: k8s | control placeholder
+  ansible.builtin.debug:
+    msg: "k8s control placeholder for {{ inventory_hostname }}"
