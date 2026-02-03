@@ -1,4 +1,23 @@
 ---
-- name: k8s | control placeholder
-  ansible.builtin.debug:
-    msg: "k8s control placeholder for {{ inventory_hostname }}"
+- name: k8s control | install kubelet kubeadm kubectl
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+
+- name: k8s control | hold packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: k8s control | enable kubelet
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
+    state: started

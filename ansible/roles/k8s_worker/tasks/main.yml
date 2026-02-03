@@ -1,4 +1,21 @@
 ---
-- name: k8s | worker placeholder
-  ansible.builtin.debug:
-    msg: "k8s worker placeholder for {{ inventory_hostname }}"
+- name: k8s worker | install kubelet kubeadm
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+    state: present
+
+- name: k8s worker | hold packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+
+- name: k8s worker | enable kubelet
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
+    state: started

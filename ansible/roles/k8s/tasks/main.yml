@@ -136,12 +136,48 @@
   changed_when: false
   failed_when: containerd_service_active.stdout | trim != "active"
 
-- name: containerd | show service status
-  ansible.builtin.command: systemctl status containerd --no-pager
-  changed_when: false
+#- name: debug | display versions
+#  ansible.builtin.debug:
+#    msg:
+#      - "runc: {{ runc_smoke.stdout }}"
+#      - "containerd: {{ containerd_smoke.stdout }}"
 
-- name: debug | display versions
-  ansible.builtin.debug:
-    msg:
-      - "runc: {{ runc_smoke.stdout }}"
-      - "containerd: {{ containerd_smoke.stdout }}"
+- name: k8s repo | install apt prerequisites
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+
+- name: k8s repo | ensure /etc/apt/keyrings exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: k8s repo | install kubernetes apt keyring
+  ansible.builtin.shell: |
+    set -euo pipefail
+    curl -fsSL "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key" \
+      | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: k8s repo | add kubernetes apt repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /
+
+- name: k8s repo | apt update
+  ansible.builtin.apt:
+    update_cache: true
