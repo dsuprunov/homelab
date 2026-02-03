@@ -1,0 +1,45 @@
+---
+- name: control init | create kubeadm config directory
+  ansible.builtin.file:
+    path: /etc/kubernetes/kubeadm
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: control init | copy kubeadm config
+  ansible.builtin.copy:
+    src: kubeadm.yaml
+    dest: /etc/kubernetes/kubeadm/kubeadm.yaml
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: control init | kubeadm config validate
+  ansible.builtin.command: kubeadm config validate --config /etc/kubernetes/kubeadm/kubeadm.yaml
+  register: kubeadm_validate
+  changed_when: false
+
+- name: control init | show kubeadm validate stdout
+  ansible.builtin.debug:
+    var: kubeadm_validate.stdout_lines
+
+- name: control init | show kubeadm validate stderr
+  ansible.builtin.debug:
+    var: kubeadm_validate.stderr_lines
+  when: kubeadm_validate.stderr is defined and (kubeadm_validate.stderr | length) > 0
+
+- name: control init | kubeadm init
+  ansible.builtin.command: kubeadm init --config /etc/kubernetes/kubeadm/kubeadm.yaml --upload-certs
+  args:
+    creates: /etc/kubernetes/admin.conf
+  register: kubeadm_init
+
+- name: control init | show kubeadm init stdout
+  ansible.builtin.debug:
+    var: kubeadm_init.stdout_lines
+
+- name: control init | show kubeadm init stderr
+  ansible.builtin.debug:
+    var: kubeadm_init.stderr_lines
+  when: kubeadm_init.stderr is defined and (kubeadm_init.stderr | length) > 0

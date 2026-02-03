@@ -20,4 +20,3 @@
   ansible.builtin.systemd:
     name: kubelet
     enabled: true
-    state: started

@@ -36,7 +36,7 @@ vms = {
 
     ipv4_address = "192.168.178.210/24"
     ipv4_gateway = "192.168.178.1"
-    nameservers  = ["192.168.178.1"]
+    nameservers  = ["192.168.178.201", "192.168.178.1"]
 
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
@@ -60,7 +60,7 @@ vms = {
 
     ipv4_address = "192.168.178.220/24"
     ipv4_gateway = "192.168.178.1"
-    nameservers  = ["192.168.178.1"]
+    nameservers  = ["192.168.178.201", "192.168.178.1"]
 
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
@@ -84,7 +84,7 @@ vms = {
 
     ipv4_address = "192.168.178.221/24"
     ipv4_gateway = "192.168.178.1"
-    nameservers  = ["192.168.178.1"]
+    nameservers  = ["192.168.178.201", "192.168.178.1"]
 
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
@@ -108,7 +108,7 @@ vms = {
 
     ipv4_address = "192.168.178.222/24"
     ipv4_gateway = "192.168.178.1"
-    nameservers  = ["192.168.178.1"]
+    nameservers  = ["192.168.178.201", "192.168.178.1"]
 
     user     = "ubuntu"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]

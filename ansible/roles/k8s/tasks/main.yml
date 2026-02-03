@@ -136,11 +136,13 @@
   changed_when: false
   failed_when: containerd_service_active.stdout | trim != "active"
 
-#- name: debug | display versions
-#  ansible.builtin.debug:
-#    msg:
-#      - "runc: {{ runc_smoke.stdout }}"
-#      - "containerd: {{ containerd_smoke.stdout }}"
+- name: debug | display versions
+  ansible.builtin.debug:
+    msg:
+      - "runc:"
+      - "{{ runc_smoke.stdout_lines | default([]) }}"
+      - "containerd:"
+      - "{{ containerd_smoke.stdout_lines | default([]) }}"
 
 - name: k8s repo | install apt prerequisites
   ansible.builtin.apt:
