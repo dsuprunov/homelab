@@ -26,3 +26,10 @@
   gather_facts: true
   roles:
     - k8s_worker
+
+- name: k8s | worker join
+  hosts: k8s_worker_join
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_worker_join

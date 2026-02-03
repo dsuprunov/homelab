@@ -1,0 +1,55 @@
+---
+- name: worker join | assert k8s_control group is present
+  ansible.builtin.assert:
+    that:
+      - groups['k8s_control'] is defined
+      - (groups['k8s_control'] | length) > 0
+    fail_msg: "Group k8s_control must contain at least one control-plane host"
+
+- name: worker join | check if node already joined
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf
+
+- name: worker join | already joined
+  ansible.builtin.debug:
+    msg: "Node already joined"
+  when: kubelet_conf.stat.exists
+
+- name: worker join | get join command
+  ansible.builtin.command: kubeadm token create --print-join-command --ttl 12h0m0s
+  delegate_to: "{{ groups['k8s_control'] | first }}"
+  register: join_cmd
+  when: not kubelet_conf.stat.exists
+
+- name: worker join | show join command stdout
+  ansible.builtin.debug:
+    var: join_cmd.stdout_lines
+  when: not kubelet_conf.stat.exists
+
+- name: worker join | show join command stderr
+  ansible.builtin.debug:
+    var: join_cmd.stderr_lines
+  when:
+    - not kubelet_conf.stat.exists
+    - join_cmd.stderr is defined and (join_cmd.stderr | length) > 0
+
+- name: worker join | kubeadm join
+  ansible.builtin.command: "{{ join_cmd.stdout | trim }}"
+  args:
+    creates: /etc/kubernetes/kubelet.conf
+  register: kubeadm_join
+  when: not kubelet_conf.stat.exists
+
+- name: worker join | show kubeadm join stdout
+  ansible.builtin.debug:
+    var: kubeadm_join.stdout_lines
+  when:
+    - not kubelet_conf.stat.exists
+
+- name: worker join | show kubeadm join stderr
+  ansible.builtin.debug:
+    var: kubeadm_join.stderr_lines
+  when:
+    - not kubelet_conf.stat.exists
+    - kubeadm_join.stderr is defined and (kubeadm_join.stderr | length) > 0

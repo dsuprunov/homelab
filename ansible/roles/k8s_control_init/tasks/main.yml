@@ -1,4 +1,14 @@
 ---
+- name: control init | check if control plane already initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: admin_conf
+
+- name: control init | already initialized
+  ansible.builtin.debug:
+    msg: "Control plane already initialized"
+  when: admin_conf.stat.exists
+
 - name: control init | create kubeadm config directory
   ansible.builtin.file:
     path: /etc/kubernetes/kubeadm
@@ -6,6 +16,7 @@
     owner: root
     group: root
     mode: "0750"
+  when: not admin_conf.stat.exists
 
 - name: control init | copy kubeadm config
   ansible.builtin.copy:
@@ -14,32 +25,41 @@
     owner: root
     group: root
     mode: "0640"
+  when: not admin_conf.stat.exists
 
 - name: control init | kubeadm config validate
   ansible.builtin.command: kubeadm config validate --config /etc/kubernetes/kubeadm/kubeadm.yaml
   register: kubeadm_validate
   changed_when: false
+  when: not admin_conf.stat.exists
 
 - name: control init | show kubeadm validate stdout
   ansible.builtin.debug:
     var: kubeadm_validate.stdout_lines
+  when: not admin_conf.stat.exists
 
 - name: control init | show kubeadm validate stderr
   ansible.builtin.debug:
     var: kubeadm_validate.stderr_lines
-  when: kubeadm_validate.stderr is defined and (kubeadm_validate.stderr | length) > 0
+  when:
+    - not admin_conf.stat.exists
+    - kubeadm_validate.stderr is defined and (kubeadm_validate.stderr | length) > 0
 
 - name: control init | kubeadm init
   ansible.builtin.command: kubeadm init --config /etc/kubernetes/kubeadm/kubeadm.yaml --upload-certs
   args:
     creates: /etc/kubernetes/admin.conf
   register: kubeadm_init
+  when: not admin_conf.stat.exists
 
 - name: control init | show kubeadm init stdout
   ansible.builtin.debug:
     var: kubeadm_init.stdout_lines
+  when: not admin_conf.stat.exists
 
 - name: control init | show kubeadm init stderr
   ansible.builtin.debug:
     var: kubeadm_init.stderr_lines
-  when: kubeadm_init.stderr is defined and (kubeadm_init.stderr | length) > 0
+  when:
+    - not admin_conf.stat.exists
+    - kubeadm_init.stderr is defined and (kubeadm_init.stderr | length) > 0
