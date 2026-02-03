@@ -1,11 +1,16 @@
 ---
 - name: core
   block:
-    - name: system | assert swap is disabled
-      ansible.builtin.shell: swapon --show
+    - name: system | check swap status
+      ansible.builtin.command: swapon --show
       register: swap_status
       changed_when: false
-      failed_when: swap_status.stdout != ""
+
+    - name: system | assert swap is disabled
+      ansible.builtin.assert:
+        that:
+          - swap_status.stdout | length == 0
+        fail_msg: "Swap is enabled"
 
     - name: kernel | configure modules-load
       ansible.builtin.copy:

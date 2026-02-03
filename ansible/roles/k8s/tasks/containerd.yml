@@ -35,13 +35,25 @@
         group: root
         mode: '0755'
 
+    - name: containerd | check if config exists
+      ansible.builtin.stat:
+        path: /etc/containerd/config.toml
+      register: containerd_config_file
+
     - name: containerd | generate config defaults
-      ansible.builtin.shell: |
-        containerd config default > /etc/containerd/config.toml
-      args:
-        executable: /bin/bash
-        creates: /etc/containerd/config.toml
-      register: containerd_config_defaults
+      ansible.builtin.command: containerd config default
+      register: containerd_config_output
+      changed_when: false
+      when: not containerd_config_file.stat.exists
+
+    - name: containerd | write config
+      ansible.builtin.copy:
+        dest: /etc/containerd/config.toml
+        content: "{{ containerd_config_output.stdout }}"
+        owner: root
+        group: root
+        mode: '0644'
+      when: not containerd_config_file.stat.exists
 
     - name: containerd | configure SystemdCgroup=true
       ansible.builtin.replace:
@@ -69,7 +81,6 @@
         state: restarted
       when:
         - containerd_demon.changed
-          or containerd_config_defaults.changed
           or containerd_config_cgroup.changed
           or containerd_config_sandbox.changed
 
