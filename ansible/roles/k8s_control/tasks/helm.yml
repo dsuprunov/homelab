@@ -1,45 +1,21 @@
 ---
-- name: helm | check installed version
-  ansible.builtin.command: helm version --short
-  register: helm_installed
-  changed_when: false
-  failed_when: false
+- name: helm
+  block:
+    - name: helm | download
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/helm-{{ helm_version }}.tar.gz"
+        mode: '0644'
 
-- name: helm | download installer script
-  ansible.builtin.get_url:
-    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
-    dest: /tmp/get-helm.sh
-    mode: "0700"
-  when: helm_installed.rc != 0 or ('v' ~ helm_version) not in (helm_installed.stdout | default(''))
-
-- name: helm | install pinned version
-  ansible.builtin.command: /tmp/get-helm.sh
-  environment:
-    DESIRED_VERSION: "v{{ helm_version }}"
-  register: helm_install
-  when: helm_installed.rc != 0 or ('v' ~ helm_version) not in (helm_installed.stdout | default(''))
-
-- name: helm | show install stdout
-  ansible.builtin.debug:
-    var: helm_install.stdout_lines
-  when:
-    - helm_install is defined
-    - helm_install.stdout is defined
-    - (helm_install.stdout | length) > 0
-
-- name: helm | show install stderr
-  ansible.builtin.debug:
-    var: helm_install.stderr_lines
-  when:
-    - helm_install is defined
-    - helm_install.stderr is defined
-    - (helm_install.stderr | length) > 0
-
-- name: helm | smoke test
-  ansible.builtin.command: helm version --short
-  register: helm_smoke
-  changed_when: false
-
-- name: helm | show version
-  ansible.builtin.debug:
-    var: helm_smoke.stdout_lines
+    - name: helm | extract
+      ansible.builtin.unarchive:
+        src: "/tmp/helm-{{ helm_version }}.tar.gz"
+        dest: /usr/local/bin
+        remote_src: yes
+        include:
+          - linux-amd64/helm
+        extra_opts:
+          - --strip-components=1
+        owner: root
+        group: root
+        mode: '0755'

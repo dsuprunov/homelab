@@ -6,6 +6,7 @@
         name:
           - kubelet
           - kubeadm
+          - kubectl
         state: present
 
     - name: k8s | hold packages
@@ -15,9 +16,9 @@
       loop:
         - kubelet
         - kubeadm
+        - kubectl
 
     - name: k8s | enable kubelet
       ansible.builtin.systemd:
         name: kubelet
         enabled: true
-        state: started

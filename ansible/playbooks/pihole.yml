@@ -1,11 +1,14 @@
 ---
+#
+# TODO: todo do not install if already exists?
+#
 - name: DNS | install & configure Pi-hole
   hosts: dns
   become: true
   gather_facts: true
 
   tasks:
-    - name: pi-hole | install prerequisite packages
+    - name: pi-hole | install packages
       ansible.builtin.apt:
         update_cache: true
         name:
@@ -61,21 +64,3 @@
 
     - name: pi-hole | update gravity
       ansible.builtin.command: pihole -g
-
-    - name: pi-hole | get status
-      ansible.builtin.command: pihole status
-      register: pihole_status
-      changed_when: false
-
-    - name: pi-hole | show status
-      ansible.builtin.debug:
-        var: pihole_status.stdout_lines
-
-    - name: pi-hole | get version
-      ansible.builtin.command: pihole -v
-      register: pihole_version
-      changed_when: false
-
-    - name: pi-hole | show version
-      ansible.builtin.debug:
-        var: pihole_version.stdout_lines
