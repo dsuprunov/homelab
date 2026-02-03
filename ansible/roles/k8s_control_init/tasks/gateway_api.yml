@@ -1,0 +1,39 @@
+---
+- name: gateway api | wait for apiserver
+  ansible.builtin.command: kubectl --kubeconfig /etc/kubernetes/admin.conf get --raw=/readyz
+  register: apiserver_readyz
+  retries: 60
+  delay: 2
+  until: apiserver_readyz.rc == 0
+  changed_when: false
+
+- name: gateway api | check if CRDs already installed
+  ansible.builtin.command: kubectl --kubeconfig /etc/kubernetes/admin.conf get crd gatewayclasses.gateway.networking.k8s.io
+  register: gateway_crd
+  changed_when: false
+  failed_when: false
+
+#- name: gateway api | already installed
+#  ansible.builtin.debug:
+#    msg: "Gateway API CRDs already installed"
+#  when: gateway_crd.rc == 0
+
+- name: gateway api | apply standard CRDs
+  ansible.builtin.command: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf apply
+      -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{ gateway_api_crds_version }}/standard-install.yaml
+  register: gateway_apply
+  changed_when: "'created' in gateway_apply.stdout or 'configured' in gateway_apply.stdout"
+  when: gateway_crd.rc != 0
+
+#- name: gateway api | show apply stdout
+#  ansible.builtin.debug:
+#    var: gateway_apply.stdout_lines
+#  when: gateway_crd.rc != 0
+
+#- name: gateway api | show apply stderr
+#  ansible.builtin.debug:
+#    var: gateway_apply.stderr_lines
+#  when:
+#    - gateway_crd.rc != 0
+#    - gateway_apply.stderr is defined and (gateway_apply.stderr | length) > 0

@@ -8,3 +8,15 @@
 | Worker #1   | `vm-k8s-worker-01.home.arpa`  | 192.168.178.220 |
 | Worker #2   | `vm-k8s-worker-02.home.arpa`  | 192.168.178.221 |
 | Worker #3   | `vm-k8s-worker-03.home.arpa`  | 192.168.178.222 |
+
+
+### kubectl config for the current user
+
+```bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+echo 'source <(kubectl completion bash)' >>~/.bashrc
+source ~/.bashrc
+```

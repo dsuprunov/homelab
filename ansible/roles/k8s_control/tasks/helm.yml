@@ -19,27 +19,27 @@
   register: helm_install
   when: helm_installed.rc != 0 or ('v' ~ helm_version) not in (helm_installed.stdout | default(''))
 
-- name: helm | show install stdout
-  ansible.builtin.debug:
-    var: helm_install.stdout_lines
-  when:
-    - helm_install is defined
-    - helm_install.stdout is defined
-    - (helm_install.stdout | length) > 0
+#- name: helm | show install stdout
+#  ansible.builtin.debug:
+#    var: helm_install.stdout_lines
+#  when:
+#    - helm_install is defined
+#    - helm_install.stdout is defined
+#    - (helm_install.stdout | length) > 0
 
-- name: helm | show install stderr
-  ansible.builtin.debug:
-    var: helm_install.stderr_lines
-  when:
-    - helm_install is defined
-    - helm_install.stderr is defined
-    - (helm_install.stderr | length) > 0
+#- name: helm | show install stderr
+#  ansible.builtin.debug:
+#    var: helm_install.stderr_lines
+#  when:
+#    - helm_install is defined
+#    - helm_install.stderr is defined
+#    - (helm_install.stderr | length) > 0
 
 - name: helm | smoke test
   ansible.builtin.command: helm version --short
   register: helm_smoke
   changed_when: false
 
-- name: helm | show version
-  ansible.builtin.debug:
-    var: helm_smoke.stdout_lines
+#- name: helm | show version
+#  ansible.builtin.debug:
+#    var: helm_smoke.stdout_lines

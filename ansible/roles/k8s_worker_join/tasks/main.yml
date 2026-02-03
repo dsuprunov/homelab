@@ -11,10 +11,10 @@
     path: /etc/kubernetes/kubelet.conf
   register: kubelet_conf
 
-- name: worker join | already joined
-  ansible.builtin.debug:
-    msg: "Node already joined"
-  when: kubelet_conf.stat.exists
+#- name: worker join | already joined
+#  ansible.builtin.debug:
+#    msg: "Node already joined"
+#  when: kubelet_conf.stat.exists
 
 - name: worker join | get join command
   ansible.builtin.command: kubeadm token create --print-join-command --ttl 12h0m0s
@@ -22,17 +22,17 @@
   register: join_cmd
   when: not kubelet_conf.stat.exists
 
-- name: worker join | show join command stdout
-  ansible.builtin.debug:
-    var: join_cmd.stdout_lines
-  when: not kubelet_conf.stat.exists
+#- name: worker join | show join command stdout
+#  ansible.builtin.debug:
+#    var: join_cmd.stdout_lines
+#  when: not kubelet_conf.stat.exists
 
-- name: worker join | show join command stderr
-  ansible.builtin.debug:
-    var: join_cmd.stderr_lines
-  when:
-    - not kubelet_conf.stat.exists
-    - join_cmd.stderr is defined and (join_cmd.stderr | length) > 0
+#- name: worker join | show join command stderr
+#  ansible.builtin.debug:
+#    var: join_cmd.stderr_lines
+#  when:
+#    - not kubelet_conf.stat.exists
+#    - join_cmd.stderr is defined and (join_cmd.stderr | length) > 0
 
 - name: worker join | kubeadm join
   ansible.builtin.command: "{{ join_cmd.stdout | trim }}"
@@ -41,15 +41,15 @@
   register: kubeadm_join
   when: not kubelet_conf.stat.exists
 
-- name: worker join | show kubeadm join stdout
-  ansible.builtin.debug:
-    var: kubeadm_join.stdout_lines
-  when:
-    - not kubelet_conf.stat.exists
+#- name: worker join | show kubeadm join stdout
+#  ansible.builtin.debug:
+#    var: kubeadm_join.stdout_lines
+#  when:
+#    - not kubelet_conf.stat.exists
 
-- name: worker join | show kubeadm join stderr
-  ansible.builtin.debug:
-    var: kubeadm_join.stderr_lines
-  when:
-    - not kubelet_conf.stat.exists
-    - kubeadm_join.stderr is defined and (kubeadm_join.stderr | length) > 0
+#- name: worker join | show kubeadm join stderr
+#  ansible.builtin.debug:
+#    var: kubeadm_join.stderr_lines
+#  when:
+#    - not kubelet_conf.stat.exists
+#    - kubeadm_join.stderr is defined and (kubeadm_join.stderr | length) > 0

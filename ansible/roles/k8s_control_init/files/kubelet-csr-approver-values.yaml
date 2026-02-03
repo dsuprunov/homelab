@@ -1,0 +1,4 @@
+providerRegex: '^vm-k8s-(control|worker)-[0-9]+(\.home\.arpa)?$'
+providerIpPrefixes: '192.168.178.0/24'
+maxExpirationSeconds: '31536000'
+bypassDnsResolution: false

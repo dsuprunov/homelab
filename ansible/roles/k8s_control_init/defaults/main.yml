@@ -1,0 +1,5 @@
+---
+kubelet_csr_approver_chart_version: "1.2.12"
+gateway_api_crds_version: "1.4.1"
+cilium_version: "1.18.6"
+
