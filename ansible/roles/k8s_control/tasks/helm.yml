@@ -19,3 +19,20 @@
         owner: root
         group: root
         mode: '0755'
+
+    - name: helm | ensure plugins dir
+      ansible.builtin.file:
+        path: /usr/local/share/helm/plugins
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: helm | install helm-diff plugin
+      ansible.builtin.command: >-
+        helm plugin install https://github.com/databus23/helm-diff 
+          --version v{{ helm_diff_version }}
+      environment:
+        HELM_PLUGINS: /usr/local/share/helm/plugins
+      args:
+        creates: /usr/local/share/helm/plugins/helm-diff

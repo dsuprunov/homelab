@@ -36,6 +36,7 @@
           - /etc/kubernetes/cilium/values.yaml
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
+        HELM_PLUGINS: /usr/local/share/helm/plugins
 
     - name: cilium | wait for pods ready
       ansible.builtin.command: >

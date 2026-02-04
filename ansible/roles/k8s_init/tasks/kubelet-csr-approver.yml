@@ -36,3 +36,4 @@
           - /etc/kubernetes/kubelet-csr-approver/values.yaml
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
+        HELM_PLUGINS: /usr/local/share/helm/plugins
