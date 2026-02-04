@@ -13,12 +13,12 @@
   roles:
     - k8s_control
 
-- name: k8s | control init
-  hosts: k8s_control_init
+- name: k8s | init
+  hosts: k8s_init
   become: true
   gather_facts: true
   roles:
-    - k8s_control_init
+    - k8s_init
 
 - name: k8s | worker
   hosts: k8s_worker

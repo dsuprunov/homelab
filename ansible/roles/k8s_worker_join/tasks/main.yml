@@ -7,6 +7,7 @@
           - groups['k8s_control'] is defined
           - (groups['k8s_control'] | length) > 0
         fail_msg: "Control plane group 'k8s_control' is not defined or empty"
+        # ToDo: hide from ansible output?
 
     - name: k8s | check if node already joined
       ansible.builtin.stat:
