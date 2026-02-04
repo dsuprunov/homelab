@@ -1,0 +1,21 @@
+---
+- name: metrics-server
+  block:
+    - name: metrics-server | add helm repo
+      kubernetes.core.helm_repository:
+        name: metrics-server
+        repo_url: https://kubernetes-sigs.github.io/metrics-server/
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: metrics-server | deploy chart
+      kubernetes.core.helm:
+        name: metrics-server
+        chart_ref: metrics-server/metrics-server
+        chart_version: "{{ metrics_server_version }}"
+        release_namespace: kube-system
+        create_namespace: false
+        wait: true
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+        HELM_PLUGINS: /usr/local/share/helm/plugins
