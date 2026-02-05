@@ -2,4 +2,3 @@
 - ansible.builtin.import_tasks: k8s.yml
 - ansible.builtin.import_tasks: cilium.yml
 - ansible.builtin.import_tasks: kubelet-csr-approver.yml
-#- ansible.builtin.import_tasks: metrics-server.yml

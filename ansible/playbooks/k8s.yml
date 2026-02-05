@@ -33,3 +33,10 @@
   gather_facts: true
   roles:
     - k8s_worker_join
+
+- name: k8s | addons
+  hosts: k8s_addons
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_addons

@@ -30,10 +30,31 @@
         chart_ref: postfinance/kubelet-csr-approver
         chart_version: "{{ kubelet_csr_approver_version }}"
         release_namespace: kube-system
-        create_namespace: false
-        wait: true
+        wait: false
+        timeout: 5m
         values_files:
           - /etc/kubernetes/kubelet-csr-approver/values.yaml
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
         HELM_PLUGINS: /usr/local/share/helm/plugins
+
+    - name: kubelet-csr-approver | wait for deployment
+      ansible.builtin.command: >
+        kubectl -n kube-system get deployment kubelet-csr-approver -o name
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: kubelet_csr_approver_deployment
+      changed_when: false
+      ignore_errors: true
+      retries: 120
+      delay: 5
+      until: kubelet_csr_approver_deployment.rc == 0
+
+    - name: kubelet-csr-approver | wait for rollout
+      ansible.builtin.command: >
+        kubectl -n kube-system rollout status deployment/kubelet-csr-approver --timeout=5m
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: kubelet_csr_approver_rollout
+      changed_when: false
+      ignore_errors: true

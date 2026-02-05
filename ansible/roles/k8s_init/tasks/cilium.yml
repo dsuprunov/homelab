@@ -32,18 +32,13 @@
         release_namespace: kube-system
         create_namespace: false
         wait: true
+        timeout: 15m
         values_files:
           - /etc/kubernetes/cilium/values.yaml
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
         HELM_PLUGINS: /usr/local/share/helm/plugins
-
-    - name: cilium | wait for pods ready
-      ansible.builtin.command: >
-        kubectl wait --for=condition=ready pod
-          -l k8s-app=cilium
-          -n kube-system
-          --timeout=300s
-      environment:
-        KUBECONFIG: /etc/kubernetes/admin.conf
-      changed_when: false
+      register: cilium_deploy
+      retries: 3
+      delay: 30
+      until: cilium_deploy is succeeded
