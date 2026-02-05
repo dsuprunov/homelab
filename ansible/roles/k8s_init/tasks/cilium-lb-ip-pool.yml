@@ -1,0 +1,17 @@
+---
+- name: cilium lb ip pool
+  block:
+    - name: cilium lb ip pool | copy manifest
+      ansible.builtin.copy:
+        src: cilium-lb-ip-pool.yaml
+        dest: /etc/kubernetes/cilium/lb-ip-pool.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: cilium lb ip pool | apply manifest
+      ansible.builtin.command: >
+        kubectl apply -f /etc/kubernetes/cilium/lb-ip-pool.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      changed_when: false

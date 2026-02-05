@@ -11,7 +11,7 @@
 
     - name: kubelet-csr-approver | copy values
       ansible.builtin.copy:
-        src: kubelet-csr-approver-values.yaml
+        src: kubelet-csr-approver.yaml
         dest: /etc/kubernetes/kubelet-csr-approver/values.yaml
         owner: root
         group: root

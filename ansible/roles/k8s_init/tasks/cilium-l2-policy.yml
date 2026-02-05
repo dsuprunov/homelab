@@ -1,0 +1,17 @@
+---
+- name: cilium l2 announcement policy
+  block:
+    - name: cilium l2 policy | copy manifest
+      ansible.builtin.copy:
+        src: cilium-l2-policy.yaml
+        dest: /etc/kubernetes/cilium/l2-policy.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: cilium l2 policy | apply manifest
+      ansible.builtin.command: >
+        kubectl apply -f /etc/kubernetes/cilium/l2-policy.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      changed_when: false

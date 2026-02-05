@@ -1,0 +1,17 @@
+---
+- name: cilium gateway
+  block:
+    - name: cilium gateway | copy manifest
+      ansible.builtin.copy:
+        src: cilium-gateway.yaml
+        dest: /etc/kubernetes/cilium/gateway.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: cilium gateway | apply manifest
+      ansible.builtin.command: >
+        kubectl apply -f /etc/kubernetes/cilium/gateway.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      changed_when: false
