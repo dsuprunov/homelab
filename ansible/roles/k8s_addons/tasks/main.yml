@@ -1,2 +1,3 @@
 ---
 - ansible.builtin.import_tasks: metrics-server.yml
+- ansible.builtin.import_tasks: flux-operator.yml
