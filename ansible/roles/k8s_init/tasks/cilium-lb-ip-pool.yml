@@ -1,6 +1,18 @@
 ---
 - name: cilium lb ip pool
   block:
+    - name: cilium lb ip pool | wait for CRD
+      ansible.builtin.command: >
+        kubectl get crd ciliumloadbalancerippools.cilium.io
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: ciliumloadbalancerippool_crd
+      changed_when: false
+      ignore_errors: true
+      retries: 120
+      delay: 5
+      until: ciliumloadbalancerippool_crd.rc == 0
+
     - name: cilium lb ip pool | copy manifest
       ansible.builtin.copy:
         src: cilium-lb-ip-pool.yaml

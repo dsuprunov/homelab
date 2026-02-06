@@ -30,7 +30,7 @@
         mode: "0644"
 
     - name: flux instance | apply manifest
-      ansible.builtin.command: kubectl apply -f /etc/kubernetes/flux/fluxinstance.yaml
+      ansible.builtin.command: kubectl apply -f /etc/kubernetes/flux/instance.yaml
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
       register: fluxinstance_apply

@@ -1,6 +1,18 @@
 ---
 - name: cilium l2 announcement policy
   block:
+    - name: cilium l2 policy | wait for CRD
+      ansible.builtin.command: >
+        kubectl get crd ciliuml2announcementpolicies.cilium.io
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: ciliuml2announcementpolicy_crd
+      changed_when: false
+      ignore_errors: true
+      retries: 120
+      delay: 5
+      until: ciliuml2announcementpolicy_crd.rc == 0
+
     - name: cilium l2 policy | copy manifest
       ansible.builtin.copy:
         src: cilium-l2-policy.yaml
