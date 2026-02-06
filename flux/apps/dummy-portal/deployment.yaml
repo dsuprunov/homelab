@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-portal
+  namespace: dummy-portal
+  labels:
+    app: dummy-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummy-portal
+  template:
+    metadata:
+      labels:
+        app: dummy-portal
+    spec:
+      containers:
+        - name: dummy-portal
+          image: dsuprunov/dummy-portal
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
