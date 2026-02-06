@@ -10,6 +10,11 @@
 | Worker #3   | `vm-k8s-worker-03.home.arpa`  | 192.168.178.222 |
 
 
+#### Hosts
+
+- http://flux.k8s.home.arpa
+
+
 ### kubectl config for the current user
 
 ```bash
@@ -27,7 +32,7 @@ source ~/.bashrc
 kubectl create namespace flux-system --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl -n flux-system create secret generic homelab-git-auth \
-  --from-literal=username=dsuprunov \
+  --from-literal=username=git \
   --from-literal=password="---HIDDEN---" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
