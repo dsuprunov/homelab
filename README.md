@@ -9,13 +9,12 @@
 | Worker #2   | `vm-k8s-worker-02.home.arpa`  | 192.168.178.221 |
 | Worker #3   | `vm-k8s-worker-03.home.arpa`  | 192.168.178.222 |
 
-
 #### Hosts
 
-| Service                        | CName                   |
-|--------------------------------|-------------------------|
-| http://flux.k8s.home.arpa      | `k8s-ingress.home.arpa` |
-| http://nginxdemo.k8s.home.arpa | `k8s-ingress.home.arpa` |
+| Service                           | CName                   |
+|-----------------------------------|-------------------------|
+| http://flux.k8s.home.arpa         | `k8s-ingress.home.arpa` |
+| http://dummy-portal.k8s.home.arpa | `k8s-ingress.home.arpa` |
 
 ### kubectl config for the current user
 
