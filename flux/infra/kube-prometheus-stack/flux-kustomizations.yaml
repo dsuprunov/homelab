@@ -1,30 +1,33 @@
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: flux-web-ui
+  name: kube-prometheus-stack-base
   namespace: flux-system
 spec:
   interval: 10m
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./flux/infra/flux-web-ui
+  path: ./flux/infra/kube-prometheus-stack/base
   prune: true
   wait: true
-  timeout: 2m
+  timeout: 10m
 
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: kube-prometheus-stack
+  name: kube-prometheus-stack-ingress
   namespace: flux-system
 spec:
   interval: 10m
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./flux/infra/kube-prometheus-stack
+  path: ./flux/infra/kube-prometheus-stack/ingress
   prune: true
   wait: true
-  timeout: 10m
+  timeout: 2m
+  dependsOn:
+    - name: kube-prometheus-stack-base
