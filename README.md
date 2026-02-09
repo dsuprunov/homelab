@@ -14,6 +14,7 @@
 | Service                           | CName                   |
 |-----------------------------------|-------------------------|
 | http://flux.k8s.home.arpa         | `k8s-ingress.home.arpa` |
+| http://grafana.k8s.home.arpa      | `k8s-ingress.home.arpa` |
 | http://dummy-portal.k8s.home.arpa | `k8s-ingress.home.arpa` |
 
 ### kubectl config for the current user
