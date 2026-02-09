@@ -5,4 +5,4 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - helmrelease.yaml
-  - httproute.yaml
+  - ingress/flux-kustomization.yaml
