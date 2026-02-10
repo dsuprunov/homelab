@@ -1,0 +1,12 @@
+---
+runc_version: "1.4.0"
+runc_checksum: "sha256:c5d4995c5aec204d7e1827d9d9a6b45042602736f7f415f484252e576dcdac28"
+
+containerd_version: "2.2.1"
+containerd_checksum: "sha256:f5d8e90ecb6c1c7e33ecddf8cc268a93b9e5b54e0e850320d765511d76624f41"
+
+pause_version: "3.10.1"
+
+kubernetes_version: "1.35"
+
+

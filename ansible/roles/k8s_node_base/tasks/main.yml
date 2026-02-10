@@ -1,5 +1,7 @@
 ---
-- ansible.builtin.import_tasks: core.yml
+- ansible.builtin.import_tasks: swap.yml
+- ansible.builtin.import_tasks: kernel.yml
+- ansible.builtin.import_tasks: sysctl.yml
 - ansible.builtin.import_tasks: runc.yml
 - ansible.builtin.import_tasks: containerd.yml
 - ansible.builtin.import_tasks: k8s.yml

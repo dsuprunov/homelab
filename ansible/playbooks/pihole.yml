@@ -57,8 +57,7 @@
         mode: "0755"
 
     - name: pi-hole | run installer (unattended)
-      ansible.builtin.command: >
-        bash /tmp/install-pihole.sh --unattended
+      ansible.builtin.command: bash /tmp/install-pihole.sh --unattended
       args:
         creates: /usr/local/bin/pihole
 

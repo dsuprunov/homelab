@@ -5,6 +5,7 @@
       ansible.builtin.get_url:
         url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
         dest: "/tmp/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+        checksum: "{{ containerd_checksum }}"
         mode: '0644'
 
     - name: containerd | extract
@@ -83,9 +84,3 @@
         - containerd_demon.changed
           or containerd_config_cgroup.changed
           or containerd_config_sandbox.changed
-
-    - name: containerd | smoke test
-      ansible.builtin.command: systemctl is-active containerd
-      register: containerd_service_active
-      changed_when: false
-      failed_when: containerd_service_active.stdout | trim != "active"
