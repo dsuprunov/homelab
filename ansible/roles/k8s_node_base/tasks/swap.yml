@@ -1,0 +1,14 @@
+---
+- name: swap
+  block:
+    - name: swap | check swap status
+      ansible.builtin.command: swapon --show
+      register: swap_status
+      changed_when: false
+
+    - name: swap | assert swap is disabled
+      ansible.builtin.assert:
+        that:
+          - swap_status.stdout | length == 0
+        fail_msg: "Swap is enabled"
+        quiet: true

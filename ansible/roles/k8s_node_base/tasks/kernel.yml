@@ -1,0 +1,20 @@
+---
+- name: kernel
+  block:
+    - name: kernel | configure modules-load
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/99-k8s-containerd.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          overlay
+          br_netfilter
+
+    - name: kernel | load configured modules
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
