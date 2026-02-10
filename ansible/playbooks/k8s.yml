@@ -13,6 +13,13 @@
   roles:
     - k8s_node_control
 
+- name: k8s | cluster init
+  hosts: k8s_node_control
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_cluster_init
+
 - name: k8s | worker
   hosts: k8s_node_worker
   become: true
