@@ -1,3 +1,5 @@
 ---
 helm_version: "3.20.0"
 helm_checksum: "sha256:dbb4c8fc8e19d159d1a63dda8db655f9ffa4aac1b9a6b188b34a40957119b286"
+
+helm_diff_version: "v3.15.0"

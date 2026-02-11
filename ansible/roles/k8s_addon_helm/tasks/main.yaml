@@ -21,3 +21,18 @@
         group: root
         mode: '0755'
         creates: /usr/local/bin/helm
+
+    - name: helm | ensure plugins dir
+      ansible.builtin.file:
+        path: "{{ ansible_facts['user_dir'] }}/.local/share/helm/plugins"
+        state: directory
+        mode: "0755"
+
+    - name: helm | install diff plugin
+      ansible.builtin.command: >
+        helm plugin install https://github.com/databus23/helm-diff
+          --version {{ helm_diff_version }}
+      args:
+        creates: "{{ ansible_facts['user_dir'] }}/.local/share/helm/plugins/helm-diff"
+      environment:
+        HELM_PLUGINS: "{{ ansible_facts['user_dir'] }}/.local/share/helm/plugins"
