@@ -1,0 +1,23 @@
+---
+- name: helm
+  block:
+    - name: helm | download
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+        mode: "0644"
+        checksum: "{{ helm_checksum }}"
+
+    - name: helm | extract
+      ansible.builtin.unarchive:
+        src: "/tmp/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+        include:
+          - linux-amd64/helm
+        owner: root
+        group: root
+        mode: '0755'
+        creates: /usr/local/bin/helm

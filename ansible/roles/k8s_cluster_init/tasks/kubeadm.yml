@@ -1,0 +1,31 @@
+---
+- name: k8s
+  block:
+    - name: k8s | check if cluster already initialized
+      ansible.builtin.stat:
+        path: /etc/kubernetes/admin.conf
+      register: admin_conf
+
+    - name: k8s | initialize cluster
+      when: not admin_conf.stat.exists
+      block:
+        - name: k8s | ensure /etc/kubernetes exists
+          ansible.builtin.file:
+            path: /etc/kubernetes
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: k8s | copy config
+          ansible.builtin.copy:
+            src: kubeadm.yaml
+            dest: /etc/kubernetes/kubeadm.yaml
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: k8s | init cluster
+          ansible.builtin.command: kubeadm init --config /etc/kubernetes/kubeadm.yaml --upload-certs
+          args:
+            creates: /etc/kubernetes/admin.conf

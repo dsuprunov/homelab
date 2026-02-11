@@ -32,7 +32,7 @@
         - name: k8s | convert key to gpg format
           ansible.builtin.command: >
             gpg
-              --batch --no-tty
+              --batch --no-tty --yes
               --dearmor
               --output /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
 

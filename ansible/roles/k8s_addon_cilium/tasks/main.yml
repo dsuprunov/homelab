@@ -1,0 +1,36 @@
+---
+- name: cilium
+  block:
+    - name: cilium | create config directory
+      ansible.builtin.file:
+        path: /etc/kubernetes/cilium
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: cilium | ensure values file
+      ansible.builtin.copy:
+        src: values.yaml
+        dest: /etc/kubernetes/cilium/values.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: cilium | install
+      kubernetes.core.helm:
+        release_name: cilium
+        chart_ref: oci://quay.io/cilium/charts/cilium
+        chart_version: "{{ cilium_version }}"
+        release_namespace: kube-system
+        create_namespace: false
+        values_files:
+          - /etc/kubernetes/cilium/values.yaml
+        kubeconfig: /etc/kubernetes/admin.conf
+        wait: true
+        timeout: 15m
+        state: present
+      register: cilium_deploy
+      retries: 6
+      delay: 30
+      until: cilium_deploy is succeeded
