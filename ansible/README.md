@@ -25,11 +25,11 @@ docker compose run --rm ansible ansible-playbook playbooks/*
 ### Install Pi-hole
 
 ```bash
-docker compose run --rm ansible ansible-playbook playbooks/pihole.yml
+docker compose run --rm ansible ansible-playbook playbooks/pihole.yaml
 ```
 
 ### Prepare k8s node
 
 ```bash
-docker compose run --rm ansible ansible-playbook playbooks/k8s.yml
+docker compose run --rm ansible ansible-playbook playbooks/k8s.yaml
 ```
