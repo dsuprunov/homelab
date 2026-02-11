@@ -9,7 +9,7 @@
         group: root
         mode: "0755"
 
-    - name: cilium | ensure values file
+    - name: cilium | copy values
       ansible.builtin.copy:
         src: values.yaml
         dest: /etc/kubernetes/cilium/values.yaml
