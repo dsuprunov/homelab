@@ -27,14 +27,3 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 echo 'source <(kubectl completion bash)' >>~/.bashrc
 source ~/.bashrc
 ```
-
-### flux 
-
-```bash
-kubectl create namespace flux-system --dry-run=client -o yaml | kubectl apply -f -
-
-kubectl -n flux-system create secret generic homelab-git-auth \
-  --from-literal=username=git \
-  --from-literal=password="---HIDDEN---" \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
