@@ -1,0 +1,86 @@
+---
+- name: containerd
+  block:
+    - name: containerd | download
+      ansible.builtin.get_url:
+        url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+        checksum: "{{ containerd_checksum }}"
+        mode: '0644'
+
+    - name: containerd | extract
+      ansible.builtin.unarchive:
+        src: "/tmp/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+        dest: /usr/local
+        remote_src: true
+
+    - name: containerd | install daemon
+      ansible.builtin.get_url:
+        url: "https://raw.githubusercontent.com/containerd/containerd/v{{ containerd_version }}/containerd.service"
+        dest: /etc/systemd/system/containerd.service
+        owner: root
+        group: root
+        mode: '0644'
+      register: containerd_demon
+
+    - name: containerd | reload daemon
+      ansible.builtin.systemd:
+        daemon_reload: true
+      when: containerd_demon.changed
+
+    - name: containerd | ensure /etc/containerd exists
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: containerd | check if config exists
+      ansible.builtin.stat:
+        path: /etc/containerd/config.toml
+      register: containerd_config_file
+
+    - name: containerd | generate config defaults
+      ansible.builtin.command: containerd config default
+      register: containerd_config_output
+      changed_when: false
+      when: not containerd_config_file.stat.exists
+
+    - name: containerd | write config
+      ansible.builtin.copy:
+        dest: /etc/containerd/config.toml
+        content: "{{ containerd_config_output.stdout }}"
+        owner: root
+        group: root
+        mode: '0644'
+      when: not containerd_config_file.stat.exists
+
+    - name: containerd | configure SystemdCgroup=true
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: '(^\s*SystemdCgroup\s*=\s*)false'
+        replace: '\1true'
+      register: containerd_config_cgroup
+
+    - name: containerd | configure pause image version
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: "(^\\s*sandbox\\s*=\\s*)'[^']+'"
+        replace: "\\1'registry.k8s.io/pause:{{ pause_version }}'"
+      register: containerd_config_sandbox
+
+    - name: containerd | enable and start service
+      ansible.builtin.systemd:
+        name: containerd
+        enabled: true
+        state: started
+
+    - name: containerd | restart service
+      ansible.builtin.systemd:
+        name: containerd
+        state: restarted
+      when:
+        - containerd_demon.changed
+          or containerd_config_cgroup.changed
+          or containerd_config_sandbox.changed

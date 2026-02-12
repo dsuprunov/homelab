@@ -1,8 +1,0 @@
----
-- ansible.builtin.import_tasks: k8s.yml
-- ansible.builtin.import_tasks: gateway-api.yml
-- ansible.builtin.import_tasks: cilium.yml
-- ansible.builtin.import_tasks: cilium-lb-ip-pool.yml
-- ansible.builtin.import_tasks: cilium-l2-policy.yml
-- ansible.builtin.import_tasks: cilium-gateway.yml
-- ansible.builtin.import_tasks: kubelet-csr-approver.yml

@@ -1,0 +1,49 @@
+---
+- name: k8s | node
+  hosts: k8s_node_base
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_node_base
+
+- name: k8s | control
+  hosts: k8s_node_control
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_node_control
+
+- name: k8s | cluster init
+  hosts: k8s_cluster_init
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_cluster_init
+
+- name: k8s | helm
+  hosts: k8s_addon_helm
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_addon_helm
+
+- name: k8s | cilium
+  hosts: k8s_addon_cilium
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_addon_cilium
+
+- name: k8s | worker
+  hosts: k8s_node_worker
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_node_worker
+
+- name: k8s | worker join
+  hosts: k8s_node_worker_join
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_node_worker_join

@@ -22,14 +22,14 @@ docker compose run --rm ansible ansible -m ping vms
 docker compose run --rm ansible ansible-playbook playbooks/*
 ```
 
-### Install Pi-hole
+## Install Pi-hole
 
 ```bash
-docker compose run --rm ansible ansible-playbook playbooks/pihole.yml
+docker compose run --rm ansible ansible-playbook playbooks/pihole.yaml
 ```
 
-### Prepare k8s node
+## Prepare k8s cluster
 
 ```bash
-docker compose run --rm ansible ansible-playbook playbooks/k8s.yml
+docker compose run --rm ansible ansible-playbook playbooks/k8s.yaml
 ```

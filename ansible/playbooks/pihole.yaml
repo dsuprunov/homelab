@@ -1,0 +1,65 @@
+---
+#
+# TODO: todo do not install if already exists?
+#
+- name: DNS | install & configure Pi-hole
+  hosts: dns
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: pi-hole | install packages
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: pi-hole | ensure group exists
+      ansible.builtin.group:
+        name: pihole
+        system: true
+
+    - name: pi-hole | ensure user exists
+      ansible.builtin.user:
+        name: pihole
+        group: pihole
+        shell: /usr/sbin/nologin
+        system: true
+        create_home: false
+
+    - name: pi-hole | ensure /etc/pihole exists
+      ansible.builtin.file:
+        path: /etc/pihole
+        state: directory
+        owner: pihole
+        group: pihole
+        mode: "0775"
+
+    - name: pi-hole | write config /etc/pihole/pihole.toml
+      ansible.builtin.copy:
+        dest: /etc/pihole/pihole.toml
+        owner: pihole
+        group: pihole
+        mode: "0644"
+        force: false
+        content: |
+          [dns]
+          interface = "{{ ansible_facts['default_ipv4']['interface'] }}"
+          upstreams = ["8.8.8.8", "8.8.4.4"]
+          queryLogging = true
+
+    - name: pi-hole | download installer
+      ansible.builtin.get_url:
+        url: https://install.pi-hole.net
+        dest: /tmp/install-pihole.sh
+        mode: "0755"
+
+    - name: pi-hole | run installer (unattended)
+      ansible.builtin.command: bash /tmp/install-pihole.sh --unattended
+      args:
+        creates: /usr/local/bin/pihole
+
+    - name: pi-hole | update gravity
+      ansible.builtin.command: pihole -g

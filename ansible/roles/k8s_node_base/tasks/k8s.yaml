@@ -1,0 +1,52 @@
+---
+- name: k8s
+  block:
+    - name: k8s | install packages
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gpg
+        state: present
+
+    - name: k8s | ensure /etc/apt/keyrings exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: k8s | download apt key
+      ansible.builtin.get_url:
+        url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key"
+        dest: /tmp/kubernetes-release.key
+        mode: '0644'
+      register: k8s_key
+
+    - name: k8s | add/update repository
+      when: k8s_key.changed
+      block:
+        - name: k8s | convert key to gpg format
+          ansible.builtin.command: >
+            gpg
+              --batch --no-tty --yes
+              --dearmor
+              --output /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
+
+        - name: k8s | add repository
+          ansible.builtin.copy:
+            dest: /etc/apt/sources.list.d/kubernetes.list
+            owner: root
+            group: root
+            mode: "0644"
+            content: |
+              deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /
+          register: k8s_repo
+
+        - name: k8s | update repository
+          ansible.builtin.apt:
+            update_cache: true
+          when: k8s_repo.changed
