@@ -1,0 +1,69 @@
+---
+- name: flux
+  block:
+    - name: flux | validate GitHub token
+      vars:
+        github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') | trim }}"
+      ansible.builtin.uri:
+        url: https://api.github.com/user
+        headers:
+          Authorization: "Bearer {{ github_token }}"
+          Accept: "application/vnd.github+json"
+          X-GitHub-Api-Version: "2022-11-28"
+      register: token_check
+      changed_when: false
+      run_once: true
+      no_log: true
+
+    - name: flux | token OK
+      when: token_check.status == 200
+      block:
+        - name: flux | download
+          ansible.builtin.get_url:
+            url: "https://github.com/fluxcd/flux2/releases/download/v{{ flux_cli_version }}/flux_{{ flux_cli_version }}_linux_amd64.tar.gz"
+            dest: "/tmp/flux_{{ flux_cli_version }}_linux_amd64.tar.gz"
+            checksum: "{{ flux_cli_checksum }}"
+            mode: "0644"
+
+        - name: flux | extract
+          ansible.builtin.unarchive:
+            src: "/tmp/flux_{{ flux_cli_version }}_linux_amd64.tar.gz"
+            dest: /usr/local/bin
+            remote_src: true
+            owner: root
+            group: root
+            mode: '0755'
+            creates: /usr/local/bin/flux
+
+        - name: flux | pre-check
+          ansible.builtin.command: flux check --pre
+          environment:
+            KUBECONFIG: /etc/kubernetes/admin.conf
+          register: flux_precheck_result
+          changed_when: false
+          run_once: true
+
+        - name: flux | pre-check OK
+          when: flux_precheck_result.rc == 0
+          block:
+            - name: flux | bootstrap
+              vars:
+                github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') | trim }}"
+              ansible.builtin.command: >
+                flux bootstrap github
+                  --owner=dsuprunov
+                  --repository=homelab
+                  --branch=main
+                  --path=flux
+                  --personal
+                  --reconcile=true
+                  --token-auth=false
+              environment:
+                GITHUB_TOKEN: "{{ github_token }}"
+                KUBECONFIG: /etc/kubernetes/admin.conf
+              register: flux_bootstrap_result
+              changed_when: >
+                ('committed'  in flux_bootstrap_result.stderr) or
+                ('installed'  in flux_bootstrap_result.stderr) or
+                ('configured' in flux_bootstrap_result.stderr)
+              run_once: true

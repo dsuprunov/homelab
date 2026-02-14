@@ -5,9 +5,9 @@
 **/*.tfstate.*
 terraform/credentials.auto.tfvars
 
-
 # ---- Ansible ----
 **/.ansible/
 
 # ---- Other ----
+**/.env
 .idea/
