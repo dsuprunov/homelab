@@ -67,3 +67,4 @@
                 ('installed'  in flux_bootstrap_result.stderr) or
                 ('configured' in flux_bootstrap_result.stderr)
               run_once: true
+              # ToDo: wait, timeout, state ...
