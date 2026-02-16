@@ -61,5 +61,5 @@
   roles:
     - role: k8s_addon_flux
 
-ToDo: flux -> kubelet-csr-approver
-ToDo: flux -> metrics-server
+#ToDo: flux -> kubelet-csr-approver
+#ToDo: flux -> metrics-server

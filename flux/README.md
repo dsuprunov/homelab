@@ -1,132 +1,44 @@
 # Flux GitOps
 
-Practical guide for:
-- Initial Flux bootstrap to GitHub over SSH deploy key.
-- Clean cluster reinstall and reconnect to existing Flux repo state.
+This document is only for understanding and validating the Flux bootstrap/reconnect process.
+In normal operation, Ansible role `k8s_addon_flux` handles everything automatically.
 
-Notes:
-- `Initial Flux Bootstrap` is manual by definition when repo does not yet contain Flux artifacts, or when cluster/repo state is completely new.
-- `Cluster Reinstall and Reconnect` below is also documented as manual for clarity. In normal operations this should be automated via Ansible role.
+## Actual behavior
 
-## Table of Contents
+- Authentication for GitHub API is done with `GITHUB_TOKEN` (PAT).
+- With `--token-auth=false`, Flux uses SSH deploy key for Git access, but key handling is done by Flux bootstrap itself.
+- Idempotency is provided by Flux bootstrap:
+  - empty `flux/` path: create and commit Flux artifacts;
+  - existing artifacts: reconnect and reconcile;
+  - drift: reconcile resources back to desired state.
 
-1. [Initial Flux Bootstrap](#initial-flux-bootstrap)
-2. [Cluster Reinstall and Reconnect](#cluster-reinstall-and-reconnect)
+### 1) Create fine-grained PAT
 
-## Initial Flux Bootstrap
+Use a GitHub `fine-grained personal access token`.
 
-Target:
-- repo: `ssh://git@github.com/dsuprunov/homelab.git`
-- branch: `main`
-- path: `flux/clusters/homelab`
-- namespace: `flux-system`
+1. Open `https://github.com/settings/personal-access-tokens/new`.
+2. Set:
+   - Resource owner: `dsuprunov`
+   - Repository access: `Only select repositories` -> `homelab`
+   - Expiration: short/rotated value
+3. Set repository permissions:
+   - `Contents`: `Read and write`
+   - `Administration`: `Read and write` (required for deploy key create/update during bootstrap)
+   - `Metadata`: `Read`
+4. Click `Generate token` and copy it once.
 
-### 1) Install Flux CLI
+### 2) Prepare PAT
+
+Create/export PAT before running bootstrap:
 
 ```bash
-curl -s https://fluxcd.io/install.sh | sudo bash
-flux --version
+export GITHUB_TOKEN='<your_pat>'
 ```
 
-### 2) Generate SSH deploy key locally
+Quick check:
 
 ```bash
-ssh-keygen -t ed25519 -C "homelab-github-flux" -f "$HOME/.ssh/homelab-github-flux-ed25519" -N ""
-```
-
-### 3) Add public key to GitHub as Deploy Key
-
-1. Open `https://github.com/dsuprunov/homelab`.
-2. Go to `Settings` -> `Deploy keys` -> `Add deploy key`.
-3. Paste `~/.ssh/homelab-github-flux-ed25519.pub`.
-4. Enable `Allow write access`.
-
-### 4) Quick SSH check
-
-```bash
-ssh -T git@github.com \
-  -i "$HOME/.ssh/homelab-github-flux-ed25519" \
-  -o IdentitiesOnly=yes \
-  -o StrictHostKeyChecking=accept-new
-```
-
-### 5) Bootstrap Flux
-
-```bash
-flux bootstrap git \
-  --url=ssh://git@github.com/dsuprunov/homelab.git \
-  --branch=main \
-  --path=flux/clusters/homelab \
-  --private-key-file="$HOME/.ssh/homelab-github-flux-ed25519" \
-  --namespace=flux-system \
-  --silent
-```
-
-### 6) Verify reconciliation
-
-```bash
-flux check
-kubectl -n flux-system get pods
-flux get sources git -A
-flux get kustomizations -A
-```
-
-### 7) Artifacts you MUST keep
-
-Store outside (backup/secure host):
-
-1. `~/.ssh/homelab-github-flux-ed25519` (private key)
-2. `~/.ssh/homelab-github-flux-ed25519.pub` (public key)
-3. Repo coordinates:
-   - URL: `ssh://git@github.com/dsuprunov/homelab.git`
-   - branch: `main`
-   - path: `flux/clusters/homelab`
-4. Flux identity:
-   - namespace: `flux-system`
-   - `GitRepository`: `flux-system`
-   - `Kustomization`: `flux-system`
-
-```bash
-scp \
-  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  ubuntu@vm-k8s-control-01.home.arpa:~/.ssh/homelab-github-flux-ed25519* ~/.ssh/
-```
-
-### 8) Optional cleanup
-
-After successful bootstrap and validation, local key files can be removed from the node.
-Do this only if keys are already backed up.
-
-```bash
-rm -f ~/.ssh/homelab-github-flux-ed25519*
-```
-
-## Cluster Reinstall and Reconnect
-
-Use this only to understand/validate the process manually after a clean reinstall.
-Target is to reconnect a new cluster to already existing Flux state in Git.
-
-Prerequisites:
-1. Repo already contains Flux artifacts in `flux/clusters/homelab/flux-system/`.
-2. You have the same deploy key used for this repo (`homelab-github-flux-ed25519`).
-
-### 1) Restore SSH deploy key on the new control node
-
-Run on backup host to copy keys to new control node
-
-```bash
-scp \
-  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  ~/.ssh/homelab-github-flux-ed25519* ubuntu@vm-k8s-control-01.home.arpa:~/.ssh/
-```
-
-### 2) SSH access check
-
-```bash
-ssh -T git@github.com \
-  -i "$HOME/.ssh/homelab-github-flux-ed25519" \
-  -o IdentitiesOnly=yes \
-  -o StrictHostKeyChecking=accept-new
+curl -sSf -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/user >/dev/null
 ```
 
 ### 3) Install Flux CLI
@@ -136,21 +48,20 @@ curl -s https://fluxcd.io/install.sh | sudo bash
 flux --version
 ```
 
-### 4) Reconnect cluster to existing Git state
-
-Use exactly the same repo coordinates as in initial bootstrap.
+### 4) Run bootstrap
 
 ```bash
-flux bootstrap git \
-  --url=ssh://git@github.com/dsuprunov/homelab.git \
+flux bootstrap github \
+  --owner=dsuprunov \
+  --repository=homelab \
   --branch=main \
-  --path=flux/clusters/homelab \
-  --private-key-file="$HOME/.ssh/homelab-github-flux-ed25519" \
-  --namespace=flux-system \
-  --silent
+  --path=flux \
+  --personal \
+  --reconcile=true \
+  --token-auth=false
 ```
 
-### 5) Validate reconciliation
+### 5) Verify reconciliation
 
 ```bash
 flux check
@@ -159,10 +70,8 @@ flux get sources git -A
 flux get kustomizations -A
 ```
 
-### 6) Optional cleanup
-
-After reconnect is successful, remove local key files from this node if backup copy exists.
+### 6) Cleanup shell environment
 
 ```bash
-rm -f ~/.ssh/homelab-github-flux-ed25519*
+unset GITHUB_TOKEN
 ```
