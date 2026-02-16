@@ -1,0 +1,21 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kubelet-csr-approver
+  namespace: kube-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: kubelet-csr-approver
+      version: "1.2.13"
+      sourceRef:
+        kind: HelmRepository
+        name: kubelet-csr-approver
+        namespace: flux-system
+
+  values:
+    providerRegex: '^vm-k8s-(control|worker)-\d+$'
+    providerIpPrefixes: '192.168.178.0/24'
+    maxExpirationSeconds: 86400
+    bypassDnsResolution: true
