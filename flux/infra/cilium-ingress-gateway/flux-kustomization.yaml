@@ -1,13 +1,11 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: dummy-portal
+  name: cilium-ingress-gateway
   namespace: flux-system
 spec:
   interval: 10m
-  dependsOn:
-    - name: cilium-ingress-gateway
-  path: ./flux/apps/dummy-portal/kustomize
+  path: ./flux/infra/cilium-ingress-gateway/kustomize
   prune: true
   timeout: 5m
   wait: true
