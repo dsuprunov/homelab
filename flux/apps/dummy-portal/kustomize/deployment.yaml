@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-portal
+  namespace: dummy-portal
+  labels:
+    app: dummy-portal
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: dummy-portal
+
+  template:
+    metadata:
+      labels:
+        app: dummy-portal
+
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+
+      containers:
+        - name: dummy-portal
+
+          image: dsuprunov/dummy-portal
+          imagePullPolicy: Always
+
+          securityContext:
+            allowPrivilegeEscalation: false
+
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
