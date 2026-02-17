@@ -1,0 +1,12 @@
+---
+- name: gateway api
+  block:
+    - name: gateway api | install crds
+      ansible.builtin.command: >
+        kubectl apply
+          --server-side
+          -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{ gateway_api_version }}/standard-install.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+#      register: gateway_api_apply
+# ToDo      changed_when: "'configured' in gateway_api_apply.stdout or 'created' in gateway_api_apply.stdout"

@@ -1,2 +1,3 @@
 ---
 - ansible.builtin.import_tasks: kubeadm.yaml
+- ansible.builtin.import_tasks: gateway-api-crd.yaml

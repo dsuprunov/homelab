@@ -34,3 +34,63 @@
       retries: 6
       delay: 30
       until: cilium_deploy is succeeded
+
+    - name: cilium | copy cilium-lb-ip-pool
+      ansible.builtin.copy:
+        src: cilium-lb-ip-pool.yaml
+        dest: /etc/kubernetes/cilium/cilium-lb-ip-pool.yaml
+        owner: root
+        group: root
+        mode: "0644"
+      register: cilium_lb_ip_pool_yaml
+
+    - name: cilium | check for cilium-lb-ip-pool changes
+      when: cilium_lb_ip_pool_yaml.changed
+      block:
+        - name: Wait for required CRDs
+          ansible.builtin.command: >
+            kubectl wait --for=condition=Established --timeout=5s
+              crd/ciliumloadbalancerippools.cilium.io
+          environment:
+            KUBECONFIG: /etc/kubernetes/admin.conf
+          register: cilium_lb_ip_pool_crd_wait
+          retries: 30
+          delay: 5
+          until: cilium_lb_ip_pool_crd_wait.rc == 0
+          changed_when: false
+
+        - name: cilium | apply cilium-lb-ip-pool
+          ansible.builtin.command: >
+            kubectl apply -f /etc/kubernetes/cilium/cilium-lb-ip-pool.yaml
+          environment:
+            KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: cilium | copy cilium-l2-policy
+      ansible.builtin.copy:
+        src: cilium-l2-policy.yaml
+        dest: /etc/kubernetes/cilium/cilium-l2-policy.yaml
+        owner: root
+        group: root
+        mode: "0644"
+      register: cilium_l2_announcement_policy_yaml
+
+    - name: cilium | check for cilium-l2-policy changes
+      when: cilium_l2_announcement_policy_yaml.changed
+      block:
+        - name: Wait for required CRDs
+          ansible.builtin.command: >
+            kubectl wait --for=condition=Established --timeout=5s
+              crd/ciliuml2announcementpolicies.cilium.io
+          environment:
+            KUBECONFIG: /etc/kubernetes/admin.conf
+          register: cilium_l2_policy_crd_wait
+          retries: 30
+          delay: 5
+          until: cilium_l2_policy_crd_wait.rc == 0
+          changed_when: false
+
+        - name: cilium | apply cilium-l2-policy
+          ansible.builtin.command: >
+            kubectl apply -f /etc/kubernetes/cilium/cilium-l2-policy.yaml
+          environment:
+            KUBECONFIG: /etc/kubernetes/admin.conf
