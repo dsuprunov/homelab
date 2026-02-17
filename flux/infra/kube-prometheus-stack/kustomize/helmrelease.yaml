@@ -15,6 +15,46 @@ spec:
         namespace: flux-system
   values:
     grafana:
+      defaultDashboardsEnabled: false
+
+      sidecar:
+        dashboards:
+          enabled: true
+
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+            - name: 'default'
+              orgId: 1
+              folder: ''
+              type: file
+              disableDeletion: true
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/default
+
+      dashboards:
+        default:
+          k8s-system-api-server:
+            url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-api-server.json
+            datasource: Prometheus
+          k8s-system-coredns:
+            url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-coredns.json
+            datasource: Prometheus
+          k8s-views-global:
+            url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-global.json
+            datasource: Prometheus
+          k8s-views-namespaces:
+            url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-namespaces.json
+            datasource: Prometheus
+          k8s-views-nodes:
+            url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-nodes.json
+            datasource: Prometheus
+          k8s-views-pods:
+            url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-pods.json
+            datasource: Prometheus
+
       grafana.ini:
         auth.anonymous:
           enabled: true
