@@ -10,3 +10,16 @@ output "vms" {
     }
   }
 }
+
+output "cts" {
+  description = "CTs: id, name, ip, tags"
+  value = {
+    for ct_name, m in module.proxmox_ct :
+    ct_name => {
+      id   = m.id
+      name = m.name
+      ip   = m.ip
+      tags = join(", ", m.tags)
+    }
+  }
+}

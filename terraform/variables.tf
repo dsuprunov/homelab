@@ -71,4 +71,40 @@ variable "vms" {
 
     cloud_config_vendor_data_file = optional(string, null)
   }))
+
+  default = {}
+}
+
+variable "cts" {
+  type = map(object({
+    ct_id = number
+
+    node_name = optional(string, "pve")
+    tags      = optional(list(string), [])
+
+    template_file_id = string # "local:vztmpl/template.tar.zst"
+
+    nesting      = optional(bool, false)
+    unprivileged = optional(bool, true)
+
+    cpu_cores = optional(number, 1)
+    memory    = optional(number, 512)
+    swap      = optional(number, 0)
+    disk_size = optional(number, 8)
+
+    datastore_id = optional(string, "local-lvm")
+
+    bridge   = optional(string, "vmbr0")
+    firewall = optional(bool, true)
+
+    ipv4_address = string                 # "192.168.178.209/24", "dhcp"
+    ipv4_gateway = optional(string, null) # "192.168.178.1"
+    nameservers  = optional(list(string), [])
+    ssh_keys     = list(string)
+
+    started = optional(bool, true)
+    on_boot = optional(bool, true)
+  }))
+
+  default = {}
 }

@@ -54,3 +54,40 @@ module "proxmox_vm" {
 
   cloud_config_vendor_data_file = each.value.cloud_config_vendor_data_file
 }
+
+module "proxmox_ct" {
+  for_each = var.cts
+
+  source = "./modules/proxmox-ct"
+
+  providers = {
+    proxmox = proxmox
+  }
+
+  name      = each.key
+  node_name = each.value.node_name
+  ct_id     = each.value.ct_id
+  tags      = each.value.tags
+
+  template_file_id = each.value.template_file_id
+  nesting          = each.value.nesting
+  unprivileged     = each.value.unprivileged
+
+  cpu_cores = each.value.cpu_cores
+  memory    = each.value.memory
+  swap      = each.value.swap
+  disk_size = each.value.disk_size
+
+  datastore_id = each.value.datastore_id
+
+  bridge   = each.value.bridge
+  firewall = each.value.firewall
+
+  ipv4_address = each.value.ipv4_address
+  ipv4_gateway = each.value.ipv4_gateway
+  nameservers  = each.value.nameservers
+  ssh_keys     = each.value.ssh_keys
+
+  started = each.value.started
+  on_boot = each.value.on_boot
+}
