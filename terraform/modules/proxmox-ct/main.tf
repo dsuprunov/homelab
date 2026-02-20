@@ -62,7 +62,7 @@ resource "proxmox_virtual_environment_container" "ct" {
 
   # --- Guest OS template ---
   operating_system {
-    template_file_id = var.template_file_id
-    type             = "unmanaged"
+    template_file_id = var.os_template
+    type             = var.os_type
   }
 }

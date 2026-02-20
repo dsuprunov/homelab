@@ -89,6 +89,11 @@ variable "ssh_keys" {
   default = []
 }
 
-variable "template_file_id" {
+variable "os_template" {
   type = string
+}
+
+variable "os_type" {
+  type    = string
+  default = "unmanaged"
 }

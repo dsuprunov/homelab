@@ -69,9 +69,10 @@ module "proxmox_ct" {
   ct_id     = each.value.ct_id
   tags      = each.value.tags
 
-  template_file_id = each.value.template_file_id
-  nesting          = each.value.nesting
-  unprivileged     = each.value.unprivileged
+  os_template  = each.value.os_template
+  os_type      = each.value.os_type
+  nesting      = each.value.nesting
+  unprivileged = each.value.unprivileged
 
   cpu_cores = each.value.cpu_cores
   memory    = each.value.memory

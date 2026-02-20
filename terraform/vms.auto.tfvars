@@ -1,7 +1,7 @@
 vms = {
   vm-k8s-control-01 = {
     vm_id = 210
-    tags  = ["vm", ubuntu", "k8s", "control"]
+    tags  = ["vm", "ubuntu", "k8s", "control"]
     image = "ubuntu_24_04"
 
     cores  = 2

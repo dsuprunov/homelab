@@ -82,7 +82,8 @@ variable "cts" {
     node_name = optional(string, "pve")
     tags      = optional(list(string), [])
 
-    template_file_id = string # "local:vztmpl/template.tar.zst"
+    os_template = string # "local:vztmpl/template.tar.zst"
+    os_type     = optional(string, "unmanaged")
 
     nesting      = optional(bool, false)
     unprivileged = optional(bool, true)
@@ -100,7 +101,7 @@ variable "cts" {
     ipv4_address = string                 # "192.168.178.209/24", "dhcp"
     ipv4_gateway = optional(string, null) # "192.168.178.1"
     nameservers  = optional(list(string), [])
-    ssh_keys     = list(string)
+    ssh_keys     = optional(list(string), [])
 
     started = optional(bool, true)
     on_boot = optional(bool, true)
