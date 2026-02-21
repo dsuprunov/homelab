@@ -1,9 +1,27 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: kube-prometheus-stack-namespace
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./flux/infra/kube-prometheus-stack/namespace
+  prune: true
+  timeout: 5m
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: kube-prometheus-stack
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: kube-prometheus-stack-namespace
   interval: 10m
   path: ./flux/infra/kube-prometheus-stack/kustomize
   prune: true
