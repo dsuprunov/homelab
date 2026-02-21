@@ -68,6 +68,21 @@ resource "proxmox_virtual_environment_vm" "vm" {
     firewall = var.firewall
   }
 
+  # --- VirtioFS ---
+  dynamic "virtiofs" {
+    for_each = var.virtiofs
+    iterator = vfs
+
+    content {
+      mapping = vfs.value.mapping
+
+      cache        = vfs.value.cache
+      direct_io    = vfs.value.direct_io
+      expose_acl   = vfs.value.expose_acl
+      expose_xattr = vfs.value.expose_xattr
+    }
+  }
+
   # --- Cloud-init / initial provisioning ---
   initialization {
     datastore_id = var.cloudinit_datastore_id

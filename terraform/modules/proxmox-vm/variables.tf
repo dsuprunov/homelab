@@ -63,6 +63,17 @@ variable "disks" {
   }))
 }
 
+variable "virtiofs" {
+  type = list(object({
+    mapping      = string
+    cache        = optional(string, "auto")
+    direct_io    = optional(bool, null)
+    expose_acl   = optional(bool, null)
+    expose_xattr = optional(bool, null)
+  }))
+  default = []
+}
+
 variable "datastore_id" {
   type    = string
   default = "local-lvm"

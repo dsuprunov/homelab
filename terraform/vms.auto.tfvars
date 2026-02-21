@@ -11,6 +11,10 @@ vms = {
       { interface = "scsi0", size = 8 },
     ]
 
+    virtiofs = [
+      { mapping = "vm-pihole", cache = "auto" },
+    ]
+
     ipv4_address = "192.168.178.201/24"
     ipv4_gateway = "192.168.178.1"
     nameservers  = ["8.8.8.8", "8.8.4.4"]

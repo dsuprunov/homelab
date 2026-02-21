@@ -30,7 +30,8 @@ module "proxmox_vm" {
   memory  = each.value.memory
   balloon = each.value.balloon
 
-  disks = each.value.disks
+  disks    = each.value.disks
+  virtiofs = each.value.virtiofs
 
   datastore_id           = each.value.datastore_id
   cloudinit_datastore_id = each.value.cloudinit_datastore_id

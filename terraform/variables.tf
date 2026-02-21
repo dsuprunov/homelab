@@ -51,6 +51,15 @@ variable "vms" {
       datastore_id = optional(string, null)
     }))
 
+    virtiofs = optional(list(object({
+      mapping = string
+
+      cache        = optional(string, "auto")
+      direct_io    = optional(bool, null)
+      expose_acl   = optional(bool, null)
+      expose_xattr = optional(bool, null)
+    })), [])
+
     datastore_id           = optional(string, "local-lvm")
     cloudinit_datastore_id = optional(string, "local-lvm")
 
