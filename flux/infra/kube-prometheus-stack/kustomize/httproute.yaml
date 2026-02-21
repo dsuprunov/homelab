@@ -17,5 +17,5 @@ spec:
             value: /
       backendRefs:
         - name: kube-prometheus-stack-grafana
-          namespace: monitoring
+#          namespace: monitoring
           port: 80
