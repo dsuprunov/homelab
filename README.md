@@ -16,7 +16,7 @@
 | Service                           | CName                   | Managed By   |
 |-----------------------------------|-------------------------|--------------|
 | http://pihole.home.arpa           | `vm-pihole.home.arpa`   | manual       |
-| http://vault.home.arpa            | `vm-vault.home.arpa`    | manual       |
+| https://vault.home.arpa:8200      | `vm-vault.home.arpa`    | manual       |
 | http://grafana.k8s.home.arpa      | `k8s-ingress.home.arpa` | external-dns |
 | http://dummy-portal.k8s.home.arpa | `k8s-ingress.home.arpa` | external-dns |
 
