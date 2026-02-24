@@ -52,7 +52,13 @@ mount | grep vm-pihole
 
 7) Replace `/etc/pihole` with a symlink to `/mnt/vm-pihole/etc/pihole`
 ```bash
-sudo mkdir -p /mnt/vm-pihole/etc/pihole
+sudo systemctl stop pihole-FTL
+
+sudo rsync --archive --relative /etc/pihole/ /mnt/vm-pihole/
+sudo rm -fr /etc/pihole
 sudo ln -s /mnt/vm-pihole/etc/pihole /etc/pihole
 ls -ld /etc/pihole
+
+sudo systemctl start pihole-FTL
+systemctl status pihole-FTL --no-pager
 ```

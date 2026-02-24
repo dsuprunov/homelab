@@ -81,24 +81,24 @@ sudo mount -a
 mount | grep vm-vault
 ```
 
-7) Replace `/opt/vault/data` with a symlink to `/mnt/vm-vault/opt/vault/data`
+7) Move `/opt/vault/data` to VirtioFS and replace it with a symlink
 ```bash
 sudo systemctl stop vault
 
-sudo install -d -o vault -g vault -m 750 /mnt/vm-vault/opt/vault/data
-sudo rsync -a /opt/vault/data/ /mnt/vm-vault/opt/vault/data/
-sudo rm -rf /opt/vault/data
-
+sudo rsync --archive --relative /opt/vault/data/ /mnt/vm-vault/
+sudo rm -fr /opt/vault/data
 sudo ln -s /mnt/vm-vault/opt/vault/data /opt/vault/data
 ls -ld /opt/vault/data
+
+sudo systemctl start vault
+systemctl status vault --no-pager
+
+curl --insecure https://vault.home.arpa:8200/v1/sys/health
 ```
 
 8) Initialize, Unseal, and Verify Vault
 ```bash
 sudo -i
-
-systemctl start vault
-systemctl status vault --no-pager
 
 export VAULT_ADDR="https://vault.home.arpa:8200"
 export VAULT_CACERT="/opt/vault/tls/tls.crt"
@@ -112,12 +112,15 @@ UNSEAL_KEY=$(grep -m1 '^Unseal Key 1:' /opt/vault/data/vault-init.txt | awk '{pr
 ROOT_TOKEN=$(grep -m1 '^Initial Root Token:' /opt/vault/data/vault-init.txt | awk '{print $4}')
 
 vault operator unseal "$UNSEAL_KEY"
-vault login "$ROOT_TOKEN"
 vault status
 
+vault login "$ROOT_TOKEN"
+vault secrets enable -path=secret kv-v2
 vault secrets list
 
-vault secrets enable -path=secret kv-v2
-vault kv put secret/lab hello="world" owner="vm-vault"
-vault kv get secret/lab
+vault kv put secret/vault-smoke-test status="ok" owner="vm-vault"
+vault kv get secret/vault-smoke-test
+vault kv metadata get secret/vault-smoke-test
+vault kv delete secret/vault-smoke-test
+vault kv get secret/vault-smoke-test
 ``` 
