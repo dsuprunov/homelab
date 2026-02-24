@@ -105,7 +105,7 @@ vms = {
     image = "ubuntu_24_04"
 
     cores  = 2
-    memory = 2048
+    memory = 4096
 
     disks = [
       { interface = "scsi0", size = 16 },

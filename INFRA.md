@@ -21,7 +21,7 @@
 | `vm-k8s-api-lb-01.home.arpa`  | `192.168.178.207` | 1 vCPU | 1 GB |   8 GB |        | http://vm-k8s-api-lb-01.home.arpa:8404/stats |
 | `vm-k8s-api-lb-02.home.arpa`  | `192.168.178.208` | 1 vCPU | 1 GB |   8 GB |        | Not implemented                              |
 | `k8s-api.home.arpa`           | `192.168.178.225` |        |      |        |        | Kubernetes API VIP                           |
-| `vm-k8s-control-01.home.arpa` | `192.168.178.226` | 2 vCPU | 2 GB |  16 GB |        |                                              |
+| `vm-k8s-control-01.home.arpa` | `192.168.178.226` | 2 vCPU | 4 GB |  16 GB |        |                                              |
 | `vm-k8s-worker-01.home.arpa`  | `192.168.178.230` | 2 vCPU | 4 GB |  32 GB |  32 GB |                                              |
 | `vm-k8s-worker-02.home.arpa`  | `192.168.178.231` | 2 vCPU | 4 GB |  32 GB |  32 GB |                                              |
 | `vm-k8s-worker-03.home.arpa`  | `192.168.178.232` | 2 vCPU | 4 GB |  32 GB |  32 GB |                                              |

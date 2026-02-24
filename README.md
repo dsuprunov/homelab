@@ -1,4 +1,4 @@
-### kubectl config for the current user
+### kubectl config
 
 ```bash
 mkdir -p $HOME/.kube
