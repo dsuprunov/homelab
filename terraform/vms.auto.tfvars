@@ -35,7 +35,11 @@ vms = {
     memory = 2048
 
     disks = [
-      { interface = "scsi0", size = 16 },
+      { interface = "scsi0", size = 8 },
+    ]
+
+    virtiofs = [
+      { mapping = "vm-vault", cache = "auto" },
     ]
 
     ipv4_address = "192.168.178.202/24"
