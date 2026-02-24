@@ -16,11 +16,11 @@ pvesh create /cluster/mapping/dir \
 
 3) Connect VirtioFS to the VM
 ```bash
-qm shutdown 202
-qm set 202 -virtiofs0 dirid=vm-vault,cache=auto
-qm config 202 | grep -i virtiofs
-qm start 202
-qm status 202
+qm shutdown 206
+qm set 206 -virtiofs0 dirid=vm-vault,cache=auto
+qm config 206 | grep -i virtiofs
+qm start 206
+qm status 206
 ```
 
 ### vm-vault (vault virtual machine)

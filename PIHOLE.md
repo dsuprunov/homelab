@@ -16,11 +16,11 @@ pvesh create /cluster/mapping/dir \
 
 3) Connect VirtioFS to the VM
 ```bash
-qm shutdown 201
-qm set 201 -virtiofs0 dirid=vm-pihole,cache=auto
-qm config 201 | grep -i virtiofs
-qm start 201
-qm status 201
+qm shutdown 205
+qm set 205 -virtiofs0 dirid=vm-pihole,cache=auto
+qm config 205 | grep -i virtiofs
+qm start 205
+qm status 205
 ```
 
 ### vm-pihole (pihole virtual machine)

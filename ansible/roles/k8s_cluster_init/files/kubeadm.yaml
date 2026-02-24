@@ -6,7 +6,7 @@ nodeRegistration:
   criSocket: "unix:///run/containerd/containerd.sock"
 
 localAPIEndpoint:
-  advertiseAddress: "192.168.178.210"
+  advertiseAddress: "192.168.178.226"
   bindPort: 6443
 
 ---
@@ -16,7 +16,7 @@ kind: ClusterConfiguration
 proxy:
   disabled: true
 
-clusterName: "homelab"
+clusterName: "k8s"
 controlPlaneEndpoint: "k8s-api.home.arpa:6443"
 
 networking:
@@ -26,8 +26,9 @@ networking:
 apiServer:
   certSANs:
     - "k8s-api.home.arpa"
+    - "192.168.178.225"
     - "vm-k8s-control-01.home.arpa"
-    - "192.168.178.210"
+    - "192.168.178.226"
 
 controllerManager:
   extraArgs:

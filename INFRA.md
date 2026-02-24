@@ -16,18 +16,17 @@
 | Host                          | Address           |    CPU |  RAM | Disk 0 | Disk 1 | Notes              |
 |-------------------------------|-------------------|-------:|-----:|-------:|-------:|--------------------|
 | `pve.home.arpa`               | `192.168.178.200` |        |      |        |        |                    |
-| `vm-k8s-api-lb-01.home.arpa`  | `192.168.178.205` | 1 vCPU | 1 GB |   8 GB |        | Not implemented    |
-| `vm-k8s-api-lb-02.home.arpa`  | `192.168.178.206` | 1 vCPU | 1 GB |   8 GB |        | Not implemented    |
-| `vm-pihole.home.arpa`         | `192.168.178.207` | 1 vCPU | 1 GB |   8 GB |        |                    |
-| `vm-vault.home.arpa`          | `192.168.178.208` | 1 vCPU | 2 GB |   8 GB |        |                    |
+| `vm-pihole.home.arpa`         | `192.168.178.205` | 1 vCPU | 1 GB |   8 GB |        |                    |
+| `vm-vault.home.arpa`          | `192.168.178.206` | 1 vCPU | 2 GB |   8 GB |        |                    |
+| `vm-k8s-api-lb-01.home.arpa`  | `192.168.178.207` | 1 vCPU | 1 GB |   8 GB |        | Not implemented    |
+| `vm-k8s-api-lb-02.home.arpa`  | `192.168.178.208` | 1 vCPU | 1 GB |   8 GB |        | Not implemented    |
 | `k8s-api.home.arpa`           | `192.168.178.225` |        |      |        |        | -> 192.168.178.226 |
-| `vm-k8s-control-01.home.arpa` | `192.168.178.226` | 2 vCPU | 4 GB |  16 GB |        |                    |
-| `vm-k8s-worker-01.home.arpa`  | `192.168.178.230` | 2 vCPU | 4 GB |  64 GB |  32 GB |                    |
-| `vm-k8s-worker-02.home.arpa`  | `192.168.178.231` | 2 vCPU | 4 GB |  64 GB |  32 GB |                    |
-| `vm-k8s-worker-03.home.arpa`  | `192.168.178.232` | 2 vCPU | 4 GB |  64 GB |  32 GB |                    |
+| `vm-k8s-control-01.home.arpa` | `192.168.178.226` | 2 vCPU | 2 GB |  16 GB |        |                    |
+| `vm-k8s-worker-01.home.arpa`  | `192.168.178.230` | 2 vCPU | 4 GB |  32 GB |  32 GB |                    |
+| `vm-k8s-worker-02.home.arpa`  | `192.168.178.231` | 2 vCPU | 4 GB |  32 GB |  32 GB |                    |
+| `vm-k8s-worker-03.home.arpa`  | `192.168.178.232` | 2 vCPU | 4 GB |  32 GB |  32 GB |                    |
 
 ## Endpoints
 
 - http://pihole.home.arpa
 - https://vault.home.arpa:8200
-
