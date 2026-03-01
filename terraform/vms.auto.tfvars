@@ -1,5 +1,5 @@
 vms = {
-  vm-technitium = {
+  vm-technitium-01 = {
     vm_id = 205
     tags  = ["vm", "debian", "technitium"]
     image = "debian_13"
@@ -12,7 +12,7 @@ vms = {
     ]
 
     virtiofs = [
-      { mapping = "vm-technitium", cache = "auto" },
+      { mapping = "vm-technitium-01", cache = "auto" },
     ]
 
     ipv4_address = "192.168.178.205/24"
@@ -26,7 +26,7 @@ vms = {
     cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
   }
 
-  vm-vault = {
+  vm-vault-01 = {
     vm_id = 206
     tags  = ["vm", "debian", "vault"]
     image = "debian_13"
@@ -39,7 +39,7 @@ vms = {
     ]
 
     virtiofs = [
-      { mapping = "vm-vault", cache = "auto" },
+      { mapping = "vm-vault-01", cache = "auto" },
     ]
 
     ipv4_address = "192.168.178.206/24"

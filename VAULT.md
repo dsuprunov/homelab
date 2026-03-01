@@ -2,28 +2,28 @@
 
 1) Create a folder for VM persistent data
 ```bash
-mkdir -p /mnt/pve/pve-data/vm-vault
-chmod 777 /mnt/pve/pve-data/vm-vault
-ls -ld /mnt/pve/pve-data/vm-vault
+mkdir -p /mnt/pve/pve-data/vm-vault-01
+chmod 777 /mnt/pve/pve-data/vm-vault-01
+ls -ld /mnt/pve/pve-data/vm-vault-01
 ```
 
 2) Create a Directory Mapping (if it does not exist yet)
 ```bash
 pvesh create /cluster/mapping/dir \
-  --id vm-vault \
-  --map node=pve,path=/mnt/pve/pve-data/vm-vault
+  --id vm-vault-01 \
+  --map node=pve,path=/mnt/pve/pve-data/vm-vault-01
 ```
 
 3) Connect VirtioFS to the VM
 ```bash
 qm shutdown 206
-qm set 206 -virtiofs0 dirid=vm-vault,cache=auto
+qm set 206 -virtiofs0 dirid=vm-vault-01,cache=auto
 qm config 206 | grep -i virtiofs
 qm start 206
 qm status 206
 ```
 
-### vm-vault (vault virtual machine)
+### vm-vault-01 (vault virtual machine)
 
 4) Install HashiCorp Vault
 ```bash
@@ -67,27 +67,27 @@ sudo systemctl enable vault
 
 5) Mount VirtioFS
 ```bash
-sudo mkdir -p /mnt/vm-vault
-sudo mount -t virtiofs vm-vault /mnt/vm-vault
-mount | grep vm-vault
+sudo mkdir -p /mnt/vm-vault-01
+sudo mount -t virtiofs vm-vault-01 /mnt/vm-vault-01
+mount | grep vm-vault-01
 ```
 
 6) Enable auto-mount (systemd automount)
 ```bash
-echo 'vm-vault /mnt/vm-vault virtiofs nofail,x-systemd.automount 0 0' | sudo tee -a /etc/fstab
+echo 'vm-vault-01 /mnt/vm-vault-01 virtiofs nofail,x-systemd.automount 0 0' | sudo tee -a /etc/fstab
 sudo systemctl daemon-reload
-sudo umount /mnt/vm-vault
+sudo umount /mnt/vm-vault-01
 sudo mount -a
-mount | grep vm-vault
+mount | grep vm-vault-01
 ```
 
 7) Move `/opt/vault/data` to VirtioFS and replace it with a symlink
 ```bash
 sudo systemctl stop vault
 
-sudo rsync --archive --relative /opt/vault/data/ /mnt/vm-vault/
+sudo rsync --archive --relative /opt/vault/data/ /mnt/vm-vault-01/
 sudo rm -fr /opt/vault/data
-sudo ln -s /mnt/vm-vault/opt/vault/data /opt/vault/data
+sudo ln -s /mnt/vm-vault-01/opt/vault/data /opt/vault/data
 ls -ld /opt/vault/data
 
 sudo systemctl start vault
@@ -118,7 +118,7 @@ vault login "$ROOT_TOKEN"
 vault secrets enable -path=secret kv-v2
 vault secrets list
 
-vault kv put secret/vault-smoke-test status="ok" owner="vm-vault"
+vault kv put secret/vault-smoke-test status="ok" owner="vm-vault-01"
 vault kv get secret/vault-smoke-test
 vault kv metadata get secret/vault-smoke-test
 vault kv delete secret/vault-smoke-test
