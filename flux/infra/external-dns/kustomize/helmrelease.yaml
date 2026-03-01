@@ -16,7 +16,7 @@ spec:
 
   values:
     provider:
-      name: pihole
+      name: rfc2136
 
     sources:
       - gateway-httproute
@@ -24,19 +24,22 @@ spec:
     domainFilters:
       - k8s.home.arpa
 
-    policy: upsert-only
-    # Pi-hole provider in external-dns does not support TXT ownership tracking.
-    registry: noop
+    policy: upsert-only # ToDo: set sync
+    registry: txt
+    txtOwnerId: k8s
+#    txtPrefix: _extdns. ToDo: check created records
     triggerLoopOnEvent: true
 
     env:
-      - name: EXTERNAL_DNS_PIHOLE_SERVER
-        value: http://pihole.home.arpa
-      - name: EXTERNAL_DNS_PIHOLE_PASSWORD
+      - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
         valueFrom:
           secretKeyRef:
-            name: external-dns-pihole
-            key: EXTERNAL_DNS_PIHOLE_PASSWORD
+            name: external-dns-k8s-home-arpa-tsig
+            key: EXTERNAL_DNS_RFC2136_TSIG_SECRET
 
     extraArgs:
-      - --pihole-api-version=6
+      - --rfc2136-host=technitium.home.arpa
+      - --rfc2136-port=53
+      - --rfc2136-zone=k8s.home.arpa
+      - --rfc2136-tsig-keyname=externaldns-k8s-home-arpa
+      - --rfc2136-tsig-secret-alg=hmac-sha256

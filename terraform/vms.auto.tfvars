@@ -1,7 +1,7 @@
 vms = {
-  vm-pihole = {
+  vm-technitium = {
     vm_id = 205
-    tags  = ["vm", "debian", "pihole"]
+    tags  = ["vm", "debian", "technitium"]
     image = "debian_13"
 
     cores  = 1
@@ -12,7 +12,7 @@ vms = {
     ]
 
     virtiofs = [
-      { mapping = "vm-pihole", cache = "auto" },
+      { mapping = "vm-technitium", cache = "auto" },
     ]
 
     ipv4_address = "192.168.178.205/24"

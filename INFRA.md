@@ -1,5 +1,9 @@
 # Infrastructure Overview
 
+TODO:
+- `technitium`: two-phase provisioning flow
+- `technitium`: tune (less caching, more forwarding to Google DNS)
+
 ## Network
 
 | Pool                  | Size | Description               |
@@ -16,7 +20,7 @@
 | Host                          | Address           |    CPU |  RAM | Disk 0 | Disk 1 | Notes                                        |
 |-------------------------------|-------------------|-------:|-----:|-------:|-------:|----------------------------------------------|
 | `pve.home.arpa`               | `192.168.178.200` |        |      |        |        |                                              |
-| `vm-pihole.home.arpa`         | `192.168.178.205` | 1 vCPU | 1 GB |   8 GB |        | http://pihole.home.arpa                      |
+| `vm-technitium.home.arpa`     | `192.168.178.205` | 1 vCPU | 1 GB |   8 GB |        | http://technitium.home.arpa:5380             |
 | `vm-vault.home.arpa`          | `192.168.178.206` | 1 vCPU | 2 GB |   8 GB |        | https://vault.home.arpa:8200                 |
 | `vm-k8s-api-lb-01.home.arpa`  | `192.168.178.207` | 1 vCPU | 1 GB |   8 GB |        | http://vm-k8s-api-lb-01.home.arpa:8404/stats |
 | `vm-k8s-api-lb-02.home.arpa`  | `192.168.178.208` | 1 vCPU | 1 GB |   8 GB |        | Not implemented                              |
