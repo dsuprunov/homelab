@@ -114,8 +114,7 @@ variable "user" {
 }
 
 variable "ssh_keys" {
-  type    = list(string)
-  default = []
+  type = list(string)
 }
 
 variable "import_from" {
