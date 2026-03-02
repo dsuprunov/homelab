@@ -38,7 +38,7 @@ output "dns_a_records" {
   value = merge(
     {
       for name, record in var.dns_a_records :
-        "${name}.${trimsuffix(record.zone, ".")}" => join(", ", record.addresses)
+      "${name}.${trimsuffix(record.zone, ".")}" => join(", ", record.addresses)
     }
   )
 }
@@ -47,7 +47,7 @@ output "dns_cname_records" {
   value = merge(
     {
       for name, record in var.dns_cname_records :
-        "${name}.${trimsuffix(record.zone, ".")}" => record.cname
+      "${name}.${trimsuffix(record.zone, ".")}" => record.cname
     }
   )
 }
