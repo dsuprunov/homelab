@@ -35,27 +35,19 @@ resource "dns_cname_record" "this" {
 }
 
 output "dns_a_records" {
-  description = "Managed A records."
-  value = {
-    for name, r in dns_a_record_set.this :
-    name => {
-      zone      = r.zone
-      name      = r.name
-      ttl       = r.ttl
-      addresses = r.addresses
+  value = merge(
+    {
+      for name, record in var.dns_a_records :
+        "${name}.${trimsuffix(record.zone, ".")}" => join(", ", record.addresses)
     }
-  }
+  )
 }
 
 output "dns_cname_records" {
-  description = "Managed CNAME records."
-  value = {
-    for name, r in dns_cname_record.this :
-    name => {
-      zone  = r.zone
-      name  = r.name
-      ttl   = r.ttl
-      cname = r.cname
+  value = merge(
+    {
+      for name, record in var.dns_cname_records :
+        "${name}.${trimsuffix(record.zone, ".")}" => record.cname
     }
-  }
+  )
 }
