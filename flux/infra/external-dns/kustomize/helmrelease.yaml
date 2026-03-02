@@ -42,3 +42,4 @@ spec:
       - --rfc2136-zone=k8s.home.arpa
       - --rfc2136-tsig-keyname=external-dns-k8s-home-arpa
       - --rfc2136-tsig-secret-alg=hmac-sha256
+      - --rfc2136-tsig-axfr=true
