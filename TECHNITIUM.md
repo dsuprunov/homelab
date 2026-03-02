@@ -62,3 +62,22 @@ ls -ld /etc/dns
 sudo systemctl start dns
 systemctl status dns --no-pager
 ```
+
+### ExternalDNS RFC2136 (AXFR + TSIG) notes
+
+If `external-dns` logs this every minute:
+- `AXFR error: dns: bad xfr rcode: 5`
+- `Adding RR: ...` for the same records
+
+then `external-dns` can update records, but cannot read zone state via AXFR.
+
+Required setup:
+
+1) In `external-dns` args, enable TSIG for AXFR:
+```text
+--rfc2136-tsig-axfr
+```
+ 
+2) In Technitium zone options (`k8s.home.arpa`):
+- `Zone Transfer`: `Allow`
+- `Zone Transfer TSIG Key Names`: include `external-dns-k8s-home-arpa`
