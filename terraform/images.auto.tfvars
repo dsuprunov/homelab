@@ -1,4 +1,4 @@
-cloud_images = {
+images = {
   ubuntu_24_04 = {
     content_type = "import"
     url          = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img"
