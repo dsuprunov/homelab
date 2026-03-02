@@ -6,5 +6,9 @@ terraform {
       source  = "bpg/proxmox"
       version = "0.97.1"
     }
+    dns = {
+      source  = "hashicorp/dns"
+      version = "3.5.0"
+    }
   }
 }
