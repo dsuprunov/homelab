@@ -27,7 +27,7 @@ spec:
     policy: upsert-only # ToDo: set sync
     registry: txt
     txtOwnerId: k8s
-#    txtPrefix: _extdns. ToDo: check created records
+    txtPrefix: _extdns. # ToDo: check created records
     triggerLoopOnEvent: true
 
     env:
