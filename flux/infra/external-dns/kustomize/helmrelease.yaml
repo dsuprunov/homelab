@@ -24,7 +24,7 @@ spec:
     domainFilters:
       - k8s.home.arpa
 
-    policy: upsert-only # ToDo: set sync
+    policy: sync
     registry: txt
     txtOwnerId: k8s
     triggerLoopOnEvent: true
