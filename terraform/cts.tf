@@ -17,6 +17,10 @@ variable "cts" {
     disk_size = optional(number, 8)
 
     datastore_id = optional(string, "local-lvm")
+    mount_points = optional(list(object({
+      volume = string
+      path   = string
+    })), [])
 
     bridge   = optional(string, "vmbr0")
     firewall = optional(bool, true)
@@ -58,6 +62,7 @@ module "proxmox_ct" {
   disk_size = each.value.disk_size
 
   datastore_id = each.value.datastore_id
+  mount_points = each.value.mount_points
 
   bridge   = each.value.bridge
   firewall = each.value.firewall

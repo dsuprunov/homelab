@@ -14,18 +14,9 @@ pvesh create /cluster/mapping/dir \
   --map node=pve,path=/mnt/pve/pve-data/vm-vault-01
 ```
 
-3) Connect VirtioFS to the VM
-```bash
-qm shutdown 206
-qm set 206 -virtiofs0 dirid=vm-vault-01,cache=auto
-qm config 206 | grep -i virtiofs
-qm start 206
-qm status 206
-```
-
 ### vm-vault-01 (vault virtual machine)
 
-4) Install HashiCorp Vault
+3) Install HashiCorp Vault
 ```bash
 sudo apt update
 sudo apt install -y gpg rsync
@@ -65,14 +56,14 @@ EOF
 sudo systemctl enable vault
 ```
 
-5) Mount VirtioFS
+4) Mount VirtioFS
 ```bash
 sudo mkdir -p /mnt/vm-vault-01
 sudo mount -t virtiofs vm-vault-01 /mnt/vm-vault-01
 mount | grep vm-vault-01
 ```
 
-6) Enable auto-mount (systemd automount)
+5) Enable auto-mount (systemd automount)
 ```bash
 echo 'vm-vault-01 /mnt/vm-vault-01 virtiofs nofail,x-systemd.automount 0 0' | sudo tee -a /etc/fstab
 sudo systemctl daemon-reload
@@ -81,7 +72,7 @@ sudo mount -a
 mount | grep vm-vault-01
 ```
 
-7) Move `/opt/vault/data` to VirtioFS and replace it with a symlink
+6) Move `/opt/vault/data` to VirtioFS and replace it with a symlink
 ```bash
 sudo systemctl stop vault
 
@@ -96,7 +87,7 @@ systemctl status vault --no-pager
 curl --insecure https://vault.home.arpa:8200/v1/sys/health
 ```
 
-8) Initialize, Unseal, and Verify Vault
+7) Initialize, Unseal, and Verify Vault
 ```bash
 sudo -i
 

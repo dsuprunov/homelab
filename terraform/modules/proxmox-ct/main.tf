@@ -29,6 +29,14 @@ resource "proxmox_virtual_environment_container" "ct" {
     size         = var.disk_size
   }
 
+  dynamic "mount_point" {
+    for_each = var.mount_points
+    content {
+      volume = mount_point.value.volume
+      path   = mount_point.value.path
+    }
+  }
+
   # --- Networking ---
   network_interface {
     name     = "eth0"
