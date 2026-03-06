@@ -1,7 +1,7 @@
 cts = {
   #ct-test = {
-  #  ct_id         = 101
-  #  tags          = ["ct", "test"]
+  #  ct_id = 101
+  #  tags  = ["ct", "test"]
   #
   #  os_template = "local:vztmpl/dsuprunov-dummy-portal.tar"
   #  os_type     = "alpine"

@@ -97,3 +97,11 @@ variable "os_type" {
   type    = string
   default = "unmanaged"
 }
+
+variable "mount_points" {
+  type = list(object({
+    volume = string
+    path   = string
+  }))
+  default = []
+}
