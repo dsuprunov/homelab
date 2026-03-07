@@ -1,8 +1,0 @@
----
-- name: k8s
-  block:
-    - name: k8s | todo switch kube-vip kubeconfig to admin.conf after control-plane join
-      ansible.builtin.debug:
-        msg: >
-          TODO: after kubeadm join --control-plane, switch /etc/kubernetes/manifests/kube-vip.yaml
-          from /etc/kubernetes/super-admin.conf to /etc/kubernetes/admin.conf.
