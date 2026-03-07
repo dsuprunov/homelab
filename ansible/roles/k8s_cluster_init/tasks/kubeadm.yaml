@@ -19,7 +19,7 @@
       block:
         - name: k8s | install kube-vip static pod manifest
           ansible.builtin.copy:
-            src: kube-vip.super-admin.yaml
+            src: kube-vip-super-admin.yaml
             dest: /etc/kubernetes/manifests/kube-vip.yaml
             owner: root
             group: root
@@ -48,7 +48,7 @@
 
         - name: k8s | switch kube-vip static pod manifest to admin kubeconfig
           ansible.builtin.copy:
-            src: kube-vip.admin.yaml
+            src: kube-vip-admin.yaml
             dest: /etc/kubernetes/manifests/kube-vip.yaml
             owner: root
             group: root
