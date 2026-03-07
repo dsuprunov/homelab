@@ -54,75 +54,29 @@ vms = {
   #     cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
   #   }
 
-  #   vm-k8s-api-lb-01 = {
-  #     vm_id = 207
-  #     tags  = ["vm", "debian", "k8s", "api-lb"]
-  #     image = "debian_13"
-  #
-  #     cores  = 1
-  #     memory = 1024
-  #
-  #     disks = [
-  #       { interface = "scsi0", size = 8 },
-  #     ]
-  #
-  #     ipv4_address = "192.168.178.207/24"
-  #     ipv4_gateway = "192.168.178.1"
-  #     nameservers  = ["192.168.178.205"]
-  #
-  #     user     = "debian"
-  #     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
-  #
-  #     qemu_agent_enabled            = true
-  #     cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
-  #   }
+  vm-k8s-control-01 = {
+    vm_id = 226
+    tags  = ["vm", "ubuntu", "k8s", "control"]
+    image = "ubuntu_24_04"
 
-  # vm-k8s-api-lb-02 = {
-  #   vm_id = 208
-  #   tags  = ["vm", "ubuntu", "k8s", "api-lb"]
-  #   image = "debian"
-  #
-  #   cores  = 1
-  #   memory = 1024
-  #
-  #   disks = [
-  #     { interface = "scsi0", size = 8 },
-  #   ]
-  #
-  #   ipv4_address = "192.168.178.208/24"
-  #   ipv4_gateway = "192.168.178.1"
-  #   nameservers  = ["192.168.178.205"]
-  #
-  #   user     = "debian"
-  #   ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
-  #
-  #   qemu_agent_enabled            = true
-  #   cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
-  # }
+    cores  = 2
+    memory = 4096
 
-  #   vm-k8s-control-01 = {
-  #     vm_id = 226
-  #     tags  = ["vm", "ubuntu", "k8s", "control"]
-  #     image = "ubuntu_24_04"
-  #
-  #     cores  = 2
-  #     memory = 4096
-  #
-  #     disks = [
-  #       { interface = "scsi0", size = 16 },
-  #     ]
-  #
-  #     ipv4_address = "192.168.178.226/24"
-  #     ipv4_gateway = "192.168.178.1"
-  #     nameservers  = ["192.168.178.205"]
-  #
-  #     user     = "ubuntu"
-  #     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
-  #
-  #     qemu_agent_enabled            = true
-  #     cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
-  #   }
-  #
+    disks = [
+      { interface = "scsi0", size = 16 },
+    ]
+
+    ipv4_address = "192.168.178.226/24"
+    ipv4_gateway = "192.168.178.1"
+    nameservers  = ["192.168.178.205"]
+
+    user     = "ubuntu"
+    ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
+
+    qemu_agent_enabled            = true
+    cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
+  }
+
   #   vm-k8s-worker-01 = {
   #     vm_id = 230
   #     tags  = ["vm", "ubuntu", "k8s", "worker"]
