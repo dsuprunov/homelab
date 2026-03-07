@@ -17,7 +17,7 @@ proxy:
   disabled: true
 
 clusterName: "k8s"
-controlPlaneEndpoint: "vm-k8s-control-01.home.arpa:6443"
+controlPlaneEndpoint: "k8s-api.home.arpa:6443"
 
 networking:
   serviceSubnet: "10.96.0.0/12"
@@ -25,7 +25,8 @@ networking:
 
 apiServer:
   certSANs:
-    - "vm-k8s-control-01.home.arpa"
+    - "k8s-api.home.arpa"
+    - "192.168.178.225"
 
 controllerManager:
   extraArgs:
