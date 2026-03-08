@@ -54,22 +54,10 @@
         wait: true
         timeout: 15m
         state: present
-      register: cilium_deploy
       retries: 6
       delay: 30
+      register: cilium_deploy
       until: cilium_deploy is succeeded
-
-#    - name: cilium | debug install result
-#      ansible.builtin.debug:
-#        msg:
-#          changed: "{{ cilium_deploy.changed }}"
-#          command: "{{ cilium_deploy.command | default('') }}"
-#          status: "{{ cilium_deploy.status | default({}) }}"
-#          stdout: "{{ cilium_deploy.stdout | default('') }}"
-#          stderr: "{{ cilium_deploy.stderr | default('') }}"
-#          revision: "{{ cilium_deploy.status.revision | default('') }}"
-#          chart: "{{ cilium_deploy.status.chart | default('') }}"
-#          app_version: "{{ cilium_deploy.status.app_version | default('') }}"
 
     - name: cilium | copy cilium-lb-ip-pool
       ansible.builtin.copy:
