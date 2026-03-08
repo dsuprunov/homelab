@@ -53,3 +53,21 @@
             owner: root
             group: root
             mode: "0644"
+
+        - name: k8s | wait for vip tcp 6443
+          ansible.builtin.wait_for:
+            host: k8s-api.home.arpa
+            port: 6443
+            timeout: 180
+            delay: 2
+          changed_when: false
+
+        - name: k8s | wait for apiserver readyz
+          ansible.builtin.command: kubectl get --raw=/readyz
+          environment:
+            KUBECONFIG: /etc/kubernetes/admin.conf
+          register: apiserver_readyz
+          retries: 60
+          delay: 3
+          until: apiserver_readyz.rc == 0
+          changed_when: false
