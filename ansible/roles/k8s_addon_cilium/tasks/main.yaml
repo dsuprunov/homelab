@@ -1,6 +1,14 @@
 ---
 - name: cilium
   block:
+    - name: cilium | install gateway api crds
+      ansible.builtin.command: >
+        kubectl apply
+          --server-side
+          -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{ gateway_api_version }}/standard-install.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+
     - name: cilium | create config directory
       ansible.builtin.file:
         path: /etc/kubernetes/cilium
