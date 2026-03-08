@@ -38,12 +38,12 @@
   roles:
     - k8s_addon_cilium
 
-# - name: k8s | control join
-#   hosts: k8s_node_control_join
-#   become: true
-#   gather_facts: true
-#   roles:
-#     - k8s_node_control_join
+- name: k8s | control join
+  hosts: k8s_node_control_join
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_node_control_join
 
 - name: k8s | worker
   hosts: k8s_node_worker
