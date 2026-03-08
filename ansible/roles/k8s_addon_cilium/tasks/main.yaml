@@ -1,13 +1,29 @@
 ---
 - name: cilium
   block:
-    - name: cilium | install gateway api crds
+    - name: gateway-api | install crds
       ansible.builtin.command: >
         kubectl apply
           --server-side
           -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{ gateway_api_version }}/standard-install.yaml
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: gateway-api | wait for crds
+      ansible.builtin.command: >
+        kubectl wait --for=condition=Established --timeout=5s
+          crd/gateways.gateway.networking.k8s.io
+          crd/gatewayclasses.gateway.networking.k8s.io
+          crd/httproutes.gateway.networking.k8s.io
+          crd/grpcroutes.gateway.networking.k8s.io
+          crd/referencegrants.gateway.networking.k8s.io
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: gateway_api_crds_wait
+      retries: 30
+      delay: 5
+      until: gateway_api_crds_wait.rc == 0
+      changed_when: false
 
     - name: cilium | create config directory
       ansible.builtin.file:
@@ -43,6 +59,18 @@
       delay: 30
       until: cilium_deploy is succeeded
 
+#    - name: cilium | debug install result
+#      ansible.builtin.debug:
+#        msg:
+#          changed: "{{ cilium_deploy.changed }}"
+#          command: "{{ cilium_deploy.command | default('') }}"
+#          status: "{{ cilium_deploy.status | default({}) }}"
+#          stdout: "{{ cilium_deploy.stdout | default('') }}"
+#          stderr: "{{ cilium_deploy.stderr | default('') }}"
+#          revision: "{{ cilium_deploy.status.revision | default('') }}"
+#          chart: "{{ cilium_deploy.status.chart | default('') }}"
+#          app_version: "{{ cilium_deploy.status.app_version | default('') }}"
+
     - name: cilium | copy cilium-lb-ip-pool
       ansible.builtin.copy:
         src: cilium-lb-ip-pool.yaml
@@ -55,7 +83,7 @@
     - name: cilium | check for cilium-lb-ip-pool changes
       when: cilium_lb_ip_pool_yaml.changed
       block:
-        - name: Wait for required CRDs
+        - name: cilium | wait for ciliumloadbalancerippools CRD
           ansible.builtin.command: >
             kubectl wait --for=condition=Established --timeout=5s
               crd/ciliumloadbalancerippools.cilium.io
@@ -85,7 +113,7 @@
     - name: cilium | check for cilium-l2-policy changes
       when: cilium_l2_announcement_policy_yaml.changed
       block:
-        - name: Wait for required CRDs
+        - name: cilium | wait for ciliuml2announcementpolicies CRD
           ansible.builtin.command: >
             kubectl wait --for=condition=Established --timeout=5s
               crd/ciliuml2announcementpolicies.cilium.io
