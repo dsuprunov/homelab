@@ -27,8 +27,6 @@ apiServer:
   certSANs:
     - "k8s-api.home.arpa"
     - "192.168.178.225"
-    - "vm-k8s-control-01.home.arpa"
-    - "192.168.178.226"
 
 controllerManager:
   extraArgs:

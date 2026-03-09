@@ -1,6 +1,30 @@
 ---
 - name: cilium
   block:
+    - name: gateway-api | install crds
+      ansible.builtin.command: >
+        kubectl apply
+          --server-side
+          -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{ gateway_api_version }}/standard-install.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: gateway-api | wait for crds
+      ansible.builtin.command: >
+        kubectl wait --for=condition=Established --timeout=5s
+          crd/gateways.gateway.networking.k8s.io
+          crd/gatewayclasses.gateway.networking.k8s.io
+          crd/httproutes.gateway.networking.k8s.io
+          crd/grpcroutes.gateway.networking.k8s.io
+          crd/referencegrants.gateway.networking.k8s.io
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: gateway_api_crds_wait
+      retries: 30
+      delay: 5
+      until: gateway_api_crds_wait.rc == 0
+      changed_when: false
+
     - name: cilium | create config directory
       ansible.builtin.file:
         path: /etc/kubernetes/cilium
@@ -30,10 +54,51 @@
         wait: true
         timeout: 15m
         state: present
-      register: cilium_deploy
       retries: 6
       delay: 30
+      register: cilium_deploy
       until: cilium_deploy is succeeded
+
+    - name: cilium | wait for cilium daemonset rollout
+      ansible.builtin.command: >
+        kubectl rollout status daemonset/cilium
+          -n kube-system
+          --timeout=10m
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      retries: 3
+      delay: 10
+      register: cilium_daemonset_rollout
+      until: cilium_daemonset_rollout.rc == 0
+      changed_when: false
+
+    - name: cilium | wait for cilium envoy daemonset rollout
+      ansible.builtin.command: >
+        kubectl rollout status daemonset/cilium-envoy
+          -n kube-system
+          --timeout=10m
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      retries: 3
+      delay: 10
+      register: cilium_envoy_rollout
+      until: cilium_envoy_rollout.rc == 0
+      changed_when: false
+
+    - name: cilium | wait for at least one ready cilium operator replica
+      ansible.builtin.command: >
+        kubectl get deployment cilium-operator
+          -n kube-system
+          -o jsonpath={.status.readyReplicas}
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      retries: 60
+      delay: 5
+      register: cilium_operator_ready
+      until:
+        - cilium_operator_ready.rc == 0
+        - (cilium_operator_ready.stdout | default('0') | int) >= 1
+      changed_when: false
 
     - name: cilium | copy cilium-lb-ip-pool
       ansible.builtin.copy:
@@ -47,7 +112,7 @@
     - name: cilium | check for cilium-lb-ip-pool changes
       when: cilium_lb_ip_pool_yaml.changed
       block:
-        - name: Wait for required CRDs
+        - name: cilium | wait for ciliumloadbalancerippools CRD
           ansible.builtin.command: >
             kubectl wait --for=condition=Established --timeout=5s
               crd/ciliumloadbalancerippools.cilium.io
@@ -77,7 +142,7 @@
     - name: cilium | check for cilium-l2-policy changes
       when: cilium_l2_announcement_policy_yaml.changed
       block:
-        - name: Wait for required CRDs
+        - name: cilium | wait for ciliuml2announcementpolicies CRD
           ansible.builtin.command: >
             kubectl wait --for=condition=Established --timeout=5s
               crd/ciliuml2announcementpolicies.cilium.io
