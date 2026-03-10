@@ -3,7 +3,7 @@
 **/.terraform.lock.hcl.bak
 **/*.tfstate
 **/*.tfstate.*
-terraform/credentials.auto.tfvars
+**/credentials.auto.tfvars
 
 # ---- Ansible ----
 **/.ansible/

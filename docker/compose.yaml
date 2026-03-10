@@ -1,0 +1,18 @@
+name: homelab
+
+services:
+  homelab:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        HOST_UID: ${HOST_UID:?Set HOST_UID in the shell environment}
+        HOST_GID: ${HOST_GID:?Set HOST_GID in the shell environment}
+    container_name: homelab
+    hostname: homelab
+    working_dir: /home/homelab
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${HOME}/homelab:/homelab
+      - ${HOME}/.homelab:/home/homelab
