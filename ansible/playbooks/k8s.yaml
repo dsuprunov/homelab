@@ -1,4 +1,17 @@
 ---
+- name: k8s | preflight
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: preflight | check kubectl
+      ansible.builtin.command: kubectl version --client
+      changed_when: false
+
+    - name: preflight | check helm
+      ansible.builtin.command: helm version
+      changed_when: false
+
 - name: k8s | node
   hosts: k8s_node_base
   become: true
@@ -20,19 +33,10 @@
   roles:
     - k8s_cluster_init
 
-- name: k8s | helm
-  hosts: k8s_addon_helm
-  become: true
-  gather_facts: true
-  tags:
-    - helm
-  roles:
-    - k8s_addon_helm
-
 - name: k8s | cilium
   hosts: k8s_addon_cilium
-  become: true
-  gather_facts: true
+  connection: local
+  gather_facts: false
   tags:
     - cilium
   roles:
@@ -61,8 +65,8 @@
 
 - name: k8s | flux
   hosts: k8s_addon_flux
-  become: true
-  gather_facts: true
+  connection: local
+  gather_facts: false
   tags:
     - flux
   roles:

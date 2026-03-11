@@ -1,0 +1,58 @@
+---
+- name: cilium | install
+  kubernetes.core.helm:
+    release_name: cilium
+    chart_ref: oci://quay.io/cilium/charts/cilium
+    chart_version: "{{ cilium_version }}"
+    release_namespace: kube-system
+    create_namespace: false
+    release_values: "{{ lookup('ansible.builtin.file', role_path ~ '/files/values.yaml') | from_yaml }}"
+    kubeconfig: "{{ kubeconfig }}"
+    wait: true
+    timeout: 15m
+    state: present
+  retries: 6
+  delay: 30
+  register: cilium_deploy
+  until: cilium_deploy is succeeded
+
+- name: cilium | wait for cilium daemonset rollout
+  ansible.builtin.command: >
+    kubectl rollout status daemonset/cilium
+      -n kube-system
+      --timeout=10m
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: cilium_daemonset_rollout
+  until: cilium_daemonset_rollout.rc == 0
+  changed_when: false
+
+- name: cilium | wait for cilium envoy daemonset rollout
+  ansible.builtin.command: >
+    kubectl rollout status daemonset/cilium-envoy
+      -n kube-system
+      --timeout=10m
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: cilium_envoy_rollout
+  until: cilium_envoy_rollout.rc == 0
+  changed_when: false
+
+- name: cilium | wait for at least one ready cilium operator replica
+  ansible.builtin.command: >
+    kubectl get deployment cilium-operator
+      -n kube-system
+      -o jsonpath={.status.readyReplicas}
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 60
+  delay: 5
+  register: cilium_operator_ready
+  until:
+    - cilium_operator_ready.rc == 0
+    - (cilium_operator_ready.stdout | default('0') | int) >= 1
+  changed_when: false

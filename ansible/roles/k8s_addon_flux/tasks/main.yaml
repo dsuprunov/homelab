@@ -1,6 +1,23 @@
 ---
 - name: flux
   block:
+    - name: flux | check localhost kubeconfig
+      ansible.builtin.stat:
+        path: "{{ kubeconfig }}"
+      register: flux_kubeconfig_stat
+
+    - name: flux | assert localhost kubeconfig exists
+      ansible.builtin.assert:
+        quiet: true
+        that:
+          - flux_kubeconfig_stat.stat.exists
+        fail_msg: "Local kubeconfig is required at {{ kubeconfig }}."
+
+    - name: flux | check flux cli
+      ansible.builtin.command: flux --version
+      changed_when: false
+      run_once: true
+
     - name: flux | validate GitHub token
       vars:
         github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') | trim }}"
@@ -18,27 +35,10 @@
     - name: flux | token OK
       when: token_check.status == 200
       block:
-        - name: flux | download
-          ansible.builtin.get_url:
-            url: "https://github.com/fluxcd/flux2/releases/download/v{{ flux_cli_version }}/flux_{{ flux_cli_version }}_linux_amd64.tar.gz"
-            dest: "/tmp/flux_{{ flux_cli_version }}_linux_amd64.tar.gz"
-            checksum: "{{ flux_cli_checksum }}"
-            mode: "0644"
-
-        - name: flux | extract
-          ansible.builtin.unarchive:
-            src: "/tmp/flux_{{ flux_cli_version }}_linux_amd64.tar.gz"
-            dest: /usr/local/bin
-            remote_src: true
-            owner: root
-            group: root
-            mode: '0755'
-            creates: /usr/local/bin/flux
-
         - name: flux | pre-check
           ansible.builtin.command: flux check --pre
           environment:
-            KUBECONFIG: /etc/kubernetes/admin.conf
+            KUBECONFIG: "{{ kubeconfig }}"
           register: flux_precheck_result
           changed_when: false
           run_once: true
@@ -60,7 +60,7 @@
                   --token-auth=false
               environment:
                 GITHUB_TOKEN: "{{ github_token }}"
-                KUBECONFIG: /etc/kubernetes/admin.conf
+                KUBECONFIG: "{{ kubeconfig }}"
               register: flux_bootstrap_result
               changed_when: >
                 ('committed'  in flux_bootstrap_result.stderr) or

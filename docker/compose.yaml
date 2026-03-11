@@ -1,0 +1,24 @@
+name: homelab
+
+services:
+  homelab:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        HOST_UID: ${HOST_UID:?Set HOST_UID in the shell environment}
+        HOST_GID: ${HOST_GID:?Set HOST_GID in the shell environment}
+    env_file:
+      - ${HOME}/.homelab/.env
+    container_name: homelab
+    hostname: homelab
+    working_dir: /home/homelab
+    stdin_open: true
+    tty: true
+    environment:
+      ANSIBLE_CONFIG: /homelab/ansible/ansible.cfg
+      SSH_AUTH_SOCK: /ssh-agent
+    volumes:
+      - ${HOME}/homelab:/homelab
+      - ${HOME}/.homelab:/home/homelab
+      - ${SSH_AUTH_SOCK:?Start ssh-agent and export SSH_AUTH_SOCK}:/ssh-agent
