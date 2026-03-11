@@ -4,6 +4,7 @@ ARG USERNAME=homelab
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 ARG TERRAFORM_VERSION=1.14.6
+ARG ANSIBLE_CORE_VERSION=2.20.2
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -13,6 +14,9 @@ RUN apt-get update && \
       curl \
       dnsutils \
       git \
+      openssh-client \
+      python3 \
+      python3-venv \
       unzip \
       zsh \
     && rm -rf /var/lib/apt/lists/*
@@ -24,8 +28,13 @@ RUN curl -fsSLo /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip "https://rel
     unzip /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip terraform -d /usr/local/bin && \
     rm /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 
+RUN python3 -m venv /opt/ansible && \
+    /opt/ansible/bin/python -m pip install --no-cache-dir "ansible-core==${ANSIBLE_CORE_VERSION}" && \
+    /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections community.general kubernetes.core
+
 USER ${USERNAME}
 
 ENV HOME=/home/${USERNAME}
+ENV PATH=/opt/ansible/bin:${PATH}
 
 CMD ["zsh"]
