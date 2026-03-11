@@ -45,6 +45,11 @@ if command -v helm >/dev/null 2>&1; then
   source <(helm completion zsh)
 fi
 EOF
+
+install -D -m 600 /dev/stdin ~/.homelab/.env <<'EOF'
+# GitHub PAT for Flux bootstrap and deploy key management
+# GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxxxxx
+EOF
 ```
 
 ## Build-Run-Repeat
@@ -97,4 +102,10 @@ kubectl get nodes
 helm version
 helm plugin list
 helm list -A
+```
+
+## Flux
+
+```bash
+flux --version
 ```

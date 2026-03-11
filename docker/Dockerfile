@@ -10,6 +10,7 @@ ARG KUBERNETES_PYTHON_VERSION=35.0.0
 ARG KUBECTL_VERSION=1.34.1
 ARG HELM_VERSION=3.20.0
 ARG HELM_DIFF_VERSION=3.15.2
+ARG FLUX_VERSION=2.8.1
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -43,6 +44,11 @@ RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.s
     rm -rf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz /tmp/linux-amd64
 
 RUN HELM_PLUGINS=/usr/local/share/helm/plugins helm plugin install https://github.com/databus23/helm-diff --version ${HELM_DIFF_VERSION}
+
+RUN curl -fsSLo /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz "https://github.com/fluxcd/flux2/releases/download/v${FLUX_VERSION}/flux_${FLUX_VERSION}_linux_amd64.tar.gz" && \
+    tar -xzf /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz -C /tmp && \
+    install -m 0755 /tmp/flux /usr/local/bin/flux && \
+    rm -rf /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz /tmp/flux
 
 RUN python3 -m venv /opt/ansible && \
     /opt/ansible/bin/python -m pip install --no-cache-dir \

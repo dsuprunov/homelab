@@ -8,6 +8,8 @@ services:
       args:
         HOST_UID: ${HOST_UID:?Set HOST_UID in the shell environment}
         HOST_GID: ${HOST_GID:?Set HOST_GID in the shell environment}
+    env_file:
+      - ${HOME}/.homelab/.env
     container_name: homelab
     hostname: homelab
     working_dir: /home/homelab
