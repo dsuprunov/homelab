@@ -33,6 +33,10 @@ git_prompt_info() {
 }
 
 PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f$(git_prompt_info) %F{green}%#%f '
+
+if command -v kubectl >/dev/null 2>&1; then
+  source <(kubectl completion zsh)
+fi
 EOF
 ```
 
@@ -70,4 +74,14 @@ ansible-galaxy collection list
 ansible-inventory --graph
 ansible -m ping vms
 ansible-playbook playbooks/k8s.yaml
+```
+
+## kubectl
+
+```bash
+# populated automatically by:
+# cd /homelab/ansible && ansible-playbook playbooks/k8s.yaml
+
+kubectl version --client
+kubectl get nodes
 ```
