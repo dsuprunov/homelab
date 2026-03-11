@@ -44,6 +44,10 @@ fi
 if command -v helm >/dev/null 2>&1; then
   source <(helm completion zsh)
 fi
+
+if command -v flux >/dev/null 2>&1; then
+  source <(flux completion zsh)
+fi
 EOF
 
 install -D -m 600 /dev/stdin ~/.homelab/.env <<'EOF'
@@ -108,4 +112,5 @@ helm list -A
 
 ```bash
 flux --version
+flux get kustomizations -A
 ```

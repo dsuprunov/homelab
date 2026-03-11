@@ -9,6 +9,7 @@
 | `192.168.178.225`     | 1    | Kubernetes API VIP        |
 | `192.168.178.226-229` | 4    | Kubernetes Control Planes |
 | `192.168.178.230-239` | 10   | Kubernetes Workers        |
+| `192.168.178.240-249` | 10   | Kubernetes Ingress / LB   |
 
 ## Hosts
 
@@ -24,6 +25,7 @@
 
 ## Virtual IPs
 
-| Name                  | Address           | Notes              |
-|-----------------------|-------------------|--------------------|
-| `k8s-api.home.arpa`   | `192.168.178.225` | Kubernetes API VIP |
+| Name                    | Address           | Notes                  |
+|-------------------------|-------------------|------------------------|
+| `k8s-api.home.arpa`     | `192.168.178.225` | Kubernetes API VIP     |
+| `k8s-ingress.home.arpa` | `192.168.178.240` | Kubernetes ingress VIP |
