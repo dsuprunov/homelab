@@ -23,6 +23,7 @@ RUN apt-get update && \
       python3 \
       python3-venv \
       unzip \
+      procps \
       zsh \
     && rm -rf /var/lib/apt/lists/*
 
