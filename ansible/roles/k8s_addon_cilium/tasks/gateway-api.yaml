@@ -1,0 +1,24 @@
+---
+- name: gateway-api | install crds
+  ansible.builtin.command: >
+    kubectl apply
+      --server-side
+      -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{ gateway_api_version }}/standard-install.yaml
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+
+- name: gateway-api | wait for crds
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/gateways.gateway.networking.k8s.io
+      crd/gatewayclasses.gateway.networking.k8s.io
+      crd/httproutes.gateway.networking.k8s.io
+      crd/grpcroutes.gateway.networking.k8s.io
+      crd/referencegrants.gateway.networking.k8s.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: gateway_api_crds_wait
+  retries: 30
+  delay: 5
+  until: gateway_api_crds_wait.rc == 0
+  changed_when: false

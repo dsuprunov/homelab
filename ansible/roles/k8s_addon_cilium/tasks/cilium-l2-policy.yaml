@@ -1,0 +1,18 @@
+---
+- name: cilium | wait for ciliuml2announcementpolicies CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/ciliuml2announcementpolicies.cilium.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: cilium_l2_policy_crd_wait
+  retries: 30
+  delay: 5
+  until: cilium_l2_policy_crd_wait.rc == 0
+  changed_when: false
+
+- name: cilium | apply cilium-l2-policy
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/cilium-l2-policy.yaml') | from_yaml }}"

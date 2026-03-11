@@ -35,8 +35,8 @@
 
 - name: k8s | cilium
   hosts: k8s_addon_cilium
-  become: true
-  gather_facts: true
+  connection: local
+  gather_facts: false
   tags:
     - cilium
   roles:

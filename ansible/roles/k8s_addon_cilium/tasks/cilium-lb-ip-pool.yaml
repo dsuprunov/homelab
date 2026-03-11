@@ -1,0 +1,18 @@
+---
+- name: cilium | wait for ciliumloadbalancerippools CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/ciliumloadbalancerippools.cilium.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: cilium_lb_ip_pool_crd_wait
+  retries: 30
+  delay: 5
+  until: cilium_lb_ip_pool_crd_wait.rc == 0
+  changed_when: false
+
+- name: cilium | apply cilium-lb-ip-pool
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/cilium-lb-ip-pool.yaml') | from_yaml }}"

@@ -6,6 +6,7 @@ ARG HOST_GID=1000
 
 ARG TERRAFORM_VERSION=1.14.6
 ARG ANSIBLE_CORE_VERSION=2.20.2
+ARG KUBERNETES_PYTHON_VERSION=35.0.0
 ARG KUBECTL_VERSION=1.34.1
 ARG HELM_VERSION=3.20.0
 ARG HELM_DIFF_VERSION=3.15.2
@@ -43,8 +44,11 @@ RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.s
 RUN HELM_PLUGINS=/usr/local/share/helm/plugins helm plugin install https://github.com/databus23/helm-diff --version ${HELM_DIFF_VERSION}
 
 RUN python3 -m venv /opt/ansible && \
-    /opt/ansible/bin/python -m pip install --no-cache-dir "ansible-core==${ANSIBLE_CORE_VERSION}" && \
-    /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections community.general kubernetes.core
+    /opt/ansible/bin/python -m pip install --no-cache-dir \
+      "ansible-core==${ANSIBLE_CORE_VERSION}" \
+      "kubernetes==${KUBERNETES_PYTHON_VERSION}"
+RUN /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections community.general
+RUN /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections kubernetes.core
 
 USER ${USERNAME}
 
