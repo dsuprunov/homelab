@@ -1,4 +1,17 @@
 ---
+- name: k8s | preflight
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: preflight | check kubectl
+      ansible.builtin.command: kubectl version --client
+      changed_when: false
+
+    - name: preflight | check helm
+      ansible.builtin.command: helm version
+      changed_when: false
+
 - name: k8s | node
   hosts: k8s_node_base
   become: true
