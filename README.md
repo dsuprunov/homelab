@@ -13,6 +13,9 @@ HISTSIZE=10000
 SAVEHIST=10000
 
 autoload -Uz colors && colors
+autoload -Uz compinit
+compinit
+
 setopt PROMPT_SUBST
 setopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY
@@ -36,6 +39,10 @@ PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f$(git_prompt_info) %F{green}%#%f '
 
 if command -v kubectl >/dev/null 2>&1; then
   source <(kubectl completion zsh)
+fi
+
+if command -v helm >/dev/null 2>&1; then
+  source <(helm completion zsh)
 fi
 EOF
 ```
@@ -79,9 +86,13 @@ ansible-playbook playbooks/k8s.yaml
 ## kubectl
 
 ```bash
-# populated automatically by:
-# cd /homelab/ansible && ansible-playbook playbooks/k8s.yaml
-
 kubectl version --client
 kubectl get nodes
+```
+
+## Helm
+
+```bash
+helm version
+helm list -A
 ```

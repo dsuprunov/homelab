@@ -3,9 +3,10 @@ FROM debian:13-slim
 ARG USERNAME=homelab
 ARG HOST_UID=1000
 ARG HOST_GID=1000
+ARG TERRAFORM_VERSION=1.14.6
 ARG ANSIBLE_CORE_VERSION=2.20.2
 ARG KUBECTL_VERSION=1.34.1
-ARG TERRAFORM_VERSION=1.14.6
+ARG HELM_VERSION=3.20.0
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -31,6 +32,11 @@ RUN curl -fsSLo /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip "https://rel
 
 RUN curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
     chmod 0755 /usr/local/bin/kubectl
+
+RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" && \
+    tar -xzf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz -C /tmp && \
+    install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm && \
+    rm -rf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz /tmp/linux-amd64
 
 RUN python3 -m venv /opt/ansible && \
     /opt/ansible/bin/python -m pip install --no-cache-dir "ansible-core==${ANSIBLE_CORE_VERSION}" && \
