@@ -33,15 +33,6 @@
   roles:
     - k8s_cluster_init
 
-- name: k8s | helm
-  hosts: k8s_addon_helm
-  become: true
-  gather_facts: true
-  tags:
-    - helm
-  roles:
-    - k8s_addon_helm
-
 - name: k8s | cilium
   hosts: k8s_addon_cilium
   become: true
