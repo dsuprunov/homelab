@@ -65,8 +65,8 @@
 
 - name: k8s | flux
   hosts: k8s_addon_flux
-  become: true
-  gather_facts: true
+  connection: local
+  gather_facts: false
   tags:
     - flux
   roles:
