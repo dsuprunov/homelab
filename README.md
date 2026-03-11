@@ -94,5 +94,6 @@ kubectl get nodes
 
 ```bash
 helm version
+helm plugin list
 helm list -A
 ```
