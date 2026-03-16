@@ -15,7 +15,6 @@
 
 | Host                          | Address           |    CPU |  RAM | Disk 0 | Disk 1 | Alias             | Notes                              |
 |-------------------------------|-------------------|-------:|-----:|-------:|-------:|-------------------|------------------------------------|
-| `pve-01.home.arpa`            | `192.168.178.200` |        |      |        |        |                   |                                    |
 | `vm-coredns-01.home.arpa`     | `192.168.178.205` | 1 vCPU | 1 GB |   8 GB |        | `ns.home.arpa`    |                                    |
 | `vm-vault-01.home.arpa`       | `192.168.178.206` | 1 vCPU | 2 GB |   8 GB |        | `vault.home.arpa` | https://vm-vault-01.home.arpa:8200 |
 | `vm-k8s-control-01.home.arpa` | `192.168.178.226` | 2 vCPU | 4 GB |  16 GB |        |                   |                                    |
