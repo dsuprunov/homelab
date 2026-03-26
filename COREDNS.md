@@ -1,38 +1,4 @@
-### pve (proxmox host)
-
-1) Create a folder for VM persistent data
-```bash
-mkdir -p /mnt/pve/pve-data/vm-coredns-01/etc/coredns
-chmod 777 /mnt/pve/pve-data/vm-coredns-01
-ls -ld /mnt/pve/pve-data/vm-coredns-01
-```
-
-2) Create a Directory Mapping for VirtioFS (if it does not exist yet)
-```bash
-pvesh create /cluster/mapping/dir \
-  --id vm-coredns-01 \
-  --map node=pve,path=/mnt/pve/pve-data/vm-coredns-01
-```
-
-### vm-coredns-01 (debian virtual machine)
-
-3) Mount VirtioFS in VM
-```bash
-sudo mkdir -p /mnt/vm-coredns-01
-sudo mount -t virtiofs vm-coredns-01 /mnt/vm-coredns-01
-mount | grep vm-coredns-01
-```
-
-4) Enable auto-mount
-```bash
-echo 'vm-coredns-01 /mnt/vm-coredns-01 virtiofs nofail,x-systemd.automount 0 0' | sudo tee -a /etc/fstab
-sudo systemctl daemon-reload
-sudo umount /mnt/vm-coredns-01
-sudo mount -a
-mount | grep vm-coredns-01
-```
-
-5) Install CoreDNS binary
+1) Install CoreDNS binary
 ```bash
 sudo apt update
 sudo apt install -y curl dnsutils
@@ -46,7 +12,7 @@ sudo rm -f /tmp/coredns /tmp/coredns.tgz
 
 6) Store CoreDNS config on host-backed path
 ```bash
-cat <<'EOF' | sudo tee /mnt/vm-coredns-01/etc/coredns/Corefile >/dev/null
+cat <<'EOF' | sudo tee /etc/coredns/Corefile >/dev/null
 .:53 {
     errors
     log
@@ -63,7 +29,7 @@ cat <<'EOF' | sudo tee /mnt/vm-coredns-01/etc/coredns/Corefile >/dev/null
 }
 EOF
 
-cat <<'EOF' | sudo tee /mnt/vm-coredns-01/etc/coredns/home.arpa.zone >/dev/null
+cat <<'EOF' | sudo tee /etc/coredns/home.arpa.zone >/dev/null
 $ORIGIN home.arpa.
 $TTL 300
 @       IN SOA  ns.home.arpa. admin.home.arpa. (
@@ -92,10 +58,6 @@ sudo ss -luntp | grep ':53'
 
 8) Link `/etc/coredns` to host-backed path and start service
 ```bash
-sudo rm -rf /etc/coredns
-sudo ln -s /mnt/vm-coredns-01/etc/coredns /etc/coredns
-ls -ld /etc/coredns
-
 cat <<'EOF' | sudo tee /etc/systemd/system/coredns.service >/dev/null
 [Unit]
 Description=CoreDNS DNS server
@@ -120,7 +82,7 @@ sudo ss -luntp | grep ':53'
 
 9) Edit zone file
 ```bash
-sudo nano /mnt/vm-coredns-01/etc/coredns/home.arpa.zone
+sudo nano /etc/coredns/home.arpa.zone
 ```
 
 11) Update SOA serial after each change
