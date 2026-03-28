@@ -22,13 +22,15 @@ variable "cts" {
       path   = string
     })), [])
 
-    bridge   = optional(string, "vmbr0")
-    firewall = optional(bool, true)
+    network_interfaces = list(object({
+      bridge       = string
+      ipv4_address = string                 # "192.168.178.209/24", "dhcp"
+      ipv4_gateway = optional(string, null) # "192.168.178.1"
+      firewall     = optional(bool, true)
+    }))
 
-    ipv4_address = string                 # "192.168.178.209/24", "dhcp"
-    ipv4_gateway = optional(string, null) # "192.168.178.1"
-    nameservers  = optional(list(string), [])
-    ssh_keys     = optional(list(string), [])
+    nameservers = optional(list(string), [])
+    ssh_keys    = optional(list(string), [])
 
     started = optional(bool, true)
     on_boot = optional(bool, true)
@@ -64,26 +66,22 @@ module "proxmox_ct" {
   datastore_id = each.value.datastore_id
   mount_points = each.value.mount_points
 
-  bridge   = each.value.bridge
-  firewall = each.value.firewall
-
-  ipv4_address = each.value.ipv4_address
-  ipv4_gateway = each.value.ipv4_gateway
-  nameservers  = each.value.nameservers
-  ssh_keys     = each.value.ssh_keys
+  network_interfaces = each.value.network_interfaces
+  nameservers        = each.value.nameservers
+  ssh_keys           = each.value.ssh_keys
 
   started = each.value.started
   on_boot = each.value.on_boot
 }
 
 output "cts" {
-  description = "CTs: id, name, ip, tags"
+  description = "CTs: id, name, ips, tags"
   value = {
     for ct_name, m in module.proxmox_ct :
     ct_name => {
       id   = m.id
       name = m.name
-      ip   = m.ip
+      ips  = m.ips
       tags = join(", ", m.tags)
     }
   }

@@ -30,14 +30,17 @@ variable "vms" {
     datastore_id           = optional(string, "local-lvm")
     cloudinit_datastore_id = optional(string, "local-lvm")
 
-    bridge   = optional(string, "vmbr0")
-    firewall = optional(bool, true)
+    network_interfaces = list(object({
+      bridge       = string
+      ipv4_address = string                 # "192.168.178.224/24", "dhcp"
+      ipv4_gateway = optional(string, null) # "192.168.178.1"
+      firewall     = optional(bool, true)
+      model        = optional(string, "virtio")
+    }))
 
-    ipv4_address = string                 # "192.168.178.224/24", "dhcp"
-    ipv4_gateway = optional(string, null) # "192.168.178.1"
-    nameservers  = optional(list(string), [])
-    user         = optional(string, "root")
-    ssh_keys     = list(string)
+    nameservers = optional(list(string), [])
+    user        = optional(string, "root")
+    ssh_keys    = list(string)
 
     started = optional(bool, true)
     on_boot = optional(bool, true)
@@ -76,14 +79,10 @@ module "proxmox_vm" {
   datastore_id           = each.value.datastore_id
   cloudinit_datastore_id = each.value.cloudinit_datastore_id
 
-  bridge   = each.value.bridge
-  firewall = each.value.firewall
-
-  ipv4_address = each.value.ipv4_address
-  ipv4_gateway = each.value.ipv4_gateway
-  nameservers  = each.value.nameservers
-  user         = each.value.user
-  ssh_keys     = each.value.ssh_keys
+  network_interfaces = each.value.network_interfaces
+  nameservers        = each.value.nameservers
+  user               = each.value.user
+  ssh_keys           = each.value.ssh_keys
 
   import_from = proxmox_virtual_environment_download_file.image[each.value.image].id
 
@@ -97,13 +96,13 @@ module "proxmox_vm" {
 }
 
 output "vms" {
-  description = "VMs: id, name, ip, tags"
+  description = "VMs: id, name, ips, tags"
   value = {
     for vm_name, m in module.proxmox_vm :
     vm_name => {
       id   = m.id
       name = m.name
-      ip   = m.ip
+      ips  = m.ips
       tags = join(", ", m.tags)
     }
   }
