@@ -50,14 +50,11 @@ variable "swap" {
   default = 0
 }
 
-variable "disk_size" {
-  type    = number
-  default = 8
-}
-
-variable "datastore_id" {
-  type    = string
-  default = "local-lvm"
+variable "disk" {
+  type = object({
+    size         = optional(number, 8)
+    datastore_id = optional(string, "local-lvm")
+  })
 }
 
 variable "network_interfaces" {

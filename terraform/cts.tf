@@ -14,9 +14,10 @@ variable "cts" {
     cpu_cores = optional(number, 1)
     memory    = optional(number, 512)
     swap      = optional(number, 0)
-    disk_size = optional(number, 8)
-
-    datastore_id = optional(string, "local-lvm")
+    disk = object({
+      size         = optional(number, 8)
+      datastore_id = optional(string, "local-lvm")
+    })
     mount_points = optional(list(object({
       volume = string
       path   = string
@@ -58,12 +59,10 @@ module "proxmox_ct" {
   nesting      = each.value.nesting
   unprivileged = each.value.unprivileged
 
-  cpu_cores = each.value.cpu_cores
-  memory    = each.value.memory
-  swap      = each.value.swap
-  disk_size = each.value.disk_size
-
-  datastore_id = each.value.datastore_id
+  cpu_cores    = each.value.cpu_cores
+  memory       = each.value.memory
+  swap         = each.value.swap
+  disk         = each.value.disk
   mount_points = each.value.mount_points
 
   network_interfaces = each.value.network_interfaces

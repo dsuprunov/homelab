@@ -25,8 +25,8 @@ resource "proxmox_virtual_environment_container" "ct" {
 
   # --- Storage ---
   disk {
-    datastore_id = var.datastore_id
-    size         = var.disk_size
+    datastore_id = var.disk.datastore_id
+    size         = var.disk.size
   }
 
   dynamic "mount_point" {

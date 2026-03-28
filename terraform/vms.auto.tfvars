@@ -1,19 +1,19 @@
 vms = {
-  vm-router-250 = {
-    vm_id = 250
+  vm-router = {
+    vm_id = 200
     tags  = ["vm", "debian", "coredns"]
     image = "debian_13"
 
-    cores   = 1
-    memory  = 512
-    balloon = 256
+    cores  = 1
+    memory = 1024
 
     disks = [
       { interface = "scsi0", size = 8 },
     ]
 
     network_interfaces = [
-      { bridge = "vmbr0", ipv4_address = "192.168.178.250/24", ipv4_gateway = "192.168.178.1" }
+      { bridge = "vmbr0", ipv4_address = "192.168.178.200/24", ipv4_gateway = "192.168.178.1" },
+      { bridge = "vmbr1", ipv4_address = "10.10.0.1/24" }
     ]
     nameservers = ["8.8.8.8", "1.1.1.1"]
 
@@ -29,16 +29,15 @@ vms = {
     tags  = ["vm", "debian", "coredns"]
     image = "debian_13"
 
-    cores   = 1
-    memory  = 512
-    balloon = 256
+    cores  = 1
+    memory = 1024
 
     disks = [
       { interface = "scsi0", size = 8 },
     ]
 
     network_interfaces = [
-      { bridge = "vmbr0", ipv4_address = "192.168.178.251/24", ipv4_gateway = "192.168.178.1" }
+      { bridge = "vmbr1", ipv4_address = "10.10.0.100/24", ipv4_gateway = "10.10.0.1" }
     ]
     nameservers = ["8.8.8.8", "1.1.1.1"]
 
