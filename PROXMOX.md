@@ -1,50 +1,31 @@
 ```bash
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9 homelab' >> /root/.ssh/authorized_keys
+```
+
+```bash
 pveum user token add root@pam terraform --privsep 0
 ```
 
 ```bash
-#
-# settings
-#
-export \
-  DISK='/dev/disk/by-id/nvme-SK_hynix_BC711_HFM256GD3JX013N_FJACN48881290CC52' \
-  PART='/dev/disk/by-id/nvme-SK_hynix_BC711_HFM256GD3JX013N_FJACN48881290CC52-part1' \
-  MNT='/mnt/pve/local-data' \
-  STORAGE='local-data'
+NODE=$(hostname)
 
-#
-# init
-#
-sgdisk -n 1:0:0 -t 1:8300 -c 1:local-data "$DISK"
-partx -u "$DISK"
-udevadm settle
-mkfs.ext4 -F -L local-data "$PART"
+pvesh get /nodes/$NODE/network
 
-#
-# reuse
-#
-partx -u "$DISK"
-udevadm settle
-lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS,PARTLABEL "$DISK"
-blkid "$PART"
+pvesh set /nodes/$NODE/network/vmbr0 --type bridge --comments WAN
 
-#
-# common
-#
-install -d -m 0755 "$MNT"
-UUID="$(blkid -s UUID -o value "$PART")"
-grep -q " $MNT " /etc/fstab || echo "UUID=$UUID $MNT ext4 defaults,noatime 0 2" >> /etc/fstab
-systemctl daemon-reload
-mountpoint -q "$MNT" || mount "$MNT"
-grep -q "^dir: $STORAGE$" /etc/pve/storage.cfg || pvesm add dir "$STORAGE" --path "$MNT" --content images
-pvesm status --storage "$STORAGE"
-findmnt "$MNT"
+pvesh create /nodes/$NODE/network \
+  --iface vmbr1 \
+  --type bridge \
+  --autostart 1 \
+  --comments LAN
+pvesh set /nodes/$NODE/network
+
+pvesh get /nodes/$NODE/network
 ```
 
 ```bash
 more /etc/pve/storage.cfg
 pvesm set local --content iso,vztmpl,backup,import,snippets
-ls -la /var/lib/vz
 
 cat > /var/lib/vz/snippets/cloud-config-vendor-qemu-guest-agent.yaml <<'EOF'
 #cloud-config
@@ -54,9 +35,4 @@ packages:
 runcmd:
   - [ systemctl, enable, --now, qemu-guest-agent ]
 EOF
-```
-
-```bash
-qm agent 224 ping
-qm agent 224 network-get-interfaces
 ```

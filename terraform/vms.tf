@@ -2,7 +2,7 @@ variable "vms" {
   type = map(object({
     vm_id = number
 
-    node_name = optional(string, "pve")
+    node_name = optional(string, "pve-01")
     tags      = optional(list(string), [])
 
     image = string

@@ -2,7 +2,7 @@ variable "cts" {
   type = map(object({
     ct_id = number
 
-    node_name = optional(string, "pve")
+    node_name = optional(string, "pve-01")
     tags      = optional(list(string), [])
 
     os_template = string # "local:vztmpl/template.tar.zst"

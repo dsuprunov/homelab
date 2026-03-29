@@ -1,8 +1,8 @@
 apiVersion: cilium.io/v2
 kind: CiliumLoadBalancerIPPool
 metadata:
-  name: ingress-vip
+  name: cilium-vips
 spec:
   blocks:
-    - start: "192.168.178.240"
-      stop: "192.168.178.249"
+    - start: "10.10.0.181"
+      stop: "10.10.0.190"
