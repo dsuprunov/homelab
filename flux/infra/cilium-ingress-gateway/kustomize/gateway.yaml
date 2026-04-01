@@ -7,7 +7,7 @@ spec:
   gatewayClassName: cilium
   addresses:
     - type: IPAddress
-      value: 192.168.178.240
+      value: 10.10.0.181
   listeners:
     - name: http-k8s-home-arpa
       hostname: "*.k8s.home.arpa"

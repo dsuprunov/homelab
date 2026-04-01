@@ -84,23 +84,14 @@ variable "cloudinit_datastore_id" {
   default = "local-lvm"
 }
 
-variable "bridge" {
-  type    = string
-  default = "vmbr0"
-}
-
-variable "firewall" {
-  type    = bool
-  default = true
-}
-
-variable "ipv4_address" {
-  type = string
-}
-
-variable "ipv4_gateway" {
-  type    = string
-  default = null
+variable "network_interfaces" {
+  type = list(object({
+    bridge       = string
+    ipv4_address = string
+    ipv4_gateway = optional(string, null)
+    firewall     = optional(bool, true)
+    model        = optional(string, "virtio")
+  }))
 }
 
 variable "nameservers" {

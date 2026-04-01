@@ -25,8 +25,8 @@ resource "proxmox_virtual_environment_container" "ct" {
 
   # --- Storage ---
   disk {
-    datastore_id = var.datastore_id
-    size         = var.disk_size
+    datastore_id = var.disk.datastore_id
+    size         = var.disk.size
   }
 
   dynamic "mount_point" {
@@ -38,10 +38,13 @@ resource "proxmox_virtual_environment_container" "ct" {
   }
 
   # --- Networking ---
-  network_interface {
-    name     = "eth0"
-    bridge   = var.bridge
-    firewall = var.firewall
+  dynamic "network_interface" {
+    for_each = var.network_interfaces
+    content {
+      name     = "eth${network_interface.key}"
+      bridge   = network_interface.value.bridge
+      firewall = network_interface.value.firewall
+    }
   }
 
   # --- Initialization ---
@@ -53,10 +56,13 @@ resource "proxmox_virtual_environment_container" "ct" {
       password = null
     }
 
-    ip_config {
-      ipv4 {
-        address = var.ipv4_address
-        gateway = var.ipv4_gateway
+    dynamic "ip_config" {
+      for_each = var.network_interfaces
+      content {
+        ipv4 {
+          address = ip_config.value.ipv4_address
+          gateway = ip_config.value.ipv4_gateway
+        }
       }
     }
 

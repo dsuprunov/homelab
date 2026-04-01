@@ -3,7 +3,7 @@ variable "images" {
     content_type = string
     datastore_id = optional(string, "local")
     file_name    = string
-    node_name    = optional(string, "pve")
+    node_name    = optional(string, "pve-01")
     url          = string
   }))
 }

@@ -62,10 +62,15 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   # --- Networking ---
-  network_device {
-    bridge   = var.bridge
-    model    = "virtio"
-    firewall = var.firewall
+  dynamic "network_device" {
+    for_each = var.network_interfaces
+    iterator = nic
+
+    content {
+      bridge   = nic.value.bridge
+      model    = nic.value.model
+      firewall = nic.value.firewall
+    }
   }
 
   # --- VirtioFS ---
@@ -94,10 +99,13 @@ resource "proxmox_virtual_environment_vm" "vm" {
       keys     = var.ssh_keys
     }
 
-    ip_config {
-      ipv4 {
-        address = var.ipv4_address
-        gateway = var.ipv4_gateway
+    dynamic "ip_config" {
+      for_each = var.network_interfaces
+      content {
+        ipv4 {
+          address = ip_config.value.ipv4_address
+          gateway = ip_config.value.ipv4_gateway
+        }
       }
     }
 

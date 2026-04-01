@@ -50,33 +50,20 @@ variable "swap" {
   default = 0
 }
 
-variable "disk_size" {
-  type    = number
-  default = 8
+variable "disk" {
+  type = object({
+    size         = optional(number, 8)
+    datastore_id = optional(string, "local-lvm")
+  })
 }
 
-variable "datastore_id" {
-  type    = string
-  default = "local-lvm"
-}
-
-variable "bridge" {
-  type    = string
-  default = "vmbr0"
-}
-
-variable "firewall" {
-  type    = bool
-  default = true
-}
-
-variable "ipv4_address" {
-  type = string
-}
-
-variable "ipv4_gateway" {
-  type    = string
-  default = null
+variable "network_interfaces" {
+  type = list(object({
+    bridge       = string
+    ipv4_address = string
+    ipv4_gateway = optional(string, null)
+    firewall     = optional(bool, true)
+  }))
 }
 
 variable "nameservers" {

@@ -2,7 +2,7 @@ variable "cts" {
   type = map(object({
     ct_id = number
 
-    node_name = optional(string, "pve")
+    node_name = optional(string, "pve-01")
     tags      = optional(list(string), [])
 
     os_template = string # "local:vztmpl/template.tar.zst"
@@ -14,21 +14,24 @@ variable "cts" {
     cpu_cores = optional(number, 1)
     memory    = optional(number, 512)
     swap      = optional(number, 0)
-    disk_size = optional(number, 8)
-
-    datastore_id = optional(string, "local-lvm")
+    disk = object({
+      size         = optional(number, 8)
+      datastore_id = optional(string, "local-lvm")
+    })
     mount_points = optional(list(object({
       volume = string
       path   = string
     })), [])
 
-    bridge   = optional(string, "vmbr0")
-    firewall = optional(bool, true)
+    network_interfaces = list(object({
+      bridge       = string
+      ipv4_address = string                 # "192.168.178.209/24", "dhcp"
+      ipv4_gateway = optional(string, null) # "192.168.178.1"
+      firewall     = optional(bool, true)
+    }))
 
-    ipv4_address = string                 # "192.168.178.209/24", "dhcp"
-    ipv4_gateway = optional(string, null) # "192.168.178.1"
-    nameservers  = optional(list(string), [])
-    ssh_keys     = optional(list(string), [])
+    nameservers = optional(list(string), [])
+    ssh_keys    = optional(list(string), [])
 
     started = optional(bool, true)
     on_boot = optional(bool, true)
@@ -56,34 +59,28 @@ module "proxmox_ct" {
   nesting      = each.value.nesting
   unprivileged = each.value.unprivileged
 
-  cpu_cores = each.value.cpu_cores
-  memory    = each.value.memory
-  swap      = each.value.swap
-  disk_size = each.value.disk_size
-
-  datastore_id = each.value.datastore_id
+  cpu_cores    = each.value.cpu_cores
+  memory       = each.value.memory
+  swap         = each.value.swap
+  disk         = each.value.disk
   mount_points = each.value.mount_points
 
-  bridge   = each.value.bridge
-  firewall = each.value.firewall
-
-  ipv4_address = each.value.ipv4_address
-  ipv4_gateway = each.value.ipv4_gateway
-  nameservers  = each.value.nameservers
-  ssh_keys     = each.value.ssh_keys
+  network_interfaces = each.value.network_interfaces
+  nameservers        = each.value.nameservers
+  ssh_keys           = each.value.ssh_keys
 
   started = each.value.started
   on_boot = each.value.on_boot
 }
 
 output "cts" {
-  description = "CTs: id, name, ip, tags"
+  description = "CTs: id, name, ips, tags"
   value = {
     for ct_name, m in module.proxmox_ct :
     ct_name => {
       id   = m.id
       name = m.name
-      ip   = m.ip
+      ips  = m.ips
       tags = join(", ", m.tags)
     }
   }
