@@ -20,6 +20,7 @@ RUN apt-get update && \
       curl \
       dnsutils \
       git \
+      nano \
       openssh-client \
       python3 \
       python3-venv \
