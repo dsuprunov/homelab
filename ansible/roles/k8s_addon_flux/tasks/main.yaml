@@ -55,6 +55,7 @@
                   --repository=homelab
                   --branch=main
                   --path=flux
+                  --version=v{{ flux_version }}
                   --personal
                   --reconcile=true
                   --token-auth=false

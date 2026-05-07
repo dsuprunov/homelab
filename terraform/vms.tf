@@ -32,7 +32,7 @@ variable "vms" {
 
     network_interfaces = list(object({
       bridge       = string
-      ipv4_address = string                 # "192.168.178.224/24", "dhcp"
+      ipv4_address = string                 # "192.168.178.231/24", "dhcp"
       ipv4_gateway = optional(string, null) # "192.168.178.1"
       firewall     = optional(bool, true)
       model        = optional(string, "virtio")
@@ -84,7 +84,7 @@ module "proxmox_vm" {
   user               = each.value.user
   ssh_keys           = each.value.ssh_keys
 
-  import_from = proxmox_virtual_environment_download_file.image[each.value.image].id
+  import_from = proxmox_download_file.image[each.value.image].id
 
   started = each.value.started
   on_boot = each.value.on_boot

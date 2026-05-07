@@ -25,7 +25,7 @@ variable "cts" {
 
     network_interfaces = list(object({
       bridge       = string
-      ipv4_address = string                 # "192.168.178.209/24", "dhcp"
+      ipv4_address = string                 # "192.168.178.207/24", "dhcp"
       ipv4_gateway = optional(string, null) # "192.168.178.1"
       firewall     = optional(bool, true)
     }))

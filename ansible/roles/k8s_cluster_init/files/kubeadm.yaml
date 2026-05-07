@@ -6,7 +6,7 @@ nodeRegistration:
   criSocket: "unix:///run/containerd/containerd.sock"
 
 localAPIEndpoint:
-  advertiseAddress: "10.10.0.121"
+  advertiseAddress: "192.168.178.231"
   bindPort: 6443
 
 ---
@@ -27,7 +27,7 @@ networking:
 apiServer:
   certSANs:
     - "k8s-api.home.arpa"
-    - "10.10.0.120"
+    - "192.168.178.230"
 
 controllerManager:
   extraArgs:

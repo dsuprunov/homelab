@@ -1,12 +1,12 @@
 ---
-runc_version: "1.4.0"
-runc_checksum: "sha256:c5d4995c5aec204d7e1827d9d9a6b45042602736f7f415f484252e576dcdac28"
+# runc.amd64
+runc_version: "1.4.2"
+runc_checksum: "sha256:ac8a90f9e225bb9322189937b230cdc5478d5753f0e31e1bda98a5cf06bd9539"
 
-containerd_version: "2.2.1"
-containerd_checksum: "sha256:f5d8e90ecb6c1c7e33ecddf8cc268a93b9e5b54e0e850320d765511d76624f41"
+# containerd-X.Y.Z-linux-amd64.tar.gz
+containerd_version: "2.3.0"
+containerd_checksum: "sha256:4cb83e7100a5e73fcb626207d0b5bcfd1294e26aeddfe075dcfb38f375c5f887"
 
-pause_version: "3.10.1"
+pause_version: "3.10.2"
 
-kubernetes_version: "1.35"
-
-
+kubernetes_version: "1.36"

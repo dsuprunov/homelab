@@ -24,7 +24,7 @@ sudo install -o root -g root -m 0644 /dev/stdin /etc/coredns/Corefile <<'EOF'
         reload 1m
     }
     
-    file /etc/coredns/0.10.10.in-addr.arpa.zone 0.10.10.in-addr.arpa {
+    file /etc/coredns/178.168.192.in-addr.arpa.zone 178.168.192.in-addr.arpa {
         reload 1m
     }
 
@@ -37,21 +37,31 @@ sudo install -o root -g root -m 0644 /dev/stdin /etc/coredns/home.arpa.zone <<'E
 $ORIGIN home.arpa.
 $TTL 300
 @       IN SOA  ns.home.arpa. admin.home.arpa. (
-                2026032901 ; serial
+                2026050701 ; serial
                 3600       ; refresh
                 600        ; retry
                 604800     ; expire
                 300        ; minimum
 )
         IN NS   ns.home.arpa.
-ns      IN A    10.10.0.1
-router  IN A    10.10.0.1
+        
+coredns             IN A  192.168.178.206
+ns                  IN A  192.168.178.206
+
+k8s-api             IN A  192.168.178.230
+vm-k8s-control-01   IN A  192.168.178.231
+vm-k8s-worker-01    IN A  192.168.178.236
+vm-k8s-worker-02    IN A  192.168.178.237
+vm-k8s-worker-03    IN A  192.168.178.238
+
+grafana.k8s         IN A  192.168.178.246
+dummy-portal.k8s    IN A  192.168.178.246
 EOF
-sudo install -o root -g root -m 0644 /dev/stdin /etc/coredns/0.10.10.in-addr.arpa.zone <<'EOF'
-$ORIGIN 0.10.10.in-addr.arpa.
+sudo install -o root -g root -m 0644 /dev/stdin /etc/coredns/178.168.192.in-addr.arpa.zone <<'EOF'
+$ORIGIN 178.168.192.in-addr.arpa.
 $TTL 300
 @       IN SOA  ns.home.arpa. admin.home.arpa. (
-                2026032901 ; serial
+                2026050701 ; serial
                 3600       ; refresh
                 600        ; retry
                 604800     ; expire
@@ -59,7 +69,13 @@ $TTL 300
 )
         IN NS   ns.home.arpa.
 
-1       IN PTR  router.home.arpa.
+206     IN PTR  coredns.home.arpa.
+
+230     IN PTR  k8s-api.home.arpa.
+231     IN PTR  vm-k8s-control-01.home.arpa.
+236     IN PTR  vm-k8s-worker-01.home.arpa.
+237     IN PTR  vm-k8s-worker-02.home.arpa.
+238     IN PTR  vm-k8s-worker-03.home.arpa.
 EOF
 ```
 

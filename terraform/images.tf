@@ -8,7 +8,7 @@ variable "images" {
   }))
 }
 
-resource "proxmox_virtual_environment_download_file" "image" {
+resource "proxmox_download_file" "image" {
   for_each = var.images
 
   content_type = each.value.content_type
@@ -24,7 +24,7 @@ resource "proxmox_virtual_environment_download_file" "image" {
 output "images" {
   description = "Cloud image file IDs by image key"
   value = {
-    for image_name, r in proxmox_virtual_environment_download_file.image :
+    for image_name, r in proxmox_download_file.image :
     image_name => r.id
   }
 }

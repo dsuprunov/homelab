@@ -23,8 +23,8 @@
 
 ## Endpoints
 
-| FQDN                      | Type              | Via                          |
-|---------------------------|-------------------|------------------------------|
-| `k8s-api.home.arpa`       | Kubernetes API    | Kubernetes API VIP           |
-| `grafana.home.arpa`       | HTTP application  | Kubernetes LoadBalancer VIPs |
-| `dummy-website.home.arpa` | HTTP application  | Kubernetes LoadBalancer VIPs |
+| FQDN                         | Type              | Via                          |
+|------------------------------|-------------------|------------------------------|
+| `k8s-api.home.arpa`          | Kubernetes API    | Kubernetes API VIP           |
+| `grafana.k8s.home.arpa`      | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `dummy-portal.k8s.home.arpa` | HTTP application  | Kubernetes LoadBalancer VIPs |
