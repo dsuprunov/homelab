@@ -174,7 +174,7 @@ vms = {
 
   vm-test-ubuntu = {
     vm_id = 252
-    tags  = ["vm", "debian", "test"]
+    tags  = ["vm", "ubuntu", "test"]
     image = "ubuntu_24_04"
 
     cores  = 1
