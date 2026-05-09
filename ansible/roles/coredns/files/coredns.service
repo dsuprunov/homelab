@@ -1,0 +1,12 @@
+[Unit]
+Description=CoreDNS DNS server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/coredns -conf /etc/coredns/Corefile
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target

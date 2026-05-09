@@ -1,0 +1,7 @@
+---
+- name: dns | coredns
+  hosts: dns
+  become: true
+  gather_facts: true
+  roles:
+    - coredns

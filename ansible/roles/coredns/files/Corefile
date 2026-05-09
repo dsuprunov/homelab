@@ -1,0 +1,18 @@
+.:53 {
+    errors
+    log
+    health
+    ready
+
+    file /etc/coredns/home.arpa.zone home.arpa {
+        reload 1m
+    }
+
+    file /etc/coredns/178.168.192.in-addr.arpa.zone 178.168.192.in-addr.arpa {
+        reload 1m
+    }
+
+    forward . 8.8.8.8 1.1.1.1
+    cache 300
+    reload
+}
