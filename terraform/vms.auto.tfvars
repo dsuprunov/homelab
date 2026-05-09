@@ -1,5 +1,5 @@
 vms = {
-  coredns = {
+  vm-coredns = {
     vm_id = 206
     tags  = ["vm", "debian", "coredns"]
     image = "debian_13"

@@ -45,8 +45,9 @@ $TTL 300
 )
         IN NS   ns.home.arpa.
         
-coredns             IN A  192.168.178.206
 ns                  IN A  192.168.178.206
+
+vm-coredns          IN A  192.168.178.206
 
 k8s-api             IN A  192.168.178.230
 vm-k8s-control-01   IN A  192.168.178.231
@@ -69,7 +70,7 @@ $TTL 300
 )
         IN NS   ns.home.arpa.
 
-206     IN PTR  coredns.home.arpa.
+206     IN PTR  vm-coredns.home.arpa.
 
 230     IN PTR  k8s-api.home.arpa.
 231     IN PTR  vm-k8s-control-01.home.arpa.

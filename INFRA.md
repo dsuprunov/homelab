@@ -15,7 +15,7 @@
 
 | Host                          | Address           |    CPU |  RAM | Disk 0 | Disk 1 | Alias          |
 |-------------------------------|-------------------|-------:|-----:|-------:|-------:|----------------|
-| `coredns.home.arpa`           | `192.168.178.206` | 1 vCPU | 1 GB |   8 GB |        | `ns.home.arpa` |
+| `vm-coredns.home.arpa`        | `192.168.178.206` | 1 vCPU | 1 GB |   8 GB |        | `ns.home.arpa` |
 | `vm-k8s-control-01.home.arpa` | `192.168.178.231` | 2 vCPU | 4 GB |  32 GB |        |                |
 | `vm-k8s-worker-01.home.arpa`  | `192.168.178.236` | 2 vCPU | 4 GB |  32 GB |  32 GB |                |
 | `vm-k8s-worker-02.home.arpa`  | `192.168.178.237` | 2 vCPU | 4 GB |  32 GB |  32 GB |                |
