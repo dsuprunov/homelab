@@ -18,7 +18,9 @@
 
     - name: hashicorp_vault | install repository key
       ansible.builtin.command: >
-        gpg --dearmor
+        gpg
+          --batch --no-tty --yes
+          --dearmor
           --output /usr/share/keyrings/hashicorp-archive-keyring.gpg
           /tmp/hashicorp-archive-keyring.asc
       args:

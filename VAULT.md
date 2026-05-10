@@ -50,7 +50,7 @@ vault login "$ROOT_TOKEN"
 vault secrets enable -path=secret kv-v2
 vault secrets list
 
-vault kv put secret/vault-smoke-test status="ok" owner="vm-vault-01"
+vault kv put secret/vault-smoke-test status="ok" owner="vm-vault-01" timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 vault kv get secret/vault-smoke-test
 vault kv metadata get secret/vault-smoke-test
 vault kv delete secret/vault-smoke-test
