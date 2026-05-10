@@ -1,25 +1,14 @@
-### pve (proxmox host)
-
-1) Create a folder for VM persistent data
-```bash
-mkdir -p /mnt/pve/pve-data/vm-vault-01
-chmod 777 /mnt/pve/pve-data/vm-vault-01
-ls -ld /mnt/pve/pve-data/vm-vault-01
-```
-
-2) Create a Directory Mapping (if it does not exist yet)
-```bash
-pvesh create /cluster/mapping/dir \
-  --id vm-vault-01 \
-  --map node=pve,path=/mnt/pve/pve-data/vm-vault-01
-```
-
 ### vm-vault-01 (vault virtual machine)
 
-3) Install HashiCorp Vault
+1) Verify that the 1 GB `scsi1` disk is visible as `/dev/sdb`
+```bash
+lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT,MODEL
+```
+
+2) Install HashiCorp Vault and required packages
 ```bash
 sudo apt update
-sudo apt install -y gpg rsync
+sudo apt install -y curl gpg openssl parted
 
 curl -fsSL https://apt.releases.hashicorp.com/gpg \
   | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -28,7 +17,37 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashi
   | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt update
-sudo apt install -y vault
+VAULT_VERSION='2.0.0-1'
+sudo apt install -y "vault=${VAULT_VERSION}"
+
+vault --version
+```
+
+3) Partition, format, and mount the 1 GB `scsi1` disk for Vault data
+```bash
+sudo parted -s /dev/sdb mklabel gpt
+sudo parted -s /dev/sdb mkpart primary ext4 1MiB 100%
+sudo mkfs.ext4 -L vault-data /dev/sdb1
+
+UUID=$(sudo blkid -s UUID -o value /dev/sdb1)
+grep -q '/opt/vault/data' /etc/fstab \
+  && echo '/opt/vault/data already exists in /etc/fstab, nothing added' \
+  || echo "UUID=$UUID /opt/vault/data ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
+
+sudo install -d -o vault -g vault -m 0750 /opt/vault/data
+sudo systemctl daemon-reload
+sudo mount -a
+sudo chown vault:vault /opt/vault/data
+sudo chmod 0750 /opt/vault/data
+
+df -h /opt/vault/data
+ls -ld /opt/vault/data
+lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT
+```
+
+4) Create Vault TLS and configuration
+```bash
+sudo install -d -o vault -g vault -m 0750 /opt/vault/tls
 
 sudo -u vault openssl req -x509 -newkey rsa:4096 -nodes -sha256 -days 3650 \
   -subj "/CN=vault.home.arpa" \
@@ -53,41 +72,15 @@ listener "tcp" {
 api_addr = "https://vault.home.arpa:8200"
 EOF
 
-sudo systemctl enable vault
-```
-
-4) Mount VirtioFS
-```bash
-sudo mkdir -p /mnt/vm-vault-01
-sudo mount -t virtiofs vm-vault-01 /mnt/vm-vault-01
-mount | grep vm-vault-01
-```
-
-5) Enable auto-mount (systemd automount)
-```bash
-echo 'vm-vault-01 /mnt/vm-vault-01 virtiofs nofail,x-systemd.automount 0 0' | sudo tee -a /etc/fstab
-sudo systemctl daemon-reload
-sudo umount /mnt/vm-vault-01
-sudo mount -a
-mount | grep vm-vault-01
-```
-
-6) Move `/opt/vault/data` to VirtioFS and replace it with a symlink
-```bash
-sudo systemctl stop vault
-
-sudo rsync --archive --relative /opt/vault/data/ /mnt/vm-vault-01/
-sudo rm -fr /opt/vault/data
-sudo ln -s /mnt/vm-vault-01/opt/vault/data /opt/vault/data
-ls -ld /opt/vault/data
-
-sudo systemctl start vault
-systemctl status vault --no-pager
+sudo chown root:vault /etc/vault.d/vault.hcl
+sudo chmod 0640 /etc/vault.d/vault.hcl
+sudo systemctl enable --now vault
+sudo systemctl status vault --no-pager
 
 curl --insecure https://vault.home.arpa:8200/v1/sys/health
 ```
 
-7) Initialize, Unseal, and Verify Vault
+5) Initialize, unseal, and verify Vault
 ```bash
 sudo -i
 
@@ -114,4 +107,4 @@ vault kv get secret/vault-smoke-test
 vault kv metadata get secret/vault-smoke-test
 vault kv delete secret/vault-smoke-test
 vault kv get secret/vault-smoke-test
-``` 
+```
