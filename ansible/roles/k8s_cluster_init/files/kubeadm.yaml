@@ -2,12 +2,15 @@
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
 
-nodeRegistration:
-  criSocket: "unix:///run/containerd/containerd.sock"
-
 localAPIEndpoint:
   advertiseAddress: "192.168.178.231"
   bindPort: 6443
+
+nodeRegistration:
+  criSocket: "unix:///run/containerd/containerd.sock"
+  taints:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
 
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
