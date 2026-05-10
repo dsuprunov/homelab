@@ -1,0 +1,103 @@
+---
+- name: hashicorp_vault
+  block:
+    - name: hashicorp_vault | install packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gpg
+          - openssl
+        state: present
+        update_cache: true
+
+    - name: hashicorp_vault | download repository key
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /tmp/hashicorp-archive-keyring.asc
+        mode: "0644"
+
+    - name: hashicorp_vault | install repository key
+      ansible.builtin.command: >
+        gpg --dearmor
+          --output /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          /tmp/hashicorp-archive-keyring.asc
+      args:
+        creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: hashicorp_vault | configure repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_facts['distribution_release'] }} main"
+        filename: hashicorp
+        state: present
+        update_cache: true
+
+    - name: hashicorp_vault | install vault
+      ansible.builtin.apt:
+        name:
+          - "vault={{ vault_version }}"
+        state: present
+        allow_downgrade: true
+
+    - name: hashicorp_vault | ensure vault data directory exists
+      ansible.builtin.file:
+        path: /opt/vault/data
+        state: directory
+        owner: vault
+        group: vault
+        mode: "0750"
+
+    - name: hashicorp_vault | ensure vault tls directory exists
+      ansible.builtin.file:
+        path: /opt/vault/tls
+        state: directory
+        owner: vault
+        group: vault
+        mode: "0750"
+
+    - name: hashicorp_vault | check vault tls certificate san
+      ansible.builtin.command: openssl x509 -in /opt/vault/tls/tls.crt -noout -ext subjectAltName
+      register: vault_tls_san
+      failed_when: false
+      changed_when: false
+
+    - name: hashicorp_vault | generate vault tls certificate
+      ansible.builtin.command: >
+        openssl req -x509 -newkey rsa:4096 -nodes -sha256 -days 3650
+          -subj "/CN=vault.home.arpa"
+          -addext "subjectAltName=DNS:vault.home.arpa"
+          -keyout /opt/vault/tls/tls.key
+          -out /opt/vault/tls/tls.crt
+      become_user: vault
+      register: vault_tls_result
+      when:
+        - vault_tls_san.rc != 0 or "DNS:vault.home.arpa" not in vault_tls_san.stdout
+
+    - name: hashicorp_vault | ensure vault config directory exists
+      ansible.builtin.file:
+        path: /etc/vault.d
+        state: directory
+        owner: root
+        group: vault
+        mode: "0750"
+
+    - name: hashicorp_vault | install vault config
+      ansible.builtin.copy:
+        src: vault.hcl
+        dest: /etc/vault.d/vault.hcl
+        owner: root
+        group: vault
+        mode: "0640"
+      register: vault_config_result
+
+    - name: hashicorp_vault | enable and start service
+      ansible.builtin.systemd:
+        name: vault
+        enabled: true
+        state: started
+
+    - name: hashicorp_vault | restart service
+      ansible.builtin.systemd:
+        name: vault
+        state: restarted
+      when:
+        - vault_config_result.changed or vault_tls_result.changed

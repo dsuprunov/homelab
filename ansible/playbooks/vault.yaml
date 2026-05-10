@@ -1,0 +1,7 @@
+---
+- name: vault | hashicorp vault
+  hosts: vault
+  become: true
+  gather_facts: true
+  roles:
+    - hashicorp_vault

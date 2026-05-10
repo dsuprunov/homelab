@@ -57,8 +57,7 @@ vms = {
     memory = 1024
 
     disks = [
-      { interface = "scsi0", size = 8 },
-      { interface = "scsi1", size = 1 },
+      { interface = "scsi0", size = 8 }
     ]
 
     network_interfaces = [
