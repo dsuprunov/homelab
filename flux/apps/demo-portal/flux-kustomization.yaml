@@ -1,11 +1,11 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: dummy-portal-namespace
+  name: demo-portal-namespace
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./flux/apps/dummy-portal/namespace
+  path: ./flux/apps/demo-portal/namespace
   prune: true
   timeout: 5m
   wait: true
@@ -17,13 +17,13 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: dummy-portal
+  name: demo-portal
   namespace: flux-system
 spec:
   dependsOn:
-    - name: dummy-portal-namespace
+    - name: demo-portal-namespace
   interval: 10m
-  path: ./flux/apps/dummy-portal/kustomize
+  path: ./flux/apps/demo-portal/kustomize
   prune: true
   timeout: 5m
   wait: true
@@ -35,13 +35,13 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: dummy-portal-ingress
+  name: demo-portal-ingress
   namespace: flux-system
 spec:
   dependsOn:
-    - name: dummy-portal
+    - name: demo-portal
   interval: 10m
-  path: ./flux/apps/dummy-portal/ingress
+  path: ./flux/apps/demo-portal/ingress
   prune: true
   timeout: 5m
   wait: true
