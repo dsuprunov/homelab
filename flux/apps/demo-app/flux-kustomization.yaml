@@ -26,7 +26,16 @@ spec:
   path: ./flux/apps/demo-app/secrets
   prune: true
   timeout: 5m
-  wait: true
+  wait: false
+  healthChecks:
+    - apiVersion: v1
+      kind: Secret
+      name: demo-env-secret
+      namespace: demo-app
+    - apiVersion: v1
+      kind: Secret
+      name: demo-file-secret
+      namespace: demo-app
   sourceRef:
     kind: GitRepository
     name: flux-system

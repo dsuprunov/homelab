@@ -31,17 +31,9 @@ spec:
           image: dsuprunov/demo-app
           imagePullPolicy: Always
 
-          env:
-            - name: DEMO_ENV_SECRET_LOGIN
-              valueFrom:
-                secretKeyRef:
-                  name: demo-env-secret
-                  key: DEMO_ENV_SECRET_LOGIN
-            - name: DEMO_ENV_SECRET_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: demo-env-secret
-                  key: DEMO_ENV_SECRET_PASSWORD
+          envFrom:
+            - secretRef:
+                name: demo-env-secret
 
           volumeMounts:
             - name: demo-file-secret
