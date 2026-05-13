@@ -31,6 +31,7 @@ vms = {
 
     cores  = 1
     memory = 1024
+    balloon = 512
 
     disks = [
       { interface = "scsi0", size = 8 },
