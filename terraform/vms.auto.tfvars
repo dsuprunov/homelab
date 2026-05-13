@@ -4,8 +4,9 @@ vms = {
     tags  = ["vm", "debian", "coredns"]
     image = "debian_13"
 
-    cores  = 1
-    memory = 1024
+    cores   = 1
+    memory  = 1024
+    balloon = 512
 
     disks = [
       { interface = "scsi0", size = 8 },
