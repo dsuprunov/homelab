@@ -3,7 +3,7 @@ cts = {
   #     ct_id = 252
   #     tags  = ["ct", "test"]
   #
-  #     os_template = "local:vztmpl/dsuprunov-demo-portal-latest.tar"
+  #     os_template = "local:vztmpl/dsuprunov-demo-website-latest.tar"
   #     os_type     = "alpine"
   #
   #     cpu_cores = 1

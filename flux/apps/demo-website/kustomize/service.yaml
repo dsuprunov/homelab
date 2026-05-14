@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo-portal
-  namespace: demo-portal
+  name: demo-website
+  namespace: demo-website
 spec:
   selector:
-    app: demo-portal
+    app: demo-website
   ports:
     - name: http
       port: 80
