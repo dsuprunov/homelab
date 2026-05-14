@@ -1,0 +1,56 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: demo-hashicorp-vso-namespace
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./flux/apps/demo-hashicorp-vso/namespace
+  prune: true
+  timeout: 5m
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: demo-hashicorp-vso-vso
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: demo-hashicorp-vso-namespace
+  interval: 10m
+  path: ./flux/apps/demo-hashicorp-vso/vso
+  prune: true
+  timeout: 5m
+  wait: true
+  healthChecks:
+    - apiVersion: v1
+      kind: Secret
+      name: demo-hashicorp-vso-env-secret
+      namespace: demo-hashicorp-vso
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: demo-hashicorp-vso
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: demo-hashicorp-vso-namespace
+    - name: demo-hashicorp-vso-vso
+  interval: 10m
+  path: ./flux/apps/demo-hashicorp-vso/kustomize
+  prune: true
+  timeout: 5m
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system

@@ -1,0 +1,15 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: demo-hashicorp-vso
+  namespace: demo-hashicorp-vso
+spec:
+  vaultConnectionRef: demo-hashicorp-vso
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: demo-hashicorp-vso
+    serviceAccount: demo-hashicorp-vso
+    audiences:
+      - vault
+    tokenExpirationSeconds: 600

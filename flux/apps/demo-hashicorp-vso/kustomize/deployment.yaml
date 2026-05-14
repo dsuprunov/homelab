@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-hashicorp-vso
+  namespace: demo-hashicorp-vso
+  labels:
+    app: demo-hashicorp-vso
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: demo-hashicorp-vso
+
+  template:
+    metadata:
+      labels:
+        app: demo-hashicorp-vso
+
+    spec:
+      serviceAccountName: demo-hashicorp-vso
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+
+      containers:
+        - name: demo-hashicorp-vso
+
+          image: dsuprunov/demo-app
+          imagePullPolicy: Always
+
+          envFrom:
+            - secretRef:
+                name: demo-hashicorp-vso-env-secret
+
+          securityContext:
+            allowPrivilegeEscalation: false
+
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 20m
+              memory: 32Mi
+
+          readinessProbe:
+            exec:
+              command: ["bash", "-c", "kill -0 1"]
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+
+          livenessProbe:
+            exec:
+              command: ["bash", "-c", "kill -0 1"]
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 1
+            failureThreshold: 3

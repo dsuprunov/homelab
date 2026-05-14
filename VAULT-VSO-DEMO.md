@@ -40,7 +40,7 @@ vault write auth/kubernetes/role/demo-hashicorp-vso \
 vault read auth/kubernetes/role/demo-hashicorp-vso
 ```
 
-## 4. Create the three test secrets
+## 4. Create the test secret
 
 ```bash
 vault kv put secret/demo-hashicorp-vso/env \
