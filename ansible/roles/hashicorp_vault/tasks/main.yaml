@@ -74,6 +74,14 @@
       when:
         - vault_tls_san.rc != 0 or "DNS:vault.home.arpa" not in vault_tls_san.stdout
 
+    - name: hashicorp_vault | ensure vault tls certificate mode
+      ansible.builtin.file:
+        path: /opt/vault/tls/tls.crt
+        state: file
+        owner: vault
+        group: vault
+        mode: "0644"
+
     - name: hashicorp_vault | ensure vault config directory exists
       ansible.builtin.file:
         path: /etc/vault.d

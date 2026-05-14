@@ -12,6 +12,7 @@ ARG KUBEADM_VERSION=1.36.0
 ARG HELM_VERSION=3.20.2
 ARG HELM_DIFF_VERSION=3.15.6
 ARG FLUX_VERSION=2.8.6
+ARG VAULT_VERSION=2.0.0
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -36,6 +37,10 @@ RUN groupadd --gid "${HOST_GID}" "${USERNAME}" && \
 RUN curl -fsSLo /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
     unzip /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip terraform -d /usr/local/bin && \
     rm /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+RUN curl -fsSLo /tmp/vault_${VAULT_VERSION}_linux_amd64.zip "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" && \
+    unzip /tmp/vault_${VAULT_VERSION}_linux_amd64.zip vault -d /usr/local/bin && \
+    rm /tmp/vault_${VAULT_VERSION}_linux_amd64.zip
 
 RUN curl -fsSLo /usr/local/bin/kubeadm "https://dl.k8s.io/release/v${KUBEADM_VERSION}/bin/linux/amd64/kubeadm" && \
     chmod 0755 /usr/local/bin/kubeadm

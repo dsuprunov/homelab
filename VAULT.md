@@ -47,7 +47,7 @@ vault status
 ROOT_TOKEN=$(grep -m1 '^Initial Root Token:' /opt/vault/data/vault-init.txt | awk '{print $4}')
 
 vault login "$ROOT_TOKEN"
-vault secrets enable -path=secret kv-v2
+vault secrets list | grep '^secret/' || vault secrets enable -path=secret kv-v2
 vault secrets list
 
 vault kv put secret/vault-smoke-test status="ok" owner="vm-vault-01" timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
