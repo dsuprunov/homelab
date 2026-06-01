@@ -63,6 +63,24 @@
   roles:
     - k8s_node_worker_join
 
+- name: k8s | kubelet csr approver
+  hosts: k8s_addon_kubelet_csr_approver
+  connection: local
+  gather_facts: false
+  tags:
+    - kubelet-csr-approver
+  roles:
+    - k8s_addon_kubelet_csr_approver
+
+- name: k8s | metrics server
+  hosts: k8s_addon_metrics_server
+  connection: local
+  gather_facts: false
+  tags:
+    - metrics-server
+  roles:
+    - k8s_addon_metrics_server
+
 - name: k8s | flux
   hosts: k8s_addon_flux
   connection: local

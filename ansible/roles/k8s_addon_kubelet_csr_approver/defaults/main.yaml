@@ -1,0 +1,3 @@
+---
+kubelet_csr_approver_chart_repo_url: "https://postfinance.github.io/kubelet-csr-approver"
+kubelet_csr_approver_version: "1.2.14"

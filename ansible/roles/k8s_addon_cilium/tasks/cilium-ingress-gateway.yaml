@@ -1,0 +1,28 @@
+---
+- name: cilium-ingress-gateway | wait for gateways CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/gateways.gateway.networking.k8s.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: cilium_ingress_gateway_crd_wait
+  retries: 30
+  delay: 5
+  until: cilium_ingress_gateway_crd_wait.rc == 0
+  changed_when: false
+
+- name: cilium-ingress-gateway | wait for cilium gatewayclass
+  ansible.builtin.command: kubectl get gatewayclass cilium
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: cilium_ingress_gateway_class
+  retries: 30
+  delay: 5
+  until: cilium_ingress_gateway_class.rc == 0
+  changed_when: false
+
+- name: cilium-ingress-gateway | apply
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/cilium-ingress-gateway.yaml') | from_yaml_all | list }}"

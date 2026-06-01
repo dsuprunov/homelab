@@ -1,0 +1,14 @@
+---
+- name: kubelet-csr-approver | check localhost kubeconfig
+  ansible.builtin.stat:
+    path: "{{ kubeconfig }}"
+  register: kubeconfig_stat
+
+- name: kubelet-csr-approver | assert localhost kubeconfig exists
+  ansible.builtin.assert:
+    that:
+      - kubeconfig_stat.stat.exists
+    fail_msg: "Local kubeconfig is required at {{ kubeconfig }}."
+    quiet: true
+
+- ansible.builtin.import_tasks: kubelet-csr-approver.yaml

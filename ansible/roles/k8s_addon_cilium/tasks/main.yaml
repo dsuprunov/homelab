@@ -15,3 +15,4 @@
 - ansible.builtin.import_tasks: cilium.yaml
 - ansible.builtin.import_tasks: cilium-lb-ip-pool.yaml
 - ansible.builtin.import_tasks: cilium-l2-policy.yaml
+- ansible.builtin.import_tasks: cilium-ingress-gateway.yaml
