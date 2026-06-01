@@ -3,29 +3,48 @@ echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQz
 ```
 
 ```bash
-pveum user token add root@pam terraform --privsep 0
-```
-
-```bash
-NODE=$(hostname)
-
-pvesh get /nodes/$NODE/network
-
-pvesh set /nodes/$NODE/network/vmbr0 --type bridge --comments WAN
-
-pvesh create /nodes/$NODE/network \
-  --iface vmbr1 \
-  --type bridge \
-  --autostart 1 \
-  --comments LAN
-pvesh set /nodes/$NODE/network
-
-pvesh get /nodes/$NODE/network
-```
-
-```bash
+pvesm status
 more /etc/pve/storage.cfg
-pvesm set local --content iso,vztmpl,backup,import,snippets
+
+pvesm remove local-lvm
+
+lvremove -y /dev/pve/data
+lvextend -l +100%FREE -r /dev/pve/root
+
+lsblk -d -o NAME,SIZE,MODEL,SERIAL
+
+TARGET=/dev/nvme0n1
+
+lsblk -f "$TARGET"
+
+sgdisk --zap-all "$TARGET"
+wipefs -af "$TARGET"
+
+sgdisk -n1:0:0 -t1:8e00 -c1:"vmdata" "$TARGET"
+
+blockdev --rereadpt "$TARGET"
+udevadm settle
+sync
+
+lsblk -f "$TARGET"
+
+pvcreate -ff -y "${TARGET}p1"
+vgcreate vmdata "${TARGET}p1"
+
+lvcreate --type thin-pool \
+  -n data \
+  -l 99%VG \
+  --discards passdown \
+  vmdata
+
+pvesm add lvmthin local-lvm \
+  --vgname vmdata \
+  --thinpool data \
+  --content images,rootdir
+
+pvesm set local --content iso,vztmpl,import,backup,snippets
+
+mkdir -p /var/lib/vz/snippets
 
 cat > /var/lib/vz/snippets/cloud-config-vendor-qemu-guest-agent.yaml <<'EOF'
 #cloud-config
@@ -35,4 +54,12 @@ packages:
 runcmd:
   - [ systemctl, enable, --now, qemu-guest-agent ]
 EOF
+
+pvesm status
+more /etc/pve/storage.cfg
+lsblk -f -o NAME,SIZE,MODEL,SERIAL
+```
+
+```bash
+pveum user token add root@pam terraform --privsep 0
 ```
