@@ -88,6 +88,7 @@ cd /homelab/ansible
 ansible --version
 ansible-galaxy collection list
 ansible-inventory --graph
+
 ansible -m ping vms
 
 ansible-playbook playbooks/dns.yaml --syntax-check
