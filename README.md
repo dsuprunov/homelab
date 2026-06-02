@@ -1,121 +1,37 @@
-# homelab
+# Homelab
 
-## Install
+This repository manages a personal homelab.
 
-```bash
-#
-# zsh
-#
-install -D -m 600 /dev/null ~/.homelab/.zsh_history
-install -D -m 644 /dev/stdin ~/.homelab/.zshrc <<'EOF'
-HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
+It contains Terraform code for Proxmox resources, Ansible playbooks for host and
+Kubernetes setup.
 
-autoload -Uz colors && colors
-autoload -Uz compinit
-compinit
+## For Agents
 
-setopt PROMPT_SUBST
-setopt APPEND_HISTORY
-setopt INC_APPEND_HISTORY
-setopt HIST_IGNORE_DUPS
+Use this file as the first context file when working in this repository.
 
-git_prompt_info() {
-  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return
+Keep changes small and direct. Do not rewrite unrelated files. Do not remove user
+changes unless the user asks for it.
 
-  local branch dirty
-  branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null) || return
+## Repository Map
 
-  if ! git diff --no-ext-diff --quiet --ignore-submodules 2>/dev/null || \
-     ! git diff --no-ext-diff --cached --quiet --ignore-submodules 2>/dev/null; then
-    dirty='*'
-  fi
+- `terraform/` - Proxmox infrastructure code.
+- `ansible/` - Ansible inventory, playbooks, and roles.
+- `docker/` - Local container environment for running the homelab toolchain.
+- `INSTALL.md` - Setup and daily command guide.
+- `INFRA.md`, `PROXMOX.md`, `VAULT.md`, `VAULT-VSO.md`, `GARAGE.md` - Topic notes.
 
-  printf ' %%F{magenta}[%s%s]%%f' "$branch" "$dirty"
-}
+## Important Rules
 
-PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f$(git_prompt_info) %F{green}%#%f '
+- Do not commit secrets, tokens, private keys, or generated kubeconfigs.
+- Treat `terraform/*.auto.tfvars` and `terraform/terraform.tfstate*` as sensitive.
+- Preserve the existing Terraform, Ansible, and Flux structure.
+- Prefer minimal patches over broad refactors.
+- Run checks before finalizing changes when the required tools are available.
 
-if command -v kubectl >/dev/null 2>&1; then
-  source <(kubectl completion zsh)
-fi
+## Common Checks
 
-if command -v helm >/dev/null 2>&1; then
-  source <(helm completion zsh)
-fi
+Run the checks that match the files you changed.
 
-if command -v flux >/dev/null 2>&1; then
-  source <(flux completion zsh)
-fi
-EOF
+## How To Use
 
-install -D -m 600 /dev/stdin ~/.homelab/.env <<'EOF'
-# GitHub PAT for Flux bootstrap and deploy key management
-# GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxxxxx
-EOF
-```
-
-## Build-Run-Repeat
-
-```bash
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/homelab-ed25519
-
-HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f docker/compose.yaml build --no-cache
-
-HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f docker/compose.yaml run --rm homelab
-```
-
-## Terraform 
-
-```bash
-cd /homelab/terraform
-
-terraform init
-terraform fmt -recursive
-terraform validate
-terraform plan
-terraform apply -auto-approve
-terraform destroy -auto-approve
-```
-
-## Ansible
-
-```bash
-cd /homelab/ansible
-
-ansible --version
-ansible-galaxy collection list
-ansible-inventory --graph
-
-ansible -m ping vms
-
-ansible-playbook playbooks/dns.yaml --syntax-check
-ansible-playbook playbooks/dns.yaml
-
-ansible-playbook playbooks/k8s.yaml --syntax-check
-ansible-playbook playbooks/k8s.yaml
-```
-
-## kubectl
-
-```bash
-kubectl version --client
-kubectl get nodes
-```
-
-## Helm
-
-```bash
-helm version
-helm plugin list
-helm list -A
-```
-
-## Flux
-
-```bash
-flux --version
-flux get kustomizations -A
-```
+See `INSTALL.md` for setup steps and common commands.
