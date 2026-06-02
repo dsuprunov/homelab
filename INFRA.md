@@ -19,6 +19,8 @@
 | `vm-garage-01.home.arpa`      | `192.168.178.207` | 1 vCPU | 1 GB |   8 GB |  32 GB | `s3.home.arpa`    |
 | `vm-vault-01.home.arpa`       | `192.168.178.208` | 1 vCPU | 1 GB |   8 GB |        | `vault.home.arpa` |
 | `vm-k8s-control-01.home.arpa` | `192.168.178.231` | 2 vCPU | 4 GB |  32 GB |        |                   |
+| `vm-k8s-control-02.home.arpa` | `192.168.178.232` | 2 vCPU | 4 GB |  32 GB |        |                   |
+| `vm-k8s-control-03.home.arpa` | `192.168.178.233` | 2 vCPU | 4 GB |  32 GB |        |                   |
 | `vm-k8s-worker-01.home.arpa`  | `192.168.178.236` | 2 vCPU | 4 GB |  32 GB |  32 GB |                   |
 | `vm-k8s-worker-02.home.arpa`  | `192.168.178.237` | 2 vCPU | 4 GB |  32 GB |  32 GB |                   |
 | `vm-k8s-worker-03.home.arpa`  | `192.168.178.238` | 2 vCPU | 4 GB |  32 GB |  32 GB |                   |

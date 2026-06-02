@@ -1,7 +1,7 @@
 $ORIGIN home.arpa.
 $TTL 300
 @       IN SOA  ns.home.arpa. admin.home.arpa. (
-                2026051401 ; serial
+                2026060201 ; serial
                 3600       ; refresh
                 600        ; retry
                 604800     ; expire
@@ -21,6 +21,8 @@ vm-vault-01         IN A      192.168.178.208
 
 k8s-api             IN A      192.168.178.230
 vm-k8s-control-01   IN A      192.168.178.231
+vm-k8s-control-02   IN A      192.168.178.232
+vm-k8s-control-03   IN A      192.168.178.233
 vm-k8s-worker-01    IN A      192.168.178.236
 vm-k8s-worker-02    IN A      192.168.178.237
 vm-k8s-worker-03    IN A      192.168.178.238
