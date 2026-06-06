@@ -34,5 +34,6 @@
 | `grafana.k8s.home.arpa`                           | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `demo-website.k8s.home.arpa`                      | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `demo-website-blue-green.k8s.home.arpa`           | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `demo-website-blue-green-preview.k8s.home.arpa`   | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `demo-website-canary.k8s.home.arpa`               | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `argocd.k8s.home.arpa`                            | HTTP application  | Kubernetes LoadBalancer VIPs |
