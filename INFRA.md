@@ -27,13 +27,14 @@
 
 ## Endpoints
 
-| FQDN                                              | Type              | Via                          |
-|---------------------------------------------------|-------------------|------------------------------|
-| `k8s-api.home.arpa`                               | Kubernetes API    | Kubernetes API VIP           |
-| `vault.home.arpa:8200/ui/`                        | Vault UI          | `vm-vault-01.home.arpa`      |
-| `grafana.k8s.home.arpa`                           | HTTP application  | Kubernetes LoadBalancer VIPs |
-| `demo-website.k8s.home.arpa`                      | HTTP application  | Kubernetes LoadBalancer VIPs |
-| `demo-website-blue-green.k8s.home.arpa`           | HTTP application  | Kubernetes LoadBalancer VIPs |
-| `demo-website-blue-green-preview.k8s.home.arpa`   | HTTP application  | Kubernetes LoadBalancer VIPs |
-| `demo-website-canary.k8s.home.arpa`               | HTTP application  | Kubernetes LoadBalancer VIPs |
-| `argocd.k8s.home.arpa`                            | HTTP application  | Kubernetes LoadBalancer VIPs |
+| FQDN                                            | Type              | Via                          |
+|-------------------------------------------------|-------------------|------------------------------|
+| `k8s-api.home.arpa`                             | Kubernetes API    | Kubernetes API VIP           |
+| `vault.home.arpa:8200/ui/`                      | Vault UI          | `vm-vault-01.home.arpa`      |
+| `grafana.k8s.home.arpa`                         | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `demo-website.k8s.home.arpa`                    | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `demo-website-blue-green.k8s.home.arpa`         | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `demo-website-blue-green-preview.k8s.home.arpa` | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `demo-website-canary.k8s.home.arpa`             | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `argocd.k8s.home.arpa`                          | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `lldap.k8s.home.arpa`                           | HTTP application  | Kubernetes LoadBalancer VIPs |
