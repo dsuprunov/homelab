@@ -82,7 +82,14 @@ kubectl get storageclass
 kubectl -n longhorn-system get settings.longhorn.io default-replica-count default-data-path create-default-disk-labeled-nodes
 ```
 
-7) Smoke-test Longhorn PVC
+7) Open Longhorn UI
+```bash
+kubectl -n longhorn-system port-forward svc/longhorn-frontend 8080:80
+
+http://127.0.0.1:8080
+```
+
+8) Smoke-test Longhorn PVC
 ```bash
 kubectl create namespace longhorn-smoke-test
 
@@ -133,7 +140,7 @@ kubectl -n longhorn-smoke-test get pvc,pod -o wide
 kubectl -n longhorn-system get volumes.longhorn.io
 ```
 
-8) Cleanup smoke-test
+9) Cleanup smoke-test
 ```bash
 kubectl delete namespace longhorn-smoke-test
 kubectl -n longhorn-system get volumes.longhorn.io

@@ -1,0 +1,117 @@
+---
+- name: longhorn
+  block:
+    - name: longhorn node | check data disk
+      ansible.builtin.stat:
+        path: /dev/sdb
+      register: longhorn_device_stat
+
+    - name: longhorn node | assert data disk exists
+      ansible.builtin.assert:
+        that:
+          - longhorn_device_stat.stat.exists
+          - longhorn_device_stat.stat.isblk | default(false)
+        fail_msg: "Longhorn data disk is required at /dev/sdb."
+        quiet: true
+
+    - name: longhorn node | check data partition
+      ansible.builtin.stat:
+        path: /dev/sdb1
+      register: longhorn_partition_stat
+
+    - name: longhorn node | check raw disk filesystem
+      ansible.builtin.command: blkid -s TYPE -o value /dev/sdb
+      register: longhorn_device_fs
+      failed_when: false
+      changed_when: false
+      when: not longhorn_partition_stat.stat.exists
+
+    - name: longhorn node | assert raw disk is blank before partitioning
+      ansible.builtin.assert:
+        that:
+          - longhorn_device_fs.rc != 0 or (longhorn_device_fs.stdout | trim) == ""
+        fail_msg: "Refusing to partition /dev/sdb because it already has a filesystem."
+        quiet: true
+      when: not longhorn_partition_stat.stat.exists
+
+    - name: longhorn node | install packages
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - dmsetup
+          - open-iscsi
+        state: present
+
+    - name: longhorn node | enable iscsid
+      ansible.builtin.systemd:
+        name: iscsid
+        enabled: true
+        state: started
+
+    - name: longhorn node | persist iscsi_tcp module
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/99-longhorn.conf
+        content: |
+          iscsi_tcp
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: longhorn node | load iscsi_tcp module
+      ansible.builtin.command: modprobe iscsi_tcp
+      changed_when: false
+
+    - name: longhorn node | create data partition
+      community.general.parted:
+        device: /dev/sdb
+        label: gpt
+        number: 1
+        part_start: 1MiB
+        part_end: 100%
+        fs_type: ext4
+        state: present
+      when: not longhorn_partition_stat.stat.exists
+
+    - name: longhorn node | settle device events
+      ansible.builtin.command: udevadm settle --timeout=30
+      changed_when: false
+      when: not longhorn_partition_stat.stat.exists
+
+    - name: longhorn node | verify data partition
+      ansible.builtin.stat:
+        path: /dev/sdb1
+      register: longhorn_partition_verify
+
+    - name: longhorn node | assert data partition exists
+      ansible.builtin.assert:
+        that:
+          - longhorn_partition_verify.stat.exists
+          - longhorn_partition_verify.stat.isblk | default(false)
+        fail_msg: "Longhorn data partition is required at /dev/sdb1."
+        quiet: true
+
+    - name: longhorn node | create filesystem
+      community.general.filesystem:
+        dev: /dev/sdb1
+        fstype: ext4
+        opts: "-L longhorn-data"
+        force: false
+
+    - name: longhorn node | get partition uuid
+      ansible.builtin.command: blkid -s UUID -o value /dev/sdb1
+      register: longhorn_partition_uuid
+      changed_when: false
+
+    - name: longhorn node | mount data path
+      ansible.posix.mount:
+        path: /var/lib/longhorn
+        src: "UUID={{ longhorn_partition_uuid.stdout | trim }}"
+        fstype: ext4
+        opts: defaults,nofail
+        dump: "0"
+        passno: "2"
+        state: mounted
+
+    - name: longhorn node | verify data path mount
+      ansible.builtin.command: findmnt --mountpoint /var/lib/longhorn
+      changed_when: false

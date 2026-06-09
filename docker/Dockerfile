@@ -12,6 +12,7 @@ ARG KUBEADM_VERSION=1.36.0
 ARG HELM_VERSION=3.20.2
 ARG HELM_DIFF_VERSION=3.15.6
 ARG FLUX_VERSION=2.8.6
+ARG K9S_VERSION=0.51.0
 ARG VAULT_VERSION=2.0.0
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -60,11 +61,17 @@ RUN curl -fsSLo /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz "https://github.com
     install -m 0755 /tmp/flux /usr/local/bin/flux && \
     rm -rf /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz /tmp/flux
 
+RUN curl -fsSLo /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" && \
+    tar -xzf /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz -C /tmp k9s && \
+    install -m 0755 /tmp/k9s /usr/local/bin/k9s && \
+    rm -rf /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz /tmp/k9s
+
 RUN python3 -m venv /opt/ansible && \
     /opt/ansible/bin/python -m pip install --no-cache-dir \
       "ansible-core==${ANSIBLE_CORE_VERSION}" \
       "kubernetes==${KUBERNETES_PYTHON_VERSION}"
 RUN /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections community.general
+RUN /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections ansible.posix
 RUN /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/collections kubernetes.core
 
 USER ${USERNAME}

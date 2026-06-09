@@ -96,6 +96,9 @@ ansible-playbook playbooks/dns.yaml
 
 ansible-playbook playbooks/k8s.yaml --syntax-check
 ansible-playbook playbooks/k8s.yaml
+
+ansible-playbook playbooks/longhorn.yaml --syntax-check
+ansible-playbook playbooks/longhorn.yaml
 ```
 
 ## kubectl

@@ -1,0 +1,6 @@
+---
+- name: longhorn | apply custom storage class
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/storageclass-longhorn-2-replicas-delete.yaml') | from_yaml }}"
