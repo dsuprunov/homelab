@@ -14,3 +14,4 @@
 - ansible.builtin.import_tasks: node-labels.yaml
 - ansible.builtin.import_tasks: longhorn.yaml
 - ansible.builtin.import_tasks: storageclasses.yaml
+- ansible.builtin.import_tasks: httproute.yaml

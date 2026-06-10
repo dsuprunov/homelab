@@ -1,0 +1,6 @@
+---
+- name: longhorn | apply httproute
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/httproute.yaml') | from_yaml }}"
