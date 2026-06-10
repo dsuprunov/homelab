@@ -22,6 +22,13 @@ Before modifying any file:
 - Do not perform or initiate repository operations such as commits, pushes,
   pulls, rebases, merges, branch switches, or similar actions. These actions
   may only be performed by the user.
+- Absolute infrastructure state-change ban: never run, trigger, schedule, or
+  approve any command, script, playbook, API call, UI action, or tool
+  invocation that can create, modify, restart, stop, delete, deploy, apply,
+  reconcile, migrate, or otherwise change the state of any component of the
+  infrastructure managed by this repository or owned, operated, or controlled
+  by the user. This prohibition is absolute and has no escalation or approval
+  exception.
 - Do not edit secrets, private keys, tokens, generated kubeconfigs, Terraform
   state files, or local credentials.
 - Prefer existing project patterns over new conventions.
