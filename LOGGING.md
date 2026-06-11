@@ -19,13 +19,14 @@ Fluent Bit -> Vector normalizer -> Kafka -> Vector writer -> OpenSearch
 - Vector normalizer buffer: `256 MiB`, volume cap: `320 MiB`
 - Kafka topic `partitions: 1`, `replicas: 1`, retention: `24h` and `256 MiB`
 - Vector writer buffer: `256 MiB`, volume cap: `320 MiB`
-- OpenSearch log data budget: about `1 GiB`, volume cap: `3 GiB`
+- OpenSearch retention: `7d`, rollover: about `128 MiB` or `1d`, log data budget: about `1 GiB`, volume cap: `3 GiB`
 
 ## TODO
 
-- Configure OpenSearch retention / ISM policy to keep logs within the lab budget, for example about `1 GiB` or a fixed time window such as `24h` or `7d`
-- Add saved searches / dashboards for namespace, pod, errors, and Kafka/OpenSearch writer health
 - Add log normalization after the raw pipeline is stable, including fields such as `message`, `namespace`, `pod`, `container`, and `level`
+- Add saved searches / dashboards for namespace, pod, errors, and Kafka/OpenSearch writer health
+- Add an OpenSearch log data budget enforcer so the data stream behaves like a bounded rolling buffer: keep about `1 GiB` of log data,
+  delete the oldest non-write backing indexes first when the budget is exceeded, and keep `7d` as the maximum retention window
 
 ## Step 1: Configure and verify Kafka topic
 
@@ -992,6 +993,119 @@ Expected result:
 - OpenSearch Dashboards can search the `logs-homelab-default` data stream
 - Recent Kubernetes logs are visible in the UI.
 
+## Step 7: Configure and verify OpenSearch retention
+
+Goal: keep the OpenSearch logs data stream inside the lab storage budget.
+
+Policy name: `logs-homelab-default-retention`.
+
+1) Create or update the ISM policy
+
+```bash
+kubectl -n opensearch port-forward svc/opensearch-cluster-master 9200:9200
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin \
+    -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' \
+    | base64 -d
+)"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X PUT "https://127.0.0.1:9200/_plugins/_ism/policies/logs-homelab-default-retention" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "policy": {
+      "description": "Homelab logs retention: roll data stream backing indexes and delete after 7d",
+      "default_state": "hot",
+      "schema_version": 1,
+      "states": [
+        {
+          "name": "hot",
+          "actions": [
+            {
+              "rollover": {
+                "min_primary_shard_size": "128mb",
+                "min_index_age": "1d"
+              }
+            }
+          ],
+          "transitions": [
+            {
+              "state_name": "delete",
+              "conditions": {
+                "min_index_age": "7d"
+              }
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "actions": [
+            {
+              "delete": {}
+            }
+          ],
+          "transitions": []
+        }
+      ],
+      "ism_template": {
+        "index_patterns": [
+          ".ds-logs-homelab-default-*"
+        ],
+        "priority": 500
+      }
+    }
+  }'; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_plugins/_ism/policies/logs-homelab-default-retention?pretty"; echo
+```
+
+Expected result:
+- Policy `logs-homelab-default-retention` exists
+- The policy has rollover conditions `128mb` and `1d`
+- The policy has delete retention `7d`
+- The policy has an ISM template for `.ds-logs-homelab-default-*`.
+
+2) Attach the policy to existing backing indexes
+
+Do not use a broad `*` wildcard here. The policy contains a delete action, so
+the target must stay limited to the logging data stream backing indexes.
+
+```bash
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X POST "https://127.0.0.1:9200/_plugins/_ism/add/.ds-logs-homelab-default-*" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "policy_id": "logs-homelab-default-retention"
+  }'; echo
+```
+
+Expected result:
+- OpenSearch returns `"failures": false`
+- At least one `.ds-logs-homelab-default-*` backing index is updated.
+
+3) Verify ISM management
+
+```bash
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_plugins/_ism/explain/.ds-logs-homelab-default-*?show_policy=true&pretty"; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_data_stream/logs-homelab-default/_stats?pretty"; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_cat/indices/.ds-logs-homelab-default-*?v&h=index,health,pri,rep,docs.count,store.size" ; echo
+
+kubectl -n opensearch exec opensearch-master-0 -- df -h /usr/share/opensearch/data
+```
+
+Expected result:
+- ISM explain shows `policy_id: logs-homelab-default-retention`
+- `total_managed_indices` is greater than `0`
+- Data stream remains `green`
+- Store size and filesystem usage stay within the OpenSearch lab budget.
+
 ## Operations / maintenance
 
 ```bash
@@ -1015,7 +1129,13 @@ kubectl -n opensearch get deployment opensearch-dashboards
 kubectl -n opensearch get httproute opensearch-dashboards
 kubectl -n opensearch logs deployment/opensearch-dashboards --tail=100
 
-kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d ; echo
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d
+)"; echo $OPENSEARCH_INITIAL_ADMIN_PASSWORD
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_data_stream/logs-homelab-default/_stats?pretty"; echo
 
 kubectl -n logging run kafka-consumer-groups \
   -i \
