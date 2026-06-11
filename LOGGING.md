@@ -21,6 +21,13 @@ Fluent Bit -> Vector normalizer -> Kafka -> Vector writer -> OpenSearch
 - Vector writer buffer: `256 MiB`, volume cap: `320 MiB`
 - OpenSearch log data budget: about `1 GiB`, volume cap: `3 GiB`
 
+## TODO
+
+- Configure OpenSearch retention / ISM policy to keep logs within the lab budget, for example about `1 GiB` or a fixed time window such as `24h` or `7d`
+- Install OpenSearch Dashboards for browsing and searching logs through a UI
+- Add saved searches / dashboards for namespace, pod, errors, and Kafka/OpenSearch writer health
+- Add log normalization after the raw pipeline is stable, including fields such as `message`, `namespace`, `pod`, `container`, and `level`
+
 ## Step 1: Configure and verify Kafka topic
 
 Goal: create the durable Kafka buffer topic for received logs.
