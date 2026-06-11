@@ -24,7 +24,6 @@ Fluent Bit -> Vector normalizer -> Kafka -> Vector writer -> OpenSearch
 ## TODO
 
 - Configure OpenSearch retention / ISM policy to keep logs within the lab budget, for example about `1 GiB` or a fixed time window such as `24h` or `7d`
-- Install OpenSearch Dashboards for browsing and searching logs through a UI
 - Add saved searches / dashboards for namespace, pod, errors, and Kafka/OpenSearch writer health
 - Add log normalization after the raw pipeline is stable, including fields such as `message`, `namespace`, `pod`, `container`, and `level`
 
@@ -852,6 +851,147 @@ Expected result:
 - Store size stays within the OpenSearch log data budget
 - The OpenSearch data volume still has enough free space
 
+## Step 6: Install and verify OpenSearch Dashboards
+
+Goal: install OpenSearch Dashboards and expose it at
+`http://opensearch.k8s.home.arpa`.
+
+The HTTP route attaches to the existing Gateway API gateway:
+
+```text
+namespace: cilium-ingress-gateway
+gateway: public
+gatewayClass: cilium
+address: 192.168.178.246
+```
+
+OpenSearch Dashboards `3.6.0` rejects `server.publicBaseUrl`, so this lab
+configuration does not set it.
+
+1) Create the Dashboards auth secret
+
+```bash
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin \
+    -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' \
+    | base64 -d
+)"
+
+OPENSEARCH_DASHBOARDS_COOKIE_SECRET="$(openssl rand -hex 32)"
+
+kubectl -n opensearch create secret generic opensearch-dashboards-auth \
+  --from-literal=username=admin \
+  --from-literal=password="$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  --from-literal=cookie="$OPENSEARCH_DASHBOARDS_COOKIE_SECRET" \
+  --dry-run=client \
+  -o yaml \
+  | kubectl apply -f -
+```
+
+Expected result:
+- Secret `opensearch-dashboards-auth` exists in namespace `opensearch`.
+
+2) Install OpenSearch Dashboards
+
+```bash
+helm repo add opensearch https://opensearch-project.github.io/helm-charts/
+helm repo update
+
+cat <<'EOF' >/tmp/opensearch-dashboards-values.yaml
+opensearchHosts: "https://opensearch-cluster-master.opensearch.svc:9200"
+
+opensearchAccount:
+  secret: opensearch-dashboards-auth
+
+serverHost: "0.0.0.0"
+
+config:
+  opensearch_dashboards.yml: |
+    server.host: "0.0.0.0"
+    opensearch.ssl.verificationMode: none
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+EOF
+
+helm upgrade --install opensearch-dashboards opensearch/opensearch-dashboards \
+  --namespace opensearch \
+  --version 3.6.0 \
+  --values /tmp/opensearch-dashboards-values.yaml
+
+cat <<'EOF' | kubectl apply -f -
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: opensearch-dashboards
+  namespace: opensearch
+spec:
+  parentRefs:
+    - name: public
+      namespace: cilium-ingress-gateway
+  hostnames:
+    - opensearch.k8s.home.arpa
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: opensearch-dashboards
+          port: 5601
+EOF
+
+watch kubectl -n opensearch get pods -o wide
+
+kubectl -n opensearch rollout status deployment/opensearch-dashboards --timeout=10m
+kubectl -n opensearch get svc opensearch-dashboards
+kubectl -n opensearch get httproute opensearch-dashboards
+kubectl -n opensearch logs deployment/opensearch-dashboards --tail=100
+
+curl -I http://opensearch.k8s.home.arpa
+```
+
+Expected result:
+- Helm release `opensearch-dashboards` is installed in namespace `opensearch`.
+- HTTPRoute `opensearch-dashboards` exists in namespace `opensearch`
+- It is attached to Gateway `public` in namespace `cilium-ingress-gateway`.
+- Deployment `opensearch-dashboards` is running
+- HTTPRoute host is `opensearch.k8s.home.arpa`
+
+3) Log in and create the log data view
+
+Open this URL:
+
+```text
+http://opensearch.k8s.home.arpa
+```
+
+Create a data view for:
+
+```text
+logs-homelab-default
+```
+
+Use timestamp field:
+
+```text
+@timestamp
+```
+
+Expected result:
+- OpenSearch Dashboards can search the `logs-homelab-default` data stream
+- Recent Kubernetes logs are visible in the UI.
+
 ## Operations / maintenance
 
 ```bash
@@ -871,6 +1011,11 @@ kubectl -n opensearch get statefulset opensearch-master
 kubectl -n opensearch get pods -o wide
 kubectl -n opensearch get pvc -o wide
 kubectl -n opensearch exec opensearch-master-0 -- df -h /usr/share/opensearch/data
+kubectl -n opensearch get deployment opensearch-dashboards
+kubectl -n opensearch get httproute opensearch-dashboards
+kubectl -n opensearch logs deployment/opensearch-dashboards --tail=100
+
+kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d ; echo
 
 kubectl -n logging run kafka-consumer-groups \
   -i \
