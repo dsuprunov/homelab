@@ -1,0 +1,15 @@
+---
+- name: cert-manager | check localhost kubeconfig
+  ansible.builtin.stat:
+    path: "{{ kubeconfig }}"
+  register: kubeconfig_stat
+
+- name: cert-manager | assert localhost kubeconfig exists
+  ansible.builtin.assert:
+    that:
+      - kubeconfig_stat.stat.exists
+    fail_msg: "Local kubeconfig is required at {{ kubeconfig }}."
+    quiet: true
+
+- ansible.builtin.import_tasks: cert-manager.yaml
+- ansible.builtin.import_tasks: selfsigned-cluster-issuer.yaml
