@@ -19,7 +19,7 @@ Fluent Bit -> Vector normalizer -> Kafka -> Vector writer -> OpenSearch
 - Vector normalizer buffer: `256 MiB`, volume cap: `320 MiB`
 - Kafka topic `partitions: 1`, `replicas: 1`, retention: `24h` and `256 MiB`
 - Vector writer buffer: `256 MiB`
-- OpenSearch logging budget: about `1 GiB`
+- OpenSearch log data budget: about `1 GiB`, volume cap: `3 GiB`
 
 ## Step 1: Configure and verify Kafka topic
 
@@ -317,7 +317,7 @@ kubectl -n logging logs daemonset/fluent-bit --tail=100
 Expected result:
 - One Fluent Bit pod runs on each node and sends logs to `vector-normalizer.logging.svc:24224`
 
-3) Send a container smoke log
+2) Send a container smoke log
 
 ```bash
 kubectl create namespace logging-smoke-test --dry-run=client -o yaml | kubectl apply -f -
@@ -337,7 +337,7 @@ kubectl -n logging-smoke-test logs fluent-bit-smoke-test
 kubectl delete namespace logging-smoke-test
 ```
 
-4) Verify the smoke log reaches Kafka through Vector
+3) Verify the smoke log reaches Kafka through Vector
 
 Run the consumer in the `logging` namespace so Fluent Bit does not collect the
 consumer output and write it back to Kafka.
@@ -361,7 +361,223 @@ Expected result:
 
 ## Step 4: Configure and verify OpenSearch data stream
 
-To be added after Step 3 is accepted.
+Goal: install OpenSearch and prepare the data stream that the Vector writer
+will write to.
+
+Data stream name: `logs-homelab-default`.
+
+1) Install OpenSearch
+
+```bash
+helm repo add opensearch https://opensearch-project.github.io/helm-charts/
+helm repo update
+
+kubectl create namespace opensearch --dry-run=client -o yaml | kubectl apply -f -
+
+printf 'OpenSearch admin password: '
+read -r -s OPENSEARCH_INITIAL_ADMIN_PASSWORD
+printf '\n'
+export OPENSEARCH_INITIAL_ADMIN_PASSWORD
+
+kubectl -n opensearch create secret generic opensearch-admin \
+  --from-literal=OPENSEARCH_INITIAL_ADMIN_PASSWORD="$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  --dry-run=client \
+  -o yaml \
+  | kubectl apply -f -
+
+cat <<'EOF' >/tmp/opensearch-values.yaml
+clusterName: opensearch
+nodeGroup: master
+masterService: opensearch-cluster-master
+singleNode: true
+replicas: 1
+
+opensearchJavaOpts: "-Xms512m -Xmx512m"
+
+extraEnvs:
+  - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: opensearch-admin
+        key: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+
+persistence:
+  enabled: true
+  storageClass: longhorn
+  size: 3Gi
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    memory: 2Gi
+
+antiAffinity: soft
+
+sysctlInit:
+  enabled: true
+EOF
+
+helm upgrade --install opensearch opensearch/opensearch \
+  --namespace opensearch \
+  --version 3.6.0 \
+  --values /tmp/opensearch-values.yaml
+
+kubectl -n opensearch get pods -o wide
+kubectl -n opensearch rollout status statefulset/opensearch-master --timeout=10m
+kubectl -n opensearch get svc
+kubectl -n opensearch get pvc -o wide
+kubectl -n opensearch exec opensearch-master-0 -- df -h /usr/share/opensearch/data
+
+kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d; echo
+```
+
+Expected result:
+- `opensearch-master-0` is running
+- Service `opensearch-cluster-master` exists
+- The OpenSearch PVC exists with `3Gi` and storage class `longhorn`
+- The OpenSearch data volume has enough free space
+
+2) Verify OpenSearch access
+
+```bash
+export OPENSEARCH_NAMESPACE=opensearch
+export OPENSEARCH_SERVICE=opensearch-cluster-master
+
+kubectl -n opensearch get pods -o wide
+kubectl -n opensearch get svc
+kubectl -n opensearch port-forward svc/opensearch-cluster-master 9200:9200
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d
+)"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" https://127.0.0.1:9200
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" https://127.0.0.1:9200/_cluster/health?pretty
+```
+
+Expected result:
+- OpenSearch responds with cluster information
+- Cluster health is `green` or `yellow`
+
+3) Create or update the logging data stream template
+
+```bash
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X PUT "https://127.0.0.1:9200/_index_template/logs-homelab-default-template" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "index_patterns": ["logs-homelab-default"],
+    "data_stream": {},
+    "priority": 500,
+    "template": {
+      "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0,
+        "index.refresh_interval": "10s"
+      },
+      "mappings": {
+        "dynamic": true,
+        "properties": {
+          "@timestamp": { "type": "date" },
+          "timestamp": { "type": "date" },
+          "time": { "type": "date" },
+          "message": { "type": "text" },
+          "log": { "type": "text" },
+          "source_type": { "type": "keyword" },
+          "stream": { "type": "keyword" },
+          "tag": { "type": "keyword" },
+          "host": { "type": "keyword" },
+          "kubernetes": {
+            "properties": {
+              "namespace_name": { "type": "keyword" },
+              "pod_name": { "type": "keyword" },
+              "container_name": { "type": "keyword" },
+              "container_image": { "type": "keyword" },
+              "container_hash": { "type": "keyword" },
+              "docker_id": { "type": "keyword" },
+              "host": { "type": "keyword" },
+              "pod_id": { "type": "keyword" },
+              "pod_ip": { "type": "ip" },
+              "labels": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+    "_meta": {
+      "description": "Homelab logging data stream template"
+    }
+  }'; echo
+```
+
+Expected result:
+- OpenSearch returns `"acknowledged": true`
+
+4) Create and verify the data stream
+
+```bash
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X PUT "https://127.0.0.1:9200/_data_stream/logs-homelab-default"; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_data_stream/logs-homelab-default?pretty"; echo
+```
+
+Expected result:
+- The data stream exists
+- The data stream uses `logs-homelab-default-template`
+- The timestamp field is `@timestamp`
+- The first backing index exists
+
+5) Write and search a smoke document
+
+```bash
+OPENSEARCH_SMOKE_ID="opensearch-data-stream-smoke-$(date -u +%Y%m%dT%H%M%SZ)"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X POST "https://127.0.0.1:9200/logs-homelab-default/_doc?refresh=true" \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"@timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+    \"message\": \"$OPENSEARCH_SMOKE_ID\",
+    \"source_type\": \"manual-smoke\"
+  }"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X GET "https://127.0.0.1:9200/logs-homelab-default/_search?pretty" \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"size\": 1,
+    \"query\": {
+      \"match_phrase\": {
+        \"message\": \"$OPENSEARCH_SMOKE_ID\"
+      }
+    },
+    \"sort\": [
+      { \"@timestamp\": \"desc\" }
+    ]
+  }"; echo
+```
+
+Expected result:
+- OpenSearch accepts the smoke document
+- Search returns the smoke document from a `.ds-logs-homelab-default-*` backing index
+
+6) Check data stream storage
+
+```bash
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_data_stream/logs-homelab-default/_stats?pretty"; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_cat/indices/.ds-logs-homelab-default-*?v&h=index,health,pri,rep,docs.count,store.size" ; echo
+```
+
+Expected result:
+- Store size is small after the smoke test
+- Backing index has `pri=1` and `rep=0`
 
 ## Step 5: Install and verify Vector OpenSearch writer
 
@@ -383,4 +599,9 @@ kubectl -n logging get daemonset fluent-bit
 kubectl -n logging get deployment vector-normalizer
 kubectl -n logging logs daemonset/fluent-bit --tail=100
 kubectl -n logging logs deployment/vector-normalizer --tail=100
+
+kubectl -n opensearch get statefulset opensearch-master
+kubectl -n opensearch get pods -o wide
+kubectl -n opensearch get pvc -o wide
+kubectl -n opensearch exec opensearch-master-0 -- df -h /usr/share/opensearch/data
 ```
