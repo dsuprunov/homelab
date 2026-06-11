@@ -18,7 +18,7 @@ Fluent Bit -> Vector normalizer -> Kafka -> Vector writer -> OpenSearch
 - Fluent Bit buffer: `256 MiB`, volume cap: `256 MiB`
 - Vector normalizer buffer: `256 MiB`, volume cap: `320 MiB`
 - Kafka topic `partitions: 1`, `replicas: 1`, retention: `24h` and `256 MiB`
-- Vector writer buffer: `256 MiB`
+- Vector writer buffer: `256 MiB`, volume cap: `320 MiB`
 - OpenSearch log data budget: about `1 GiB`, volume cap: `3 GiB`
 
 ## Step 1: Configure and verify Kafka topic
@@ -500,7 +500,7 @@ curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
               "host": { "type": "keyword" },
               "pod_id": { "type": "keyword" },
               "pod_ip": { "type": "ip" },
-              "labels": { "type": "object" }
+              "labels": { "type": "flat_object" }
             }
           }
         }
@@ -581,11 +581,269 @@ Expected result:
 
 ## Step 5: Install and verify Vector OpenSearch writer
 
-To be added after Step 4 is accepted.
+Goal: read normalized JSON events from Kafka and write them to the OpenSearch
+data stream.
 
-## Step 6: End-to-end test
+Vector uses the Elasticsearch sink for OpenSearch. The sink runs in
+`data_stream` mode, which writes with the bulk `create` action and uses
+`logs-homelab-default` from:
 
-To be added after Step 5 is accepted.
+```text
+data_stream.type: logs
+data_stream.dataset: homelab
+data_stream.namespace: default
+```
+
+OpenSearch user `svc_vector_opensearch_writer` is a service user only for this
+`Kafka -> OpenSearch logs data stream` pipeline. Create separate OpenSearch
+users for other Vector writers, projects, or datasets. This writer user is used
+only by Vector to write pipeline events. Manual OpenSearch search checks below
+use the admin user.
+
+1) Create the OpenSearch writer role, user, and Kubernetes secret
+
+```bash
+kubectl -n opensearch port-forward svc/opensearch-cluster-master 9200:9200
+
+export OPENSEARCH_URL=https://127.0.0.1:9200
+export VECTOR_OPENSEARCH_WRITER_USERNAME=svc_vector_opensearch_writer
+export VECTOR_OPENSEARCH_WRITER_ROLE=vector_opensearch_writer
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin \
+    -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' \
+    | base64 -d
+)"
+
+VECTOR_OPENSEARCH_WRITER_PASSWORD="$(openssl rand -base64 32)"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X PUT "$OPENSEARCH_URL/_plugins/_security/api/roles/$VECTOR_OPENSEARCH_WRITER_ROLE" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "cluster_permissions": [
+      "cluster_monitor"
+    ],
+    "index_permissions": [
+      {
+        "index_patterns": [
+          "logs-homelab-default",
+          ".ds-logs-homelab-default-*"
+        ],
+        "allowed_actions": [
+          "index",
+          "create_index"
+        ]
+      }
+    ]
+  }'; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X PUT "$OPENSEARCH_URL/_plugins/_security/api/internalusers/$VECTOR_OPENSEARCH_WRITER_USERNAME" \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"password\": \"$VECTOR_OPENSEARCH_WRITER_PASSWORD\",
+    \"backend_roles\": [],
+    \"attributes\": {
+      \"description\": \"Kafka to OpenSearch logs data stream writer\"
+    }
+  }"; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X PUT "$OPENSEARCH_URL/_plugins/_security/api/rolesmapping/$VECTOR_OPENSEARCH_WRITER_ROLE" \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"backend_roles\": [],
+    \"hosts\": [],
+    \"users\": [
+      \"$VECTOR_OPENSEARCH_WRITER_USERNAME\"
+    ]
+  }"; echo
+
+kubectl -n logging create secret generic vector-opensearch-writer-auth \
+  --from-literal=OPENSEARCH_USERNAME="$VECTOR_OPENSEARCH_WRITER_USERNAME" \
+  --from-literal=OPENSEARCH_PASSWORD="$VECTOR_OPENSEARCH_WRITER_PASSWORD" \
+  --dry-run=client \
+  -o yaml \
+  | kubectl apply -f -
+```
+
+Expected result:
+- OpenSearch role `vector_opensearch_writer` exists
+- OpenSearch user `svc_vector_opensearch_writer` exists
+- OpenSearch role mapping `vector_opensearch_writer` maps that user
+- Secret `vector-opensearch-writer-auth` exists in namespace `logging`.
+
+2) Install Vector OpenSearch writer
+
+```bash
+cat <<'EOF' | kubectl apply -n logging -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-opensearch-writer-config
+data:
+  vector.yaml: |
+    data_dir: /var/lib/vector
+
+    sources:
+      kafka:
+        type: kafka
+        bootstrap_servers: sandbox-kafka-bootstrap.kafka-sandbox.svc:9092
+        group_id: vector-opensearch-writer
+        topics:
+          - logs.homelab.normalized.v1
+        auto_offset_reset: latest
+        decoding:
+          codec: json
+
+    sinks:
+      opensearch:
+        type: elasticsearch
+        inputs:
+          - kafka
+        endpoints:
+          - https://opensearch-cluster-master.opensearch.svc:9200
+        api_version: v8
+        opensearch_service_type: managed
+        mode: data_stream
+        data_stream:
+          type: logs
+          dataset: homelab
+          namespace: default
+          auto_routing: false
+          sync_fields: false
+        auth:
+          strategy: basic
+          user: "${OPENSEARCH_USERNAME}"
+          password: "${OPENSEARCH_PASSWORD}"
+        tls:
+          verify_certificate: false
+          verify_hostname: false
+        buffer:
+          type: disk
+          max_size: 268435488  # 256 MiB + 32 bytes
+          when_full: block
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-opensearch-writer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vector-opensearch-writer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vector-opensearch-writer
+    spec:
+      containers:
+        - name: vector
+          image: timberio/vector:0.56.0-debian
+          args:
+            - --config
+            - /etc/vector/vector.yaml
+          envFrom:
+            - secretRef:
+                name: vector-opensearch-writer-auth
+          volumeMounts:
+            - name: config
+              mountPath: /etc/vector
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/vector
+      volumes:
+        - name: config
+          configMap:
+            name: vector-opensearch-writer-config
+        - name: data
+          emptyDir:
+            sizeLimit: 320Mi  # 256Mi + 64Mi
+EOF
+
+kubectl -n logging rollout restart deployment/vector-opensearch-writer
+
+kubectl -n logging rollout status deployment/vector-opensearch-writer --timeout=5m
+kubectl -n logging get pods -o wide
+kubectl -n logging get deployment vector-opensearch-writer
+kubectl -n logging exec deployment/vector-opensearch-writer -- vector validate /etc/vector/vector.yaml
+kubectl -n logging logs deployment/vector-opensearch-writer --tail=100
+```
+
+Expected result:
+- `vector-opensearch-writer` is running
+- Vector config is valid
+- Logs show the Kafka source and OpenSearch sink without errors
+
+3) Check Kafka consumer lag
+
+```bash
+kubectl -n logging run kafka-consumer-groups \
+  -i \
+  --rm \
+  --restart=Never \
+  --image=quay.io/strimzi/kafka:1.0.0-kafka-4.2.0 \
+  -- bin/kafka-consumer-groups.sh \
+    --bootstrap-server sandbox-kafka-bootstrap.kafka-sandbox.svc:9092 \
+    --describe \
+    --group vector-opensearch-writer
+```
+
+Expected result:
+- Consumer group `vector-opensearch-writer` exists
+
+4) Verify logs are indexed in OpenSearch
+
+```bash
+kubectl -n opensearch port-forward svc/opensearch-cluster-master 9200:9200
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d
+)"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_cat/indices/.ds-logs-homelab-default-*?v&h=index,health,docs.count,store.size"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  -X GET "https://127.0.0.1:9200/logs-homelab-default/_search?pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "size": 5,
+    "sort": [
+      { "@timestamp": "desc" }
+    ]
+  }'
+```
+
+Expected result:
+- The backing index is `green`
+- `docs.count` is greater than `0`
+- The latest documents contain Kubernetes log fields such as `kubernetes`,  `message`, `stream`, `tag`, and `topic`
+
+5) Check OpenSearch storage
+
+```bash
+kubectl -n opensearch port-forward svc/opensearch-cluster-master 9200:9200
+
+OPENSEARCH_INITIAL_ADMIN_PASSWORD="$(
+  kubectl -n opensearch get secret opensearch-admin -o jsonpath='{.data.OPENSEARCH_INITIAL_ADMIN_PASSWORD}' | base64 -d
+)"
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_data_stream/logs-homelab-default/_stats?pretty"; echo
+
+curl -k -u "admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD" \
+  "https://127.0.0.1:9200/_cat/indices/.ds-logs-homelab-default-*?v&h=index,health,pri,rep,docs.count,store.size" ; echo
+
+kubectl -n opensearch exec opensearch-master-0 -- df -h /usr/share/opensearch/data
+```
+
+Expected result:
+- Data stream remains `green`
+- Store size stays within the OpenSearch log data budget
+- The OpenSearch data volume still has enough free space
 
 ## Operations / maintenance
 
@@ -597,11 +855,23 @@ kubectl exec -ti -n kafka-sandbox sandbox-dual-role-0 -- sh -c 'df -h /var/lib/k
 kubectl -n logging get pods -o wide
 kubectl -n logging get daemonset fluent-bit
 kubectl -n logging get deployment vector-normalizer
+kubectl -n logging get deployment vector-opensearch-writer
 kubectl -n logging logs daemonset/fluent-bit --tail=100
 kubectl -n logging logs deployment/vector-normalizer --tail=100
+kubectl -n logging logs deployment/vector-opensearch-writer --tail=100
 
 kubectl -n opensearch get statefulset opensearch-master
 kubectl -n opensearch get pods -o wide
 kubectl -n opensearch get pvc -o wide
 kubectl -n opensearch exec opensearch-master-0 -- df -h /usr/share/opensearch/data
+
+kubectl -n logging run kafka-consumer-groups \
+  -i \
+  --rm \
+  --restart=Never \
+  --image=quay.io/strimzi/kafka:1.0.0-kafka-4.2.0 \
+  -- bin/kafka-consumer-groups.sh \
+    --bootstrap-server sandbox-kafka-bootstrap.kafka-sandbox.svc:9092 \
+    --describe \
+    --group vector-opensearch-writer
 ```
