@@ -33,6 +33,7 @@
 | `vault.home.arpa:8200/ui/`                      | Vault UI          | `vm-vault-01.home.arpa`      |
 | `grafana.k8s.home.arpa`                         | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `longhorn.k8s.home.arpa`                        | HTTP application  | Kubernetes LoadBalancer VIPs |
+| `vault.k8s.home.arpa`                           | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `opensearch.k8s.home.arpa`                      | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `demo-website.k8s.home.arpa`                    | HTTP application  | Kubernetes LoadBalancer VIPs |
 | `demo-website-blue-green.k8s.home.arpa`         | HTTP application  | Kubernetes LoadBalancer VIPs |

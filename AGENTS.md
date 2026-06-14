@@ -57,7 +57,6 @@ When asked for commit message text:
 - Use `<scope>` for the affected area or component.
 - Use `<description>` for a short summary.
 
-
 ## Repository Notes
 
 - Terraform code is in `terraform/`.
