@@ -16,12 +16,13 @@ Before modifying any file:
 
 ## Working Rules
 
-- Keep changes small, direct, and related to the task.
-- Do not refactor unrelated code.
-- Do not commit changes unless the user asks for a commit.
-- Do not perform or initiate repository operations such as commits, pushes,
-  pulls, rebases, merges, branch switches, or similar actions. These actions
-  may only be performed by the user.
+- Absolute Git state-change ban: never run, trigger, schedule, or
+  approve any command, script, API call, UI action, or tool invocation that can
+  change Git history, refs, branches, tags, remotes, the index, the stash, or
+  the current checked-out branch or commit. This includes commits, pushes,
+  pulls, fetches, rebases, merges, branch switches, tag operations, stash
+  operations, staging, remote configuration changes, or similar actions. This
+  prohibition is absolute and has no escalation or approval exception.
 - Absolute infrastructure state-change ban: never run, trigger, schedule, or
   approve any command, script, playbook, API call, UI action, or tool
   invocation that can create, modify, restart, stop, delete, deploy, apply,
@@ -29,8 +30,13 @@ Before modifying any file:
   infrastructure managed by this repository or owned, operated, or controlled
   by the user. This prohibition is absolute and has no escalation or approval
   exception.
-- Do not edit secrets, private keys, tokens, generated kubeconfigs, Terraform
-  state files, or local credentials.
+- Absolute sensitive material change ban: never create, edit, overwrite, move,
+  delete, decrypt, generate, rotate, or otherwise modify secrets, private keys,
+  tokens, kubeconfigs, Terraform state files, state backups, local credentials,
+  or other sensitive material. Never reveal their contents. This prohibition is
+  absolute and has no escalation or approval exception.
+- Keep changes small, direct, and related to the task.
+- Do not refactor unrelated code.
 - Prefer existing project patterns over new conventions.
 - Run relevant checks when the required tools are available.
 
