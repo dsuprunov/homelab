@@ -23,6 +23,7 @@ RUN apt-get update && \
       curl \
       dnsutils \
       git \
+      mc \
       nano \
       openssh-client \
       python3 \
