@@ -23,7 +23,7 @@ changes unless the user asks for it.
 ## Important Rules
 
 - Do not commit secrets, tokens, private keys, or generated kubeconfigs.
-- Treat `terraform/*.auto.tfvars` and `terraform/terraform.tfstate*` as sensitive.
+- Treat `terraform/credentials.auto.tfvars` and `terraform/**/*.tfstate*` as sensitive.
 - Preserve the existing Terraform, Ansible, and Flux structure.
 - Prefer minimal patches over broad refactors.
 - Run checks before finalizing changes when the required tools are available.
@@ -35,3 +35,4 @@ Run the checks that match the files you changed.
 ## How To Use
 
 See `INSTALL.md` for setup steps and common commands.
+See `terraform/README.md` for Terraform layers and state boundaries.
