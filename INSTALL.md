@@ -48,6 +48,10 @@ fi
 if command -v flux >/dev/null 2>&1; then
   source <(flux completion zsh)
 fi
+
+if command -v talosctl >/dev/null 2>&1; then
+  source <(talosctl completion zsh)
+fi
 EOF
 
 install -D -m 600 /dev/stdin ~/.homelab/.env <<'EOF'
