@@ -4,3 +4,5 @@ provider "proxmox" {
 
   insecure = true
 }
+
+provider "talos" {}

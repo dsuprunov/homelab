@@ -11,6 +11,7 @@ variable "vms" {
     vm_id = number
 
     node_name = optional(string, "pve-01")
+    role      = string
     tags      = optional(list(string), [])
 
     image = string
@@ -26,15 +27,6 @@ variable "vms" {
       datastore_id = optional(string, null)
     }))
 
-    virtiofs = optional(list(object({
-      mapping = string
-
-      cache        = optional(string, "auto")
-      direct_io    = optional(bool, null)
-      expose_acl   = optional(bool, null)
-      expose_xattr = optional(bool, null)
-    })), [])
-
     datastore_id           = optional(string, "local-lvm")
     cloudinit_datastore_id = optional(string, "local-lvm")
 
@@ -47,17 +39,60 @@ variable "vms" {
     }))
 
     nameservers = optional(list(string), [])
-    user        = optional(string, "root")
-    ssh_keys    = list(string)
 
     started = optional(bool, true)
     on_boot = optional(bool, true)
 
-    qemu_agent_enabled = optional(bool, false)
+    qemu_agent_enabled = optional(bool, true)
     qemu_agent_timeout = optional(string, null)
-
-    cloud_config_vendor_data_file = optional(string, null)
   }))
 
   default = {}
+
+  validation {
+    condition     = alltrue([for _, vm in var.vms : contains(["controlplane", "worker"], vm.role)])
+    error_message = "Each VM role must be either controlplane or worker."
+  }
+}
+
+variable "cluster_name" {
+  type    = string
+  default = "homelab"
+}
+
+variable "talos_version" {
+  type    = string
+  default = "v1.13.5"
+}
+
+variable "talos_images" {
+  type = map(object({
+    platform   = optional(string, "nocloud")
+    extensions = optional(list(string), [])
+
+    datastore_id = optional(string, "local")
+    node_name    = optional(string, "pve-01")
+  }))
+
+  default = {}
+}
+
+variable "kubernetes_version" {
+  type    = string
+  default = "v1.36.2"
+}
+
+variable "kubernetes_api_host" {
+  type    = string
+  default = "k8s-api.home.arpa"
+}
+
+variable "kubernetes_api_vip" {
+  type    = string
+  default = "192.168.178.230"
+}
+
+variable "talos_network_interface" {
+  type    = string
+  default = "eth0"
 }
