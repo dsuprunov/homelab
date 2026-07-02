@@ -52,9 +52,10 @@ kubectl get nodes -o wide
 ### Talos
 
 ```bash
+talosctl dashboard
+
 talosctl version
 talosctl services
-talosctl dashboard
 talosctl get members
 ```
 
