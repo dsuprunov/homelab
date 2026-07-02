@@ -101,3 +101,25 @@ variable "talos_network_interface" {
   type    = string
   default = "eth0"
 }
+
+variable "cilium_load_balancer_ip_pool" {
+  type = object({
+    start = string
+    stop  = string
+  })
+
+  default = {
+    start = "192.168.178.246"
+    stop  = "192.168.178.250"
+  }
+}
+
+variable "cilium_ingress_gateway_ip" {
+  type    = string
+  default = "192.168.178.246"
+}
+
+variable "cilium_ingress_gateway_hostname" {
+  type    = string
+  default = "*.k8s.home.arpa"
+}

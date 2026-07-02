@@ -81,15 +81,55 @@ data "talos_machine_configuration" "node" {
         }
       }
 
-      cluster = {
-        apiServer = {
-          certSANs = concat(
-            [var.kubernetes_api_host, var.kubernetes_api_vip],
-            values(local.controlplane_ipv4_addresses),
-            values(local.controlplane_dns_names),
-          )
-        }
-      }
+      cluster = merge(
+        {
+          apiServer = {
+            certSANs = concat(
+              [var.kubernetes_api_host, var.kubernetes_api_vip],
+              values(local.controlplane_ipv4_addresses),
+              values(local.controlplane_dns_names),
+            )
+          }
+
+          network = {
+            cni = {
+              name = "none"
+            }
+          }
+
+          proxy = {
+            disabled = true
+          }
+        },
+        each.value.role == "controlplane" ? {
+          inlineManifests = [
+            {
+              name     = "gateway-api"
+              contents = data.http.gateway_api_standard_install.response_body
+            },
+            {
+              name     = "cilium"
+              contents = data.helm_template.cilium.manifest
+            },
+            {
+              name     = "cilium-lb-ip-pool"
+              contents = yamlencode(local.cilium_load_balancer_ip_pool_manifest)
+            },
+            {
+              name     = "cilium-l2-policy"
+              contents = yamlencode(local.cilium_l2_announcement_policy_manifest)
+            },
+            {
+              name     = "cilium-ingress-gateway-namespace"
+              contents = yamlencode(local.cilium_ingress_gateway_namespace_manifest)
+            },
+            {
+              name     = "cilium-ingress-gateway"
+              contents = yamlencode(local.cilium_ingress_gateway_manifest)
+            }
+          ]
+        } : {}
+      )
     }),
   ]
 }
@@ -133,6 +173,22 @@ resource "talos_cluster_kubeconfig" "this" {
   timeouts = {
     create = "20m"
     update = "20m"
+  }
+}
+
+data "talos_cluster_health" "this" {
+  client_configuration = talos_machine_secrets.this.client_configuration
+  endpoints            = values(local.controlplane_ipv4_addresses)
+  control_plane_nodes  = values(local.controlplane_ipv4_addresses)
+  worker_nodes = [
+    for vm_name, vm in var.vms :
+    local.node_ipv4_addresses[vm_name] if vm.role == "worker"
+  ]
+
+  depends_on = [talos_machine_bootstrap.this]
+
+  timeouts = {
+    read = "20m"
   }
 }
 

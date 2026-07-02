@@ -13,6 +13,15 @@
 - Platform: `nocloud`
 - System extension
   - `qemu-guest-agent`
+- Bootstrap CNI: disabled (`cluster.network.cni.name: none`)
+- `kube-proxy`: disabled (`cluster.proxy.disabled: true`)
+- Gateway API CRDs: `1.4.1`
+- Cilium VIP pool: `192.168.178.246...250`
+- Cilium ingress gateway IP: `192.168.178.246`
+- Cluster CNI: Cilium `1.19.5` with
+  - kube-proxy replacement
+  - L2 announcements
+  - Gateway API enabled
 
 ## Lifecycle
 

@@ -6,3 +6,7 @@ provider "proxmox" {
 }
 
 provider "talos" {}
+
+provider "helm" {}
+
+provider "http" {}
