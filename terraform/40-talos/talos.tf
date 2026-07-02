@@ -4,6 +4,11 @@ locals {
     vm_name => split("/", vm.network_interfaces[0].ipv4_address)[0]
   }
 
+  node_dns_names = {
+    for vm_name, vm in var.vms :
+    vm_name => "${vm_name}.${var.node_dns_domain}"
+  }
+
   controlplane_nodes = {
     for vm_name, vm in var.vms :
     vm_name => vm if vm.role == "controlplane"
@@ -12,6 +17,11 @@ locals {
   controlplane_ipv4_addresses = {
     for vm_name, vm in local.controlplane_nodes :
     vm_name => local.node_ipv4_addresses[vm_name]
+  }
+
+  controlplane_dns_names = {
+    for vm_name, vm in local.controlplane_nodes :
+    vm_name => local.node_dns_names[vm_name]
   }
 
   bootstrap_node_name = sort(keys(local.controlplane_nodes))[0]
@@ -36,6 +46,12 @@ data "talos_machine_configuration" "node" {
   config_patches = [
     yamlencode({
       machine = {
+        certSANs = [
+          each.key,
+          local.node_dns_names[each.key],
+          local.node_ipv4_addresses[each.key],
+        ]
+
         network = {
           nameservers = each.value.nameservers
           interfaces = [
@@ -70,6 +86,7 @@ data "talos_machine_configuration" "node" {
           certSANs = concat(
             [var.kubernetes_api_host, var.kubernetes_api_vip],
             values(local.controlplane_ipv4_addresses),
+            values(local.controlplane_dns_names),
           )
         }
       }
@@ -122,6 +139,6 @@ resource "talos_cluster_kubeconfig" "this" {
 data "talos_client_configuration" "this" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.this.client_configuration
-  nodes                = values(local.node_ipv4_addresses)
-  endpoints            = values(local.controlplane_ipv4_addresses)
+  nodes                = values(local.node_dns_names)
+  endpoints            = values(local.controlplane_dns_names)
 }

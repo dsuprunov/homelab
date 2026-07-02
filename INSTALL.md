@@ -58,6 +58,10 @@ install -D -m 600 /dev/stdin ~/.homelab/.env <<'EOF'
 # GitHub PAT for Flux bootstrap and deploy key management
 # GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxxxxx
 EOF
+
+install -D -m 644 /dev/stdin ~/.homelab/.digrc <<'EOF'
++search
+EOF
 ```
 
 ## Build-Run-Repeat

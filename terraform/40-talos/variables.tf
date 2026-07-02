@@ -87,6 +87,11 @@ variable "kubernetes_api_host" {
   default = "k8s-api.home.arpa"
 }
 
+variable "node_dns_domain" {
+  type    = string
+  default = "home.arpa"
+}
+
 variable "kubernetes_api_vip" {
   type    = string
   default = "192.168.178.230"

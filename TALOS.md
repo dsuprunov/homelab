@@ -8,6 +8,7 @@
 - Workers: `vm-k8s-worker-01..03`
 - Kubernetes API VIP: `192.168.178.230`
 - Kubernetes API DNS: `k8s-api.home.arpa`
+- Node DNS domain: `home.arpa`
 - Images: `talos_control`, `talos_worker`
 - Platform: `nocloud`
 - System extension
@@ -41,9 +42,9 @@ chmod 600 ~/.talos/config
 ## Validate
 
 ```bash
-kubectl get nodes -o wide
+talosctl --nodes vm-k8s-control-01.home.arpa health
 
-talosctl --nodes 192.168.178.231 health
+kubectl get nodes -o wide
 ```
 
 ## Useful Checks
@@ -60,8 +61,8 @@ talosctl get members
 ### Etcd
 
 ```bash
-talosctl --nodes 192.168.178.231,192.168.178.232,192.168.178.233 etcd status
-talosctl --nodes 192.168.178.231,192.168.178.232,192.168.178.233 etcd members
+talosctl --nodes vm-k8s-control-01.home.arpa,vm-k8s-control-02.home.arpa,vm-k8s-control-03.home.arpa etcd status
+talosctl --nodes vm-k8s-control-01.home.arpa,vm-k8s-control-02.home.arpa,vm-k8s-control-03.home.arpa etcd members
 ```
 
 ### Logs
@@ -72,8 +73,8 @@ talosctl logs containerd
 talosctl logs apid
 talosctl dmesg
 
-talosctl -n 192.168.178.231 services
-talosctl -n 192.168.178.231 logs kubelet
+talosctl -n vm-k8s-control-01.home.arpa services
+talosctl -n vm-k8s-control-01.home.arpa logs kubelet
 ```
 
 ### Node Details
