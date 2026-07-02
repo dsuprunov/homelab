@@ -43,7 +43,53 @@ kubectl --kubeconfig ~/.kube/config get nodes -o wide
 talosctl --talosconfig ~/.talos/config health
 ```
 
+## Useful Checks
+
+### Talos
+
+```bash
+talosctl --talosconfig ~/.talos/config version
+talosctl --talosconfig ~/.talos/config services
+talosctl --talosconfig ~/.talos/config dashboard
+talosctl --talosconfig ~/.talos/config get members
+```
+
+### Etcd
+
+```bash
+talosctl --talosconfig ~/.talos/config etcd status
+talosctl --talosconfig ~/.talos/config etcd members
+```
+
+### Logs
+
+```bash
+talosctl --talosconfig ~/.talos/config logs kubelet
+talosctl --talosconfig ~/.talos/config logs containerd
+talosctl --talosconfig ~/.talos/config logs apid
+talosctl --talosconfig ~/.talos/config dmesg
+```
+
+### Node Details
+
+```bash
+talosctl --talosconfig ~/.talos/config disks
+talosctl --talosconfig ~/.talos/config mounts
+talosctl --talosconfig ~/.talos/config get links
+talosctl --talosconfig ~/.talos/config get addresses
+talosctl --talosconfig ~/.talos/config get routes
+talosctl --talosconfig ~/.talos/config usage
+```
+
+### Single Node
+
+```bash
+talosctl --talosconfig ~/.talos/config -n vm-k8s-control-01 services
+talosctl --talosconfig ~/.talos/config -n vm-k8s-worker-01 logs kubelet
+```
+
 ## Notes
 
 - Talos machine config enables the built-in VIP on control plane nodes.
-
+- Commands in "Useful Read-Only Checks" are intended for diagnostics and should
+  not change cluster or infrastructure state.
