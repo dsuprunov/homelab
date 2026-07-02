@@ -31,10 +31,10 @@ data "talos_image_factory_urls" "talos" {
 resource "proxmox_download_file" "talos_image" {
   for_each = var.talos_images
 
-  content_type = "import"
+  content_type = "iso"
   datastore_id = each.value.datastore_id
   node_name    = each.value.node_name
 
-  url       = data.talos_image_factory_urls.talos[each.key].urls.disk_image
-  file_name = "${each.key}-${each.value.platform}-amd64-${var.talos_version}.raw"
+  url       = data.talos_image_factory_urls.talos[each.key].urls.iso
+  file_name = "${each.key}-${each.value.platform}-amd64-${var.talos_version}.iso"
 }

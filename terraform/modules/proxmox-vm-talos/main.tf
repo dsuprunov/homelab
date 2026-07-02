@@ -14,7 +14,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   bios          = "ovmf"
   machine       = "q35"
   scsi_hardware = "virtio-scsi-pci"
-  boot_order    = ["scsi0"]
+  boot_order    = ["scsi0", "ide0"]
 
   efi_disk {
     datastore_id = var.datastore_id
@@ -22,10 +22,19 @@ resource "proxmox_virtual_environment_vm" "vm" {
     type         = "4m"
   }
 
+  cdrom {
+    file_id   = var.image_file_id
+    interface = "ide0"
+  }
+
   # --- Guest agent ---
   agent {
     enabled = var.qemu_agent_enabled
     timeout = var.qemu_agent_timeout
+
+    wait_for_ip {
+      disabled = true
+    }
   }
 
   # --- Compute ---
@@ -51,12 +60,10 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
       interface   = d.key
       size        = d.value.size
-      import_from = d.key == "scsi0" ? var.image_file_id : null
 
       aio      = "io_uring"
       cache    = "none"
       discard  = "on"
-      iothread = true
       ssd      = true
     }
   }

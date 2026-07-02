@@ -10,14 +10,16 @@
 - Kubernetes API DNS: `k8s-api.home.arpa`
 - Images: `talos_control`, `talos_worker`
 - Platform: `nocloud`
-- System extension: `qemu-guest-agent`
+- System extension
+  - `qemu-guest-agent`
 
-## Apply Order
+## Lifecycle
 
 ```bash
 terraform -chdir=/homelab/terraform/40-talos init
 terraform -chdir=/homelab/terraform/40-talos plan -var-file=../credentials.auto.tfvars
 terraform -chdir=/homelab/terraform/40-talos apply -var-file=../credentials.auto.tfvars
+terraform -chdir=/homelab/terraform/40-talos destroy -var-file=../credentials.auto.tfvars
 ```
 
 ## Write Kubeconfig
@@ -39,8 +41,9 @@ chmod 600 ~/.talos/config
 ## Validate
 
 ```bash
-kubectl --kubeconfig ~/.kube/config get nodes -o wide
-talosctl --talosconfig ~/.talos/config health
+kubectl get nodes -o wide
+
+talosctl --nodes 192.168.178.231 health
 ```
 
 ## Useful Checks
@@ -48,10 +51,10 @@ talosctl --talosconfig ~/.talos/config health
 ### Talos
 
 ```bash
-talosctl --talosconfig ~/.talos/config version
-talosctl --talosconfig ~/.talos/config services
-talosctl --talosconfig ~/.talos/config dashboard
-talosctl --talosconfig ~/.talos/config get members
+talosctl version
+talosctl services
+talosctl dashboard
+talosctl get members
 ```
 
 ### Etcd

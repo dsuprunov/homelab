@@ -37,7 +37,6 @@ data "talos_machine_configuration" "node" {
     yamlencode({
       machine = {
         network = {
-          hostname    = each.key
           nameservers = each.value.nameservers
           interfaces = [
             merge(
@@ -61,10 +60,8 @@ data "talos_machine_configuration" "node" {
           ]
         }
 
-        features = {
-          qemuGuestAgent = {
-            enabled = true
-          }
+        install = {
+          image = data.talos_image_factory_urls.talos[each.value.image].urls.installer
         }
       }
 
