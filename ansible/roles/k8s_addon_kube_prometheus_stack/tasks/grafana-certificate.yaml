@@ -1,0 +1,20 @@
+---
+- name: kube-prometheus-stack | apply grafana certificate
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/grafana-certificate.yaml') | from_yaml }}"
+
+- name: kube-prometheus-stack | wait for grafana certificate
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Ready --timeout=5m
+      certificate/grafana-server
+      -n monitoring
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: kube_prometheus_stack_grafana_certificate_ready
+  until: kube_prometheus_stack_grafana_certificate_ready.rc == 0
+  changed_when: false
+

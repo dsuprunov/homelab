@@ -1,0 +1,20 @@
+---
+- name: kube-prometheus-stack | preflight
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: preflight | check kubectl
+      ansible.builtin.command: kubectl version --client
+      changed_when: false
+
+    - name: preflight | check helm
+      ansible.builtin.command: helm version
+      changed_when: false
+
+- name: kube-prometheus-stack | install
+  hosts: k8s_addon_kube_prometheus_stack
+  connection: local
+  gather_facts: false
+  roles:
+    - k8s_addon_kube_prometheus_stack

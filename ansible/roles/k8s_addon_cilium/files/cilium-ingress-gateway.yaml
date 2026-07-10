@@ -23,3 +23,12 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: tls-k8s-home-arpa
+      hostname: "*.k8s.home.arpa"
+      port: 443
+      protocol: TLS
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        namespaces:
+          from: All

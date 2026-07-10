@@ -1,0 +1,19 @@
+---
+- name: kube-prometheus-stack | check localhost kubeconfig
+  ansible.builtin.stat:
+    path: "{{ kubeconfig }}"
+  register: kubeconfig_stat
+
+- name: kube-prometheus-stack | assert localhost kubeconfig exists
+  ansible.builtin.assert:
+    that:
+      - kubeconfig_stat.stat.exists
+    fail_msg: "Local kubeconfig is required at {{ kubeconfig }}."
+    quiet: true
+
+- ansible.builtin.import_tasks: namespace.yaml
+- ansible.builtin.import_tasks: monitoring-ca.yaml
+- ansible.builtin.import_tasks: grafana-certificate.yaml
+- ansible.builtin.import_tasks: kube-prometheus-stack.yaml
+- ansible.builtin.import_tasks: tlsroute.yaml
+

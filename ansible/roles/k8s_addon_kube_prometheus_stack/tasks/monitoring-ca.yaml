@@ -1,0 +1,69 @@
+---
+- name: kube-prometheus-stack | wait for certificates CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/certificates.cert-manager.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: kube_prometheus_stack_certificates_crd_wait
+  retries: 30
+  delay: 5
+  until: kube_prometheus_stack_certificates_crd_wait.rc == 0
+  changed_when: false
+
+- name: kube-prometheus-stack | wait for issuers CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/issuers.cert-manager.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: kube_prometheus_stack_issuers_crd_wait
+  retries: 30
+  delay: 5
+  until: kube_prometheus_stack_issuers_crd_wait.rc == 0
+  changed_when: false
+
+- name: kube-prometheus-stack | wait for selfsigned cluster issuer
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Ready --timeout=5m
+      clusterissuer/selfsigned
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: kube_prometheus_stack_selfsigned_cluster_issuer_ready
+  until: kube_prometheus_stack_selfsigned_cluster_issuer_ready.rc == 0
+  changed_when: false
+
+- name: kube-prometheus-stack | apply monitoring ca
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/monitoring-ca.yaml') | from_yaml_all | list }}"
+
+- name: kube-prometheus-stack | wait for monitoring root ca
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Ready --timeout=5m
+      certificate/monitoring-root-ca
+      -n monitoring
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: kube_prometheus_stack_monitoring_root_ca_ready
+  until: kube_prometheus_stack_monitoring_root_ca_ready.rc == 0
+  changed_when: false
+
+- name: kube-prometheus-stack | wait for monitoring ca issuer
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Ready --timeout=5m
+      issuer/monitoring-ca
+      -n monitoring
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: kube_prometheus_stack_monitoring_ca_issuer_ready
+  until: kube_prometheus_stack_monitoring_ca_issuer_ready.rc == 0
+  changed_when: false
+

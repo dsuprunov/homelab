@@ -1,0 +1,19 @@
+---
+- name: kube-prometheus-stack | wait for tlsroutes CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/tlsroutes.gateway.networking.k8s.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: kube_prometheus_stack_tlsroutes_crd_wait
+  retries: 30
+  delay: 5
+  until: kube_prometheus_stack_tlsroutes_crd_wait.rc == 0
+  changed_when: false
+
+- name: kube-prometheus-stack | apply tlsroute
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/tlsroute.yaml') | from_yaml }}"
+
