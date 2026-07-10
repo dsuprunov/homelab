@@ -21,6 +21,9 @@ cni:
 l2announcements:
   enabled: true
 
+localRedirectPolicies:
+  enabled: true
+
 envoy:
   enabled: true
 

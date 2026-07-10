@@ -63,6 +63,15 @@
   roles:
     - k8s_node_worker_join
 
+- name: k8s | node local dns
+  hosts: k8s_addon_node_local_dns
+  connection: local
+  gather_facts: false
+  tags:
+    - node-local-dns
+  roles:
+    - k8s_addon_node_local_dns
+
 - name: k8s | kubelet csr approver
   hosts: k8s_addon_kubelet_csr_approver
   connection: local

@@ -1,0 +1,26 @@
+---
+- name: node-local-dns | wait for ciliumlocalredirectpolicies CRD
+  ansible.builtin.command: >
+    kubectl wait --for=condition=Established --timeout=5s
+      crd/ciliumlocalredirectpolicies.cilium.io
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: node_local_dns_lrp_crd_wait
+  retries: 30
+  delay: 5
+  until: node_local_dns_lrp_crd_wait.rc == 0
+  changed_when: false
+
+- name: node-local-dns | apply cilium local redirect policy
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('ansible.builtin.file', role_path ~ '/files/node-local-dns-lrp.yaml') | from_yaml }}"
+
+- name: node-local-dns | check cilium local redirect policy
+  ansible.builtin.command: >
+    kubectl get ciliumlocalredirectpolicies.cilium.io nodelocaldns
+      -n kube-system
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  changed_when: false

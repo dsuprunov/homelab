@@ -1,0 +1,43 @@
+---
+- name: node-local-dns | get kube-dns cluster ip
+  ansible.builtin.command: >
+    kubectl get svc kube-dns
+      -n kube-system
+      -o jsonpath={.spec.clusterIP}
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  register: kube_dns_cluster_ip
+  changed_when: false
+
+- name: node-local-dns | assert kube-dns cluster ip
+  ansible.builtin.assert:
+    that:
+      - kube_dns_cluster_ip.stdout | length > 0
+      - kube_dns_cluster_ip.stdout != "None"
+    fail_msg: "kube-dns ClusterIP is required."
+    quiet: true
+
+- name: node-local-dns | render manifest
+  ansible.builtin.template:
+    src: node-local-dns.yaml.j2
+    dest: /tmp/node-local-dns.yaml
+    mode: "0600"
+
+- name: node-local-dns | install
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    src: /tmp/node-local-dns.yaml
+
+- name: node-local-dns | wait for daemonset rollout
+  ansible.builtin.command: >
+    kubectl rollout status daemonset/node-local-dns
+      -n kube-system
+      --timeout=10m
+  environment:
+    KUBECONFIG: "{{ kubeconfig }}"
+  retries: 3
+  delay: 10
+  register: node_local_dns_rollout
+  until: node_local_dns_rollout.rc == 0
+  changed_when: false
