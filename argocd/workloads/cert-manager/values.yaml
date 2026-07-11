@@ -4,5 +4,4 @@ cert-manager:
     enabled: true
 
   config:
-    gatewayAPI:
-      enabled: true
+    enableGatewayAPI: true
