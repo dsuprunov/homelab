@@ -1,0 +1,22 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: argocd
+spec:
+  project: root-project
+  source:
+    repoURL: https://github.com/dsuprunov/homelab.git
+    targetRevision: HEAD
+    path: argocd
+    directory:
+      recurse: true
+      include: "{projects/*.yaml,applications/*.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    # automated:
+    #   prune: true
+    #   selfHeal: true

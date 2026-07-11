@@ -1,14 +1,15 @@
 ---
-- name: cilium | check localhost kubeconfig
+- name: argocd | check localhost kubeconfig
   ansible.builtin.stat:
     path: "{{ kubeconfig }}"
   register: kubeconfig_stat
 
-- name: cilium | assert localhost kubeconfig exists
+- name: argocd | assert localhost kubeconfig exists
   ansible.builtin.assert:
     that:
       - kubeconfig_stat.stat.exists
     fail_msg: "Local kubeconfig is required at {{ kubeconfig }}."
     quiet: true
 
-- ansible.builtin.import_tasks: cilium.yaml
+- ansible.builtin.import_tasks: argocd.yaml
+- ansible.builtin.import_tasks: bootstrap.yaml
