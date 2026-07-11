@@ -2,9 +2,12 @@
 
 ## Argo CD AppProject Permissions
 
-- Review wildcard project permissions:
+- Review wildcard project permissions and destinations:
 
   ```yaml
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
@@ -14,8 +17,8 @@
   ```
 
   Current state is kept for bootstrap. Replace broad whitelists with explicit
-  resource allowlists per platform project after the initial GitOps transfer is
-  validated.
+  destinations and resource allowlists per platform project after the initial
+  GitOps transfer is validated.
 
 ## Cilium Secrets Namespace
 

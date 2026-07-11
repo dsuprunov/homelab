@@ -12,9 +12,7 @@ spec:
     - https://github.com/dsuprunov/homelab.git
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: cert-manager
-    - server: https://kubernetes.default.svc
-      namespace: kube-system
+      namespace: "*"
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"

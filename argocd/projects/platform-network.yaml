@@ -13,11 +13,7 @@ spec:
     - https://github.com/kubernetes-sigs/gateway-api.git
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: kube-system
-    - server: https://kubernetes.default.svc
-      namespace: cilium-secrets
-    - server: https://kubernetes.default.svc
-      namespace: cilium-gateway
+      namespace: "*"
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
