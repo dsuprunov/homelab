@@ -10,23 +10,26 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 ```bash
 kubectl -n argocd get pods
-kubectl -n argocd get app
+kubectl -n argocd get apps
+kubectl -n argocd get appprojects
 
+kubectl -n argocd patch application root-app --type merge -p '{"operation":{"sync":{}}}'
+
+watch kubectl -n argocd get app
+
+kubectl -n argocd get app root-app
+kubectl -n argocd describe app root-app
+```
+
+## Browser Access During Bootstrap
+
+Use port-forward only when you want to inspect Argo CD in the browser before
+normal Gateway access is ready:
+
+```bash
 kubectl -n argocd port-forward svc/argocd-server 8080:80
 
 http://127.0.0.1:8080
-```
-
-Login as `admin` with the initial admin password, then sync:
-
-```text
-Applications -> root-app -> Sync
-```
-
-Watch the applications:
-
-```bash
-watch kubectl -n argocd get app
 ```
 
 ## Normal Access
