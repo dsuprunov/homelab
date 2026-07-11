@@ -11,10 +11,9 @@ ARG KUBECTL_VERSION=1.36.0
 ARG KUBEADM_VERSION=1.36.0
 ARG HELM_VERSION=3.20.2
 ARG HELM_DIFF_VERSION=3.15.6
-ARG FLUX_VERSION=2.8.6
+ARG ARGOCD_CLI_VERSION=3.4.5
 ARG K9S_VERSION=0.51.0
 ARG VAULT_VERSION=2.0.0
-ARG TALOS_VERSION=1.13.5
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -51,9 +50,6 @@ RUN curl -fsSLo /usr/local/bin/kubeadm "https://dl.k8s.io/release/v${KUBEADM_VER
 RUN curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
     chmod 0755 /usr/local/bin/kubectl
 
-RUN curl -fsSLo /usr/local/bin/talosctl "https://github.com/siderolabs/talos/releases/download/v${TALOS_VERSION}/talosctl-linux-amd64" && \
-    chmod 0755 /usr/local/bin/talosctl
-
 RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" && \
     tar -xzf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz -C /tmp && \
     install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm && \
@@ -61,10 +57,8 @@ RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.s
 
 RUN HELM_PLUGINS=/usr/local/share/helm/plugins helm plugin install https://github.com/databus23/helm-diff --version ${HELM_DIFF_VERSION}
 
-RUN curl -fsSLo /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz "https://github.com/fluxcd/flux2/releases/download/v${FLUX_VERSION}/flux_${FLUX_VERSION}_linux_amd64.tar.gz" && \
-    tar -xzf /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz -C /tmp && \
-    install -m 0755 /tmp/flux /usr/local/bin/flux && \
-    rm -rf /tmp/flux_${FLUX_VERSION}_linux_amd64.tar.gz /tmp/flux
+RUN curl -fsSLo /usr/local/bin/argocd "https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_CLI_VERSION}/argocd-linux-amd64" && \
+    chmod 0755 /usr/local/bin/argocd
 
 RUN curl -fsSLo /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" && \
     tar -xzf /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz -C /tmp k9s && \

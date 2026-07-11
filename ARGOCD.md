@@ -5,3 +5,31 @@
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
 ```
+
+## First Manual Sync
+
+### CLI
+
+Terminal 1:
+
+```bash
+kubectl -n argocd port-forward svc/argocd-server 8080:443
+```
+
+Terminal 2:
+
+```bash
+kubectl -n argocd get application root-app
+argocd login localhost:8080 --username admin --password "$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)" --insecure
+argocd app sync root-app
+```
+
+### Browser
+
+```bash
+kubectl -n argocd port-forward svc/argocd-server 8080:443
+
+https://localhost:8080
+
+Applications -> root-app -> Sync
+```

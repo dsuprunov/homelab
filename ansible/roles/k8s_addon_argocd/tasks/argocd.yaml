@@ -11,7 +11,7 @@
   kubernetes.core.helm:
     release_name: argocd
     chart_ref: argo-cd
-    chart_repo_url: "{{ argocd_chart_repo_url }}"
+    chart_repo_url: https://argoproj.github.io/argo-helm
     chart_version: "{{ argocd_chart_version }}"
     release_namespace: argocd
     create_namespace: false

@@ -1,0 +1,18 @@
+---
+- name: argocd | apply locked default project
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ playbook_dir }}/../../argocd/projects/default.yaml"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: argocd | apply root project
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ playbook_dir }}/../../argocd/projects/root-project.yaml"
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: argocd | apply root application
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ playbook_dir }}/../../argocd/bootstrap/root-app.yaml"
+    kubeconfig: "{{ kubeconfig }}"

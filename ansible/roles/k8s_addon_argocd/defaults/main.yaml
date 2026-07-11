@@ -1,3 +1,2 @@
 ---
-argocd_chart_repo_url: "https://argoproj.github.io/argo-helm"
 argocd_chart_version: "10.1.3"
