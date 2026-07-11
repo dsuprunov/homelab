@@ -11,7 +11,6 @@ ARG KUBECTL_VERSION=1.36.0
 ARG KUBEADM_VERSION=1.36.0
 ARG HELM_VERSION=3.20.2
 ARG HELM_DIFF_VERSION=3.15.6
-ARG ARGOCD_CLI_VERSION=3.4.5
 ARG K9S_VERSION=0.51.0
 ARG VAULT_VERSION=2.0.0
 
@@ -57,9 +56,6 @@ RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.s
     rm -rf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz /tmp/linux-amd64
 
 RUN HELM_PLUGINS=/usr/local/share/helm/plugins helm plugin install https://github.com/databus23/helm-diff --version ${HELM_DIFF_VERSION}
-
-RUN curl -fsSLo /usr/local/bin/argocd "https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_CLI_VERSION}/argocd-linux-amd64" && \
-    chmod 0755 /usr/local/bin/argocd
 
 RUN curl -fsSLo /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" && \
     tar -xzf /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz -C /tmp k9s && \
