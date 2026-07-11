@@ -25,6 +25,11 @@ cilium:
   gatewayAPI:
     enabled: true
 
+  rollOutCiliumPods: true
+
+  operator:
+    rollOutPods: true
+
   l2announcements:
     enabled: true
 
