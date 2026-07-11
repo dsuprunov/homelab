@@ -56,21 +56,19 @@
   roles:
     - k8s_node_worker
 
+- name: k8s | longhorn node
+  hosts: k8s_node_longhorn
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_node_longhorn
+
 - name: k8s | worker join
   hosts: k8s_node_worker_join
   become: true
   gather_facts: true
   roles:
     - k8s_node_worker_join
-
-- name: k8s | node local dns
-  hosts: k8s_addon_node_local_dns
-  connection: local
-  gather_facts: false
-  tags:
-    - node-local-dns
-  roles:
-    - k8s_addon_node_local_dns
 
 - name: k8s | kubelet csr approver
   hosts: k8s_addon_kubelet_csr_approver
@@ -81,20 +79,11 @@
   roles:
     - k8s_addon_kubelet_csr_approver
 
-- name: k8s | metrics server
-  hosts: k8s_addon_metrics_server
+- name: k8s | argocd
+  hosts: k8s_addon_argocd
   connection: local
   gather_facts: false
   tags:
-    - metrics-server
+    - argocd
   roles:
-    - k8s_addon_metrics_server
-
-- name: k8s | flux
-  hosts: k8s_addon_flux
-  connection: local
-  gather_facts: false
-  tags:
-    - flux
-  roles:
-    - role: k8s_addon_flux
+    - k8s_addon_argocd

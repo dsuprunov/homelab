@@ -29,19 +29,6 @@
   until: cilium_daemonset_rollout.rc == 0
   changed_when: false
 
-- name: cilium | wait for cilium envoy daemonset rollout
-  ansible.builtin.command: >
-    kubectl rollout status daemonset/cilium-envoy
-      -n kube-system
-      --timeout=10m
-  environment:
-    KUBECONFIG: "{{ kubeconfig }}"
-  retries: 3
-  delay: 10
-  register: cilium_envoy_rollout
-  until: cilium_envoy_rollout.rc == 0
-  changed_when: false
-
 - name: cilium | wait for at least one ready cilium operator replica
   ansible.builtin.command: >
     kubectl get deployment cilium-operator

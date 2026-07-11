@@ -1,3 +1,2 @@
 ---
-gateway_api_version: "1.4.1"
-cilium_version: "1.19.3"
+cilium_version: "1.19.5"

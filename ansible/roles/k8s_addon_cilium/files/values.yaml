@@ -18,17 +18,8 @@ socketLB:
 cni:
   exclusive: true
 
-l2announcements:
-  enabled: true
-
-localRedirectPolicies:
-  enabled: true
-
 envoy:
-  enabled: true
-
-gatewayAPI:
-  enabled: true
+  enabled: false
 
 debug:
   enabled: false
