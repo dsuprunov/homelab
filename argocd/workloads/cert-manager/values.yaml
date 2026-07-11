@@ -1,0 +1,8 @@
+---
+cert-manager:
+  crds:
+    enabled: true
+
+  config:
+    gatewayAPI:
+      enabled: true

@@ -1,0 +1,32 @@
+---
+cilium:
+  kubeProxyReplacement: true
+  k8sServiceHost: k8s-api.home.arpa
+  k8sServicePort: 6443
+
+  devices: eth0
+
+  nodePort:
+    directRoutingDevice: eth0
+
+  ipam:
+    mode: kubernetes
+
+  socketLB:
+    enabled: true
+    hostNamespaceOnly: true
+
+  cni:
+    exclusive: true
+
+  envoy:
+    enabled: true
+
+  gatewayAPI:
+    enabled: true
+
+  l2announcements:
+    enabled: true
+
+  debug:
+    enabled: false

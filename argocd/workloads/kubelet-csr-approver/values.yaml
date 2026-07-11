@@ -1,0 +1,7 @@
+---
+kubelet-csr-approver:
+  providerRegex: '^vm-k8s-(control|worker)-\d+$'
+  providerIpPrefixes:
+    - 192.168.178.0/24
+  maxExpirationSeconds: 86400
+  bypassDnsResolution: true

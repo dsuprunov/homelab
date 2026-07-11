@@ -1,0 +1,17 @@
+definitions:
+  io.k8s.gateway_api.v1.Gateway:
+    type: object
+    x-kubernetes-group-version-kind:
+      - group: gateway.networking.k8s.io
+        version: v1
+        kind: Gateway
+    properties:
+      spec:
+        type: object
+        properties:
+          listeners:
+            type: array
+            x-kubernetes-patch-merge-key: name
+            x-kubernetes-patch-strategy: merge
+            items:
+              type: object

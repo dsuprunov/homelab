@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium-gateway
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-50"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-network
+  source:
+    repoURL: https://github.com/dsuprunov/homelab.git
+    targetRevision: HEAD
+    path: argocd/workloads/cilium-gateway
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cilium-gateway
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

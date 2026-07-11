@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-tls
+  namespace: cilium-gateway
+spec:
+  secretName: argocd-tls
+  issuerRef:
+    name: home-arpa-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  dnsNames:
+    - argocd.k8s.home.arpa

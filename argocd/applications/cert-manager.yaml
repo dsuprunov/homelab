@@ -1,0 +1,29 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-70"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-pki
+  source:
+    repoURL: https://github.com/dsuprunov/homelab.git
+    targetRevision: HEAD
+    path: argocd/workloads/cert-manager
+    helm:
+      releaseName: cert-manager
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
