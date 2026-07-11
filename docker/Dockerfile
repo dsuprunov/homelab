@@ -30,6 +30,7 @@ RUN apt-get update && \
       python3-venv \
       unzip \
       procps \
+      tmux \
       zsh \
     && rm -rf /var/lib/apt/lists/*
 

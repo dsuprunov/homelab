@@ -10,18 +10,18 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 ### CLI
 
-Terminal 1:
-
 ```bash
-kubectl -n argocd port-forward svc/argocd-server 8080:443
-```
+tmux new-session -d -s argocd \
+  'kubectl -n argocd port-forward svc/argocd-server 8080:443' \; \
+  split-window -h \; \
+  attach-session
 
-Terminal 2:
-
-```bash
-kubectl -n argocd get application root-app
 argocd login localhost:8080 --username admin --password "$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)" --insecure
+argocd app get root-app
 argocd app sync root-app
+
+kubectl -n argocd get app
+kubectl -n argocd get appprojects
 ```
 
 ### Browser
