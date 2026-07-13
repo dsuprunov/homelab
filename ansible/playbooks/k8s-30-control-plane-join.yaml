@@ -1,0 +1,8 @@
+---
+- name: k8s | control join
+  hosts: k8s_node_control_join
+  become: true
+  gather_facts: true
+  serial: 1
+  roles:
+    - k8s_node_control_join

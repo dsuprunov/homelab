@@ -1,0 +1,25 @@
+---
+- name: k8s | cluster init
+  hosts: k8s_cluster_init
+  become: true
+  gather_facts: true
+  roles:
+    - k8s_cluster_init
+
+- name: k8s | cilium
+  hosts: k8s_addon_cilium
+  connection: local
+  gather_facts: false
+  tags:
+    - cilium
+  roles:
+    - k8s_addon_cilium
+
+- name: k8s | kubelet csr approver
+  hosts: k8s_addon_kubelet_csr_approver
+  connection: local
+  gather_facts: false
+  tags:
+    - kubelet-csr-approver
+  roles:
+    - k8s_addon_kubelet_csr_approver

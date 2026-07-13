@@ -1,0 +1,9 @@
+---
+- name: k8s | argocd
+  hosts: k8s_addon_argocd
+  connection: local
+  gather_facts: false
+  tags:
+    - argocd
+  roles:
+    - k8s_addon_argocd
