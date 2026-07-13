@@ -12,7 +12,7 @@ kube-prometheus-stack:
   prometheus:
     prometheusSpec:
       retention: 7d
-      retentionSize: 12GB
+      retentionSize: 3GB
       storageSpec:
         volumeClaimTemplate:
           spec:
@@ -21,7 +21,7 @@ kube-prometheus-stack:
               - ReadWriteOnce
             resources:
               requests:
-                storage: 16Gi
+                storage: 4Gi
       externalLabels:
         cluster: homelab
       podMonitorSelectorNilUsesHelmValues: true
