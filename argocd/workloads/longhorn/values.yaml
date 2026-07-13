@@ -9,5 +9,8 @@ longhorn:
     storageReservedPercentageForDefaultDisk: 0
     storageMinimalAvailablePercentage: 10
 
+  preUpgradeChecker:
+    jobEnabled: false
+
   persistence:
     defaultClassReplicaCount: 1
