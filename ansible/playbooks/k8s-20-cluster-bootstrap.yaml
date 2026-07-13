@@ -1,10 +1,10 @@
 ---
-- name: k8s | cluster init
-  hosts: k8s_bootstrap_control_plane
+- name: k8s | cluster bootstrap
+  hosts: k8s_cluster_bootstrap
   become: true
   gather_facts: true
   roles:
-    - k8s_cluster_init
+    - k8s_cluster_bootstrap
 
 - name: k8s | cilium
   hosts: localhost

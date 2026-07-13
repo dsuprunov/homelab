@@ -1,6 +1,6 @@
 ---
 - name: k8s | control join
-  hosts: 'k8s_node_control:!k8s_bootstrap_control_plane'
+  hosts: 'k8s_node_control:!k8s_cluster_bootstrap'
   become: true
   gather_facts: true
   serial: 1

@@ -13,14 +13,14 @@
           ansible.builtin.command: kubeadm token create --print-join-command
           environment:
             KUBECONFIG: /etc/kubernetes/admin.conf
-          delegate_to: "{{ groups['k8s_bootstrap_control_plane'] | first }}"
+          delegate_to: "{{ groups['k8s_cluster_bootstrap'] | first }}"
           run_once: true
           register: join_command
           changed_when: false
 
         - name: k8s | generate certificate key
           ansible.builtin.command: kubeadm certs certificate-key
-          delegate_to: "{{ groups['k8s_bootstrap_control_plane'] | first }}"
+          delegate_to: "{{ groups['k8s_cluster_bootstrap'] | first }}"
           run_once: true
           register: certificate_key_command
           changed_when: false
@@ -38,7 +38,7 @@
               --certificate-key {{ kubeadm_certificate_key }}
           environment:
             KUBECONFIG: /etc/kubernetes/admin.conf
-          delegate_to: "{{ groups['k8s_bootstrap_control_plane'] | first }}"
+          delegate_to: "{{ groups['k8s_cluster_bootstrap'] | first }}"
           run_once: true
           no_log: true
 
@@ -72,5 +72,5 @@
             kubectl wait --for=condition=Ready node/{{ inventory_hostname }} --timeout=10m
           environment:
             KUBECONFIG: /etc/kubernetes/admin.conf
-          delegate_to: "{{ groups['k8s_bootstrap_control_plane'] | first }}"
+          delegate_to: "{{ groups['k8s_cluster_bootstrap'] | first }}"
           changed_when: false

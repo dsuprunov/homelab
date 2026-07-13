@@ -11,7 +11,7 @@
       block:
         - name: k8s | get join command
           ansible.builtin.command: kubeadm token create --print-join-command
-          delegate_to: "{{ groups['k8s_bootstrap_control_plane'] | first }}"
+          delegate_to: "{{ groups['k8s_cluster_bootstrap'] | first }}"
           run_once: true
           register: join_command
 
@@ -23,4 +23,4 @@
             kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/worker= --overwrite
           environment:
             KUBECONFIG: /etc/kubernetes/admin.conf
-          delegate_to: "{{ groups['k8s_bootstrap_control_plane'] | first }}"
+          delegate_to: "{{ groups['k8s_cluster_bootstrap'] | first }}"
