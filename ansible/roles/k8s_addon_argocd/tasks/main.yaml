@@ -12,4 +12,3 @@
     quiet: true
 
 - ansible.builtin.import_tasks: argocd.yaml
-- ansible.builtin.import_tasks: bootstrap.yaml

@@ -1,56 +1,80 @@
 ---
-- name: argocd | create namespace
-  kubernetes.core.k8s:
-    api_version: v1
-    kind: Namespace
-    name: argocd
-    kubeconfig: "{{ kubeconfig }}"
-    state: present
-
-- name: argocd | install
-  kubernetes.core.helm:
-    release_name: argocd
-    chart_ref: argo-cd
-    chart_repo_url: https://argoproj.github.io/argo-helm
-    chart_version: "{{ argocd_chart_version }}"
-    release_namespace: argocd
-    create_namespace: false
-    release_values: "{{ lookup('ansible.builtin.file', role_path ~ '/files/values.yaml') | from_yaml }}"
-    kubeconfig: "{{ kubeconfig }}"
-    wait: true
-    timeout: 15m
-    state: present
-  retries: 6
-  delay: 30
-  register: argocd_deploy
-  until: argocd_deploy is succeeded
-
-- name: argocd | wait for deployments
+- name: argocd | check Argo CD ownership
   ansible.builtin.command: >
-    kubectl wait
+    kubectl get application.argoproj.io argocd
       -n argocd
-      --for=condition=Available
-      deployment
-      --all
-      --timeout=10m
+      --ignore-not-found
+      -o name
   environment:
     KUBECONFIG: "{{ kubeconfig }}"
-  retries: 3
-  delay: 10
-  register: argocd_deployments_ready
-  until: argocd_deployments_ready.rc == 0
+  register: argocd_argocd_application
   changed_when: false
+  failed_when: false
 
-- name: argocd | wait for application controller
-  ansible.builtin.command: >
-    kubectl rollout status
-      -n argocd
-      statefulset/argocd-application-controller
-      --timeout=10m
-  environment:
-    KUBECONFIG: "{{ kubeconfig }}"
-  retries: 3
-  delay: 10
-  register: argocd_application_controller_ready
-  until: argocd_application_controller_ready.rc == 0
-  changed_when: false
+- name: argocd | report Argo CD ownership
+  ansible.builtin.debug:
+    msg: >-
+      Skipping bootstrap because Argo CD Application
+      argocd/argocd owns Argo CD.
+  when: argocd_argocd_application.stdout | trim | length > 0
+
+- name: argocd | bootstrap
+  when: argocd_argocd_application.stdout | trim | length == 0
+  block:
+    - name: argocd | create namespace
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: argocd
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+
+    - name: argocd | install
+      kubernetes.core.helm:
+        release_name: argocd
+        chart_ref: argo-cd
+        chart_repo_url: https://argoproj.github.io/argo-helm
+        chart_version: "{{ argocd_chart_version }}"
+        release_namespace: argocd
+        create_namespace: false
+        release_values: "{{ lookup('ansible.builtin.file', role_path ~ '/files/values.yaml') | from_yaml }}"
+        kubeconfig: "{{ kubeconfig }}"
+        wait: true
+        timeout: 15m
+        state: present
+      retries: 6
+      delay: 30
+      register: argocd_deploy
+      until: argocd_deploy is succeeded
+
+    - name: argocd | wait for deployments
+      ansible.builtin.command: >
+        kubectl wait
+          -n argocd
+          --for=condition=Available
+          deployment
+          --all
+          --timeout=10m
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
+      retries: 3
+      delay: 10
+      register: argocd_deployments_ready
+      until: argocd_deployments_ready.rc == 0
+      changed_when: false
+
+    - name: argocd | wait for application controller
+      ansible.builtin.command: >
+        kubectl rollout status
+          -n argocd
+          statefulset/argocd-application-controller
+          --timeout=10m
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
+      retries: 3
+      delay: 10
+      register: argocd_application_controller_ready
+      until: argocd_application_controller_ready.rc == 0
+      changed_when: false
+
+    - ansible.builtin.import_tasks: bootstrap.yaml
