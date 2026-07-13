@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-20"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-storage
+  source:
+    repoURL: https://github.com/dsuprunov/homelab.git
+    targetRevision: HEAD
+    path: argocd/workloads/longhorn
+    helm:
+      releaseName: longhorn
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        gateway.home.arpa/public: "true"
+    syncOptions:
+      - CreateNamespace=true

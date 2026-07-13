@@ -10,6 +10,7 @@ resources:
 #
   - certificates/argocd.yaml
   - certificates/grafana.yaml
+  - certificates/longhorn.yaml
 
 openapi:
   path: openapi.yaml
@@ -17,3 +18,4 @@ openapi:
 patches:
   - path: listeners/argocd.yaml
   - path: listeners/grafana.yaml
+  - path: listeners/longhorn.yaml

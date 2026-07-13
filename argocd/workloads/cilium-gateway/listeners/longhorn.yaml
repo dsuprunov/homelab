@@ -1,0 +1,24 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public
+  namespace: cilium-gateway
+spec:
+  listeners:
+    - name: https-longhorn
+      hostname: longhorn.k8s.home.arpa
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: longhorn-tls
+            kind: Secret
+            group: ""
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              gateway.home.arpa/public: "true"

@@ -5,3 +5,18 @@
   gather_facts: true
   roles:
     - k8s_node_worker_join
+
+- name: k8s | longhorn node metadata
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags:
+    - longhorn
+  tasks:
+    - name: k8s | configure Longhorn node metadata
+      ansible.builtin.include_role:
+        name: k8s_node_longhorn
+        tasks_from: kubernetes-node-metadata
+      loop: "{{ groups['k8s_node_longhorn'] }}"
+      loop_control:
+        loop_var: longhorn_node_name

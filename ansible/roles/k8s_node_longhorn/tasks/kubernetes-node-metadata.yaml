@@ -1,0 +1,29 @@
+---
+- name: longhorn node | check localhost kubeconfig
+  ansible.builtin.stat:
+    path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.kube/config"
+  register: longhorn_kubeconfig_stat
+
+- name: longhorn node | assert localhost kubeconfig exists
+  ansible.builtin.assert:
+    that:
+      - longhorn_kubeconfig_stat.stat.exists
+    fail_msg: >-
+      Local kubeconfig is required at
+      {{ lookup('ansible.builtin.env', 'HOME') }}/.kube/config.
+    quiet: true
+
+- name: longhorn node | configure Kubernetes node metadata
+  kubernetes.core.k8s:
+    kubeconfig: "{{ lookup('ansible.builtin.env', 'HOME') }}/.kube/config"
+    state: patched
+    api_version: v1
+    kind: Node
+    name: "{{ longhorn_node_name }}"
+    definition:
+      metadata:
+        labels:
+          node.longhorn.io/create-default-disk: config
+        annotations:
+          node.longhorn.io/default-disks-config: >-
+            {{ [{'name': 'sdb', 'path': '/var/lib/longhorn', 'allowScheduling': true}] | to_json }}
