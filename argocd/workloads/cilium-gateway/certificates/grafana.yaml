@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls
+  namespace: cilium-gateway
+spec:
+  secretName: grafana-tls
+  issuerRef:
+    name: home-arpa-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  dnsNames:
+    - grafana.k8s.home.arpa

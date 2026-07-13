@@ -1,0 +1,72 @@
+---
+kube-prometheus-stack:
+  defaultRules:
+    disabled:
+      KubeProxyDown: true
+      etcdMembersDown: true
+      etcdInsufficientMembers: true
+      KubeControllerManagerDown: true
+      KubeSchedulerDown: true
+      KubeMemoryOvercommit: true
+
+  prometheus:
+    prometheusSpec:
+      retention: 7d
+      retentionSize: 12GB
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: longhorn
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 16Gi
+      externalLabels:
+        cluster: homelab
+      podMonitorSelectorNilUsesHelmValues: true
+      podMonitorNamespaceSelector: {}
+
+  grafana:
+    defaultDashboardsEnabled: false
+
+    admin:
+      existingSecret: grafana-admin-credentials
+      userKey: admin-user
+      passwordKey: admin-password
+
+    persistence:
+      enabled: true
+      type: pvc
+      storageClassName: longhorn
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+
+    grafana.ini:
+      server:
+        domain: grafana.k8s.home.arpa
+        root_url: https://grafana.k8s.home.arpa
+        enforce_domain: true
+
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        searchNamespace: ALL
+        resource: configmap
+      datasources:
+        defaultDatasourceEnabled: false
+
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            uid: prometheus
+            type: prometheus
+            url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+            isDefault: true
+            jsonData:
+              timeInterval: 30s

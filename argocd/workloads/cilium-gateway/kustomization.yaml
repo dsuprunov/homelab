@@ -9,9 +9,11 @@ resources:
   - l2-policy.yaml
 #
   - certificates/argocd.yaml
+  - certificates/grafana.yaml
 
 openapi:
   path: openapi.yaml
 
 patches:
   - path: listeners/argocd.yaml
+  - path: listeners/grafana.yaml
