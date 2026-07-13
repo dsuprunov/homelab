@@ -1,10 +1,10 @@
 ---
 - name: k8s | node
-  hosts: k8s_node_base
+  hosts: k8s_node
   become: true
   gather_facts: true
   roles:
-    - k8s_node_base
+    - k8s_node
 
 - name: k8s | control
   hosts: k8s_node_control

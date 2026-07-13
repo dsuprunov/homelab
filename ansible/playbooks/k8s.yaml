@@ -2,6 +2,6 @@
 - import_playbook: k8s-00-preflight.yaml
 - import_playbook: k8s-10-node-bootstrap.yaml
 - import_playbook: k8s-20-cluster-bootstrap.yaml
-- import_playbook: k8s-30-control-plane-join.yaml
-- import_playbook: k8s-40-worker-join.yaml
+- import_playbook: k8s-30-node-control-join.yaml
+- import_playbook: k8s-40-node-worker-join.yaml
 - import_playbook: k8s-60-gitops-bootstrap.yaml

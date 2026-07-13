@@ -1,6 +1,6 @@
 ---
 - name: k8s | argocd
-  hosts: k8s_addon_argocd
+  hosts: localhost
   connection: local
   gather_facts: false
   tags:

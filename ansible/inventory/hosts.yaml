@@ -1,0 +1,53 @@
+---
+all:
+  children:
+    local:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    vms:
+      children:
+        dns:
+          vars:
+            ansible_user: debian
+          hosts:
+            vm-coredns:
+              ansible_host: 192.168.178.206
+
+#        vault:
+#          vars:
+#            ansible_user: debian
+#          hosts:
+#            vm-vault-01:
+#              ansible_host: 192.168.178.208
+
+        k8s_node:
+          vars:
+            ansible_user: ubuntu
+          children:
+            k8s_node_control:
+              hosts:
+                vm-k8s-control-01:
+                  ansible_host: 192.168.178.231
+
+            k8s_node_worker:
+              hosts:
+                vm-k8s-worker-01:
+                  ansible_host: 192.168.178.236
+
+                vm-k8s-worker-02:
+                  ansible_host: 192.168.178.237
+
+                vm-k8s-worker-03:
+                  ansible_host: 192.168.178.238
+
+    k8s_bootstrap_control_plane:
+      hosts:
+        vm-k8s-control-01:
+
+    k8s_node_longhorn:
+      hosts:
+        vm-k8s-worker-01:
+        vm-k8s-worker-02:
+        vm-k8s-worker-03:

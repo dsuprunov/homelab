@@ -1,13 +1,13 @@
 ---
 - name: k8s | cluster init
-  hosts: k8s_cluster_init
+  hosts: k8s_bootstrap_control_plane
   become: true
   gather_facts: true
   roles:
     - k8s_cluster_init
 
 - name: k8s | cilium
-  hosts: k8s_addon_cilium
+  hosts: localhost
   connection: local
   gather_facts: false
   tags:
@@ -16,7 +16,7 @@
     - k8s_addon_cilium
 
 - name: k8s | kubelet csr approver
-  hosts: k8s_addon_kubelet_csr_approver
+  hosts: localhost
   connection: local
   gather_facts: false
   tags:
