@@ -48,6 +48,11 @@ kube-prometheus-stack:
         domain: grafana.k8s.home.arpa
         root_url: https://grafana.k8s.home.arpa
         enforce_domain: true
+      auth.anonymous:
+        enabled: true
+        org_role: Admin
+      auth:
+        disable_login_form: true
 
     sidecar:
       dashboards:
