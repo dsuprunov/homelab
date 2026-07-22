@@ -9,7 +9,7 @@ Each directory has its own local state.
 - `10-bootstrap` - first infrastructure VM, currently `vm-coredns`.
 - `20-core-services` - core service VMs, currently Garage and Vault templates are kept disabled.
 - `30-kubeadm` - kubeadm Kubernetes VMs.
-- `40-talos` - Talos Kubernetes VMs.
+- `30-talos` - Talos Kubernetes VMs.
 - `90-sandbox` - test VMs that can be destroyed and recreated independently.
 
 The numeric prefixes are an operator convention, not a Terraform dependency
@@ -20,7 +20,7 @@ graph. The recommended first deployment order is:
 10-bootstrap
 20-core-services
 30-kubeadm
-40-talos
+30-talos
 90-sandbox
 ```
 
@@ -65,8 +65,8 @@ terraform -chdir=20-core-services apply -var-file=../credentials.auto.tfvars
 terraform -chdir=30-kubeadm init
 terraform -chdir=30-kubeadm apply -var-file=../credentials.auto.tfvars
 
-terraform -chdir=40-talos init
-terraform -chdir=40-talos apply -var-file=../credentials.auto.tfvars
+terraform -chdir=30-talos init
+terraform -chdir=30-talos apply -var-file=../credentials.auto.tfvars
 
 terraform -chdir=90-sandbox init
 terraform -chdir=90-sandbox apply -var-file=../credentials.auto.tfvars
@@ -94,7 +94,7 @@ Add a VM to the `vms` map in the right layer:
 - `10-bootstrap` for first infrastructure dependencies like DNS.
 - `20-core-services` for shared service VMs.
 - `30-kubeadm` for kubeadm Kubernetes nodes.
-- `40-talos` for Talos Kubernetes nodes.
+- `30-talos` for Talos Kubernetes nodes.
 - `90-sandbox` for temporary test VMs.
 
 Create a new root module only when the VM group has a different lifecycle and
