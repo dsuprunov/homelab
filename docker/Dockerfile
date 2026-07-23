@@ -10,6 +10,7 @@ ARG ANSIBLE_CORE_VERSION=2.20.5
 ARG KUBERNETES_PYTHON_VERSION=35.0.0
 ARG KUBECTL_VERSION=1.36.2
 ARG KUBEADM_VERSION=1.36.2
+ARG TALOSCTL_VERSION=1.13.5
 ARG HELM_VERSION=3.20.2
 ARG K9S_VERSION=0.51.0
 ARG VAULT_VERSION=2.0.3
@@ -57,6 +58,9 @@ RUN curl -fsSLo /usr/local/bin/kubeadm "https://dl.k8s.io/release/v${KUBEADM_VER
 
 RUN curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
     chmod 0755 /usr/local/bin/kubectl
+
+RUN curl -fsSLo /usr/local/bin/talosctl "https://github.com/siderolabs/talos/releases/download/v${TALOSCTL_VERSION}/talosctl-linux-amd64" && \
+    chmod 0755 /usr/local/bin/talosctl
 
 RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" && \
     tar -xzf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz -C /tmp && \

@@ -1,6 +1,6 @@
 locals {
   talos_nodes = {
-    "talos-01" = {
+    "vm-k8s-control-01" = {
       vm_id  = 101
       cores  = 2
       memory = 4096
@@ -9,19 +9,28 @@ locals {
         { interface = "scsi0", size = 32 },
       ]
     }
-    "talos-02" = {
-      vm_id  = 102
+    "vm-k8s-worker-01" = {
+      vm_id  = 104
       cores  = 2
-      memory = 4096
+      memory = 6144
 
       disks = [
         { interface = "scsi0", size = 32 },
       ]
     }
-    "talos-03" = {
-      vm_id  = 103
+    "vm-k8s-worker-02" = {
+      vm_id  = 105
       cores  = 2
-      memory = 4096
+      memory = 6144
+
+      disks = [
+        { interface = "scsi0", size = 32 },
+      ]
+    }
+    "vm-k8s-worker-03" = {
+      vm_id  = 106
+      cores  = 2
+      memory = 6144
 
       disks = [
         { interface = "scsi0", size = 32 },
@@ -39,7 +48,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   bios          = "ovmf"
   machine       = "q35"
-  scsi_hardware = "virtio-scsi-single"
+  scsi_hardware = "virtio-scsi-pci"
   boot_order    = ["scsi2", "scsi0"]
 
   efi_disk {
@@ -77,7 +86,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
       aio      = "io_uring"
       cache    = "none"
       discard  = "on"
-      iothread = true
       ssd      = true
     }
   }
@@ -94,10 +102,6 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   serial_device {
     device = "socket"
-  }
-
-  vga {
-    type = "serial0"
   }
 
   rng {
