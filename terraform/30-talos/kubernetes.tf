@@ -49,7 +49,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
   bios          = "ovmf"
   machine       = "q35"
   scsi_hardware = "virtio-scsi-pci"
-  boot_order    = ["scsi2", "scsi0"]
+  boot_order    = ["scsi0", "scsi2"]
 
   efi_disk {
     datastore_id = "local-lvm"
