@@ -37,6 +37,30 @@ Credentials stay in the shared file:
 terraform/credentials.auto.tfvars
 ```
 
+## Format
+
+```bash
+terraform -chdir=00-vm-templates fmt
+terraform -chdir=10-bootstrap fmt
+terraform -chdir=20-core-services fmt
+terraform -chdir=30-kubeadm fmt
+terraform -chdir=30-talos fmt
+terraform -chdir=90-sandbox fmt
+```
+
+## Validate
+
+Run `init` for a layer before validating it.
+
+```bash
+terraform -chdir=00-vm-templates validate
+terraform -chdir=10-bootstrap validate
+terraform -chdir=20-core-services validate
+terraform -chdir=30-kubeadm validate
+terraform -chdir=30-talos validate
+terraform -chdir=90-sandbox validate
+```
+
 ## Deploy
 
 ```bash
@@ -66,6 +90,30 @@ terraform -chdir=30-talos apply terraform.tfplan
 terraform -chdir=90-sandbox init
 terraform -chdir=90-sandbox plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
 terraform -chdir=90-sandbox apply terraform.tfplan
+```
+
+## Destroy
+
+Destroy dependent VM layers before destroying templates.
+
+```bash
+terraform -chdir=90-sandbox plan -destroy -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=90-sandbox apply terraform.tfplan
+
+terraform -chdir=30-talos plan -destroy -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=30-talos apply terraform.tfplan
+
+terraform -chdir=30-kubeadm plan -destroy -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=30-kubeadm apply terraform.tfplan
+
+terraform -chdir=20-core-services plan -destroy -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=20-core-services apply terraform.tfplan
+
+terraform -chdir=10-bootstrap plan -destroy -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=10-bootstrap apply terraform.tfplan
+
+terraform -chdir=00-vm-templates plan -destroy -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=00-vm-templates apply terraform.tfplan
 ```
 
 ## Add Image Version
