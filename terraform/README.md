@@ -5,7 +5,7 @@ Each directory has its own local state.
 
 ## Layers
 
-- `00-images` - cloud images downloaded to Proxmox.
+- `00-vm-templates` - Packer artifacts imported to Proxmox VM templates.
 - `10-bootstrap` - first infrastructure VM, currently `vm-coredns`.
 - `20-core-services` - core service VMs, currently Garage and Vault templates are kept disabled.
 - `30-kubeadm` - kubeadm Kubernetes VMs.
@@ -15,26 +15,19 @@ Each directory has its own local state.
 The numeric prefixes are an operator convention, not a Terraform dependency
 graph. The recommended first deployment order is:
 
+## Images And Templates
+
+Packer owns base image provisioning. It starts upstream Ubuntu/Debian cloud
+images with QEMU/TCG, installs `qemu-guest-agent`, cleans cloud-init state, and
+writes versioned `.qcow2` artifacts under:
+
 ```text
-00-images
-10-bootstrap
-20-core-services
-30-kubeadm
-30-talos
-90-sandbox
+packer/artifacts/
 ```
 
-After images and bootstrap are created, the other functional layers are managed
-independently. kubeadm and Talos are separate VM groups and have separate state.
-Sandbox can be destroyed and recreated without touching the other VM layers.
-
-## Images
-
-`00-images` owns the Proxmox cloud images. VM layers do not download images.
-They read image file IDs from the local state of `00-images`:
-
-Do not destroy `00-images` while other layers still use images created by it.
-Those VM layers refer to the uploaded Proxmox files.
+`00-vm-templates` owns Proxmox VM templates created from those artifacts. VM
+layers do not download or import cloud images directly. They clone templates
+through aliases exported by the local state of `00-vm-templates`.
 
 ## Credentials
 
@@ -44,48 +37,51 @@ Credentials stay in the shared file:
 terraform/credentials.auto.tfvars
 ```
 
-Pass it explicitly from each layer:
-
-```bash
-terraform -chdir=00-images apply -var-file=../credentials.auto.tfvars
-```
-
 ## Deploy
 
 ```bash
-terraform -chdir=00-images init
-terraform -chdir=00-images apply -var-file=../credentials.auto.tfvars
+packer/build.sh ubuntu_26_04
+packer/build.sh debian_13
+
+terraform -chdir=00-vm-templates init
+terraform -chdir=00-vm-templates plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=00-vm-templates apply terraform.tfplan
 
 terraform -chdir=10-bootstrap init
-terraform -chdir=10-bootstrap apply -var-file=../credentials.auto.tfvars
+terraform -chdir=10-bootstrap plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=10-bootstrap apply terraform.tfplan
 
 terraform -chdir=20-core-services init
-terraform -chdir=20-core-services apply -var-file=../credentials.auto.tfvars
+terraform -chdir=20-core-services plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=20-core-services apply terraform.tfplan
 
 terraform -chdir=30-kubeadm init
-terraform -chdir=30-kubeadm apply -var-file=../credentials.auto.tfvars
+terraform -chdir=30-kubeadm plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=30-kubeadm apply terraform.tfplan
 
 terraform -chdir=30-talos init
-terraform -chdir=30-talos apply -var-file=../credentials.auto.tfvars
+terraform -chdir=30-talos plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=30-talos apply terraform.tfplan
 
 terraform -chdir=90-sandbox init
-terraform -chdir=90-sandbox apply -var-file=../credentials.auto.tfvars
+terraform -chdir=90-sandbox plan -var-file=../credentials.auto.tfvars -out terraform.tfplan
+terraform -chdir=90-sandbox apply terraform.tfplan
 ```
 
-## One Layer
+## Add Image Version
 
-Plan, apply, or destroy one layer from the repository root:
+Build a new Packer artifact using `YYYYMMDD` version naming:
 
 ```bash
-terraform -chdir=90-sandbox plan -var-file=../credentials.auto.tfvars
-terraform -chdir=90-sandbox apply -var-file=../credentials.auto.tfvars
-terraform -chdir=90-sandbox destroy -var-file=../credentials.auto.tfvars
+packer/build.sh ubuntu_26_04 20260722
 ```
 
-## Add Image
+Add a new immutable entry to `00-vm-templates/images.auto.tfvars`, then apply
+`00-vm-templates`. VM layers use image aliases, not raw artifact names:
 
-Add a new entry to `00-images/images.auto.tfvars`, then apply `00-images`.
-VMs can use it by setting `image` to the new image key.
+```hcl
+image = "ubuntu_26_04"
+```
 
 ## Add VM
 
@@ -96,13 +92,3 @@ Add a VM to the `vms` map in the right layer:
 - `30-kubeadm` for kubeadm Kubernetes nodes.
 - `30-talos` for Talos Kubernetes nodes.
 - `90-sandbox` for temporary test VMs.
-
-Create a new root module only when the VM group has a different lifecycle and
-should have its own state.
-
-## Checks
-
-```bash
-terraform fmt -recursive
-terraform -chdir=00-images validate
-```

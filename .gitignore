@@ -1,9 +1,14 @@
 # ---- Terraform ----
 **/.terraform/
 **/.terraform.lock.hcl.bak
+**/*.tfplan
 **/*.tfstate
 **/*.tfstate.*
 **/credentials.auto.tfvars
+
+# ---- Packer ----
+packer/.tmp/
+packer/artifacts/
 
 # ---- Ansible ----
 **/.ansible/

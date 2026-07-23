@@ -13,7 +13,7 @@ lvextend -l +100%FREE -r /dev/pve/root
 
 lsblk -d -o NAME,SIZE,MODEL,SERIAL
 
-TARGET=/dev/nvme0n1
+TARGET=/dev/nvme1n1
 
 lsblk -f "$TARGET"
 
@@ -41,19 +41,6 @@ pvesm add lvmthin local-lvm \
   --vgname vmdata \
   --thinpool data \
   --content images,rootdir
-
-pvesm set local --content iso,vztmpl,import,backup,snippets
-
-mkdir -p /var/lib/vz/snippets
-
-cat > /var/lib/vz/snippets/cloud-config-vendor-qemu-guest-agent.yaml <<'EOF'
-#cloud-config
-package_update: true
-packages:
-  - qemu-guest-agent
-runcmd:
-  - [ systemctl, enable, --now, qemu-guest-agent ]
-EOF
 
 pvesm status
 more /etc/pve/storage.cfg

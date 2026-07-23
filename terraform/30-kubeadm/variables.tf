@@ -55,8 +55,6 @@ variable "vms" {
 
     qemu_agent_enabled = optional(bool, false)
     qemu_agent_timeout = optional(string, null)
-
-    cloud_config_vendor_data_file = optional(string, null)
   }))
 
   default = {}

@@ -1,7 +1,7 @@
-data "terraform_remote_state" "images" {
+data "terraform_remote_state" "templates" {
   backend = "local"
 
   config = {
-    path = "${path.root}/../00-images/terraform.tfstate"
+    path = "${path.root}/../00-vm-templates/terraform.tfstate"
   }
 }

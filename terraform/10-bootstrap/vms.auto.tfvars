@@ -20,7 +20,6 @@ vms = {
     user     = "debian"
     ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMR9r620XCqAjcmtgnFjVZe5jhyR/hvv6cFQzPaEVK9"]
 
-    qemu_agent_enabled            = true
-    cloud_config_vendor_data_file = "local:snippets/cloud-config-vendor-qemu-guest-agent.yaml"
+    qemu_agent_enabled = true
   }
 }

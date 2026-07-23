@@ -28,13 +28,12 @@ module "proxmox_vm" {
   user               = each.value.user
   ssh_keys           = each.value.ssh_keys
 
-  import_from = data.terraform_remote_state.images.outputs.images[each.value.image]
+  template_vm_id     = data.terraform_remote_state.templates.outputs.templates[each.value.image].vm_id
+  template_node_name = data.terraform_remote_state.templates.outputs.templates[each.value.image].node
 
   started = each.value.started
   on_boot = each.value.on_boot
 
   qemu_agent_enabled = each.value.qemu_agent_enabled
   qemu_agent_timeout = each.value.qemu_agent_timeout
-
-  cloud_config_vendor_data_file = each.value.cloud_config_vendor_data_file
 }

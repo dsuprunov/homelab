@@ -1,2 +1,0 @@
----
-kubeconfig: "{{ lookup('ansible.builtin.env', 'HOME') }}/.kube/config"

@@ -10,6 +10,14 @@ resource "proxmox_virtual_environment_vm" "vm" {
   on_boot         = var.on_boot
   stop_on_destroy = true
 
+  # --- Template clone ---
+  clone {
+    datastore_id = var.datastore_id
+    full         = true
+    node_name    = var.template_node_name
+    vm_id        = var.template_vm_id
+  }
+
   # --- Firmware / machine / boot ---
   bios          = "ovmf"
   machine       = "q35"
@@ -49,9 +57,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
     content {
       datastore_id = coalesce(d.value.datastore_id, var.datastore_id)
 
-      interface   = d.key
-      size        = d.value.size
-      import_from = d.key == "scsi0" ? var.import_from : null
+      interface = d.key
+      size      = d.value.size
 
       aio      = "io_uring"
       cache    = "none"
@@ -91,8 +98,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
   # --- Cloud-init / initial provisioning ---
   initialization {
     datastore_id = var.cloudinit_datastore_id
-
-    vendor_data_file_id = var.cloud_config_vendor_data_file
 
     user_account {
       username = var.user

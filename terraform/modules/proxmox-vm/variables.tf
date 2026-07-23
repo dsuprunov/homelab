@@ -108,11 +108,11 @@ variable "ssh_keys" {
   type = list(string)
 }
 
-variable "import_from" {
-  type = string
+variable "template_vm_id" {
+  type = number
 }
 
-variable "cloud_config_vendor_data_file" {
+variable "template_node_name" {
   type    = string
   default = null
 }

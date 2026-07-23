@@ -5,28 +5,32 @@ ARG HOST_UID=1000
 ARG HOST_GID=1000
 
 ARG TERRAFORM_VERSION=1.15.7
+ARG PACKER_VERSION=1.15.4
 ARG ANSIBLE_CORE_VERSION=2.20.5
 ARG KUBERNETES_PYTHON_VERSION=35.0.0
-ARG KUBECTL_VERSION=1.36.0
-ARG KUBEADM_VERSION=1.36.0
+ARG KUBECTL_VERSION=1.36.2
+ARG KUBEADM_VERSION=1.36.2
 ARG HELM_VERSION=3.20.2
-ARG HELM_DIFF_VERSION=3.15.6
 ARG K9S_VERSION=0.51.0
-ARG VAULT_VERSION=2.0.0
+ARG VAULT_VERSION=2.0.3
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       ca-certificates \
+      cloud-image-utils \
       curl \
       dnsutils \
+      gettext-base \
       git \
       mc \
       nano \
       openssh-client \
       python3 \
       python3-venv \
+      qemu-system-x86 \
+      qemu-utils \
       unzip \
       procps \
       tmux \
@@ -39,6 +43,10 @@ RUN groupadd --gid "${HOST_GID}" "${USERNAME}" && \
 RUN curl -fsSLo /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
     unzip /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip terraform -d /usr/local/bin && \
     rm /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+RUN curl -fsSLo /tmp/packer_${PACKER_VERSION}_linux_amd64.zip "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip" && \
+    unzip /tmp/packer_${PACKER_VERSION}_linux_amd64.zip packer -d /usr/local/bin && \
+    rm /tmp/packer_${PACKER_VERSION}_linux_amd64.zip
 
 RUN curl -fsSLo /tmp/vault_${VAULT_VERSION}_linux_amd64.zip "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" && \
     unzip /tmp/vault_${VAULT_VERSION}_linux_amd64.zip vault -d /usr/local/bin && \
@@ -54,8 +62,6 @@ RUN curl -fsSLo /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz "https://get.helm.s
     tar -xzf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz -C /tmp && \
     install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm && \
     rm -rf /tmp/helm_${HELM_VERSION}_linux_amd64.tar.gz /tmp/linux-amd64
-
-RUN HELM_PLUGINS=/usr/local/share/helm/plugins helm plugin install https://github.com/databus23/helm-diff --version ${HELM_DIFF_VERSION}
 
 RUN curl -fsSLo /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" && \
     tar -xzf /tmp/k9s_${K9S_VERSION}_linux_amd64.tar.gz -C /tmp k9s && \
@@ -73,7 +79,6 @@ RUN /opt/ansible/bin/ansible-galaxy collection install -p /usr/share/ansible/col
 USER ${USERNAME}
 
 ENV HOME=/home/${USERNAME}
-ENV HELM_PLUGINS=/usr/local/share/helm/plugins
 ENV PATH=/opt/ansible/bin:${PATH}
 
 CMD ["zsh"]
