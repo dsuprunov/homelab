@@ -1,49 +1,8 @@
-locals {
-  talos_nodes = {
-    "vm-k8s-control-01" = {
-      vm_id  = 101
-      cores  = 2
-      memory = 4096
-
-      disks = [
-        { interface = "scsi0", size = 32 },
-      ]
-    }
-    "vm-k8s-worker-01" = {
-      vm_id  = 104
-      cores  = 2
-      memory = 6144
-
-      disks = [
-        { interface = "scsi0", size = 32 },
-      ]
-    }
-    "vm-k8s-worker-02" = {
-      vm_id  = 105
-      cores  = 2
-      memory = 6144
-
-      disks = [
-        { interface = "scsi0", size = 32 },
-      ]
-    }
-    "vm-k8s-worker-03" = {
-      vm_id  = 106
-      cores  = 2
-      memory = 6144
-
-      disks = [
-        { interface = "scsi0", size = 32 },
-      ]
-    }
-  }
-}
-
 resource "proxmox_virtual_environment_vm" "talos" {
-  for_each = local.talos_nodes
+  for_each = local.nodes
 
   name      = each.key
-  node_name = "pve-01"
+  node_name = each.value.proxmox_node
   vm_id     = each.value.vm_id
 
   bios          = "ovmf"
@@ -59,6 +18,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   agent {
     enabled = true
+    timeout = "15m"
   }
 
   cpu {
@@ -83,20 +43,20 @@ resource "proxmox_virtual_environment_vm" "talos" {
       interface = disk_config.key
       size      = disk_config.value.size
 
-      aio      = "io_uring"
-      cache    = "none"
-      discard  = "on"
-      ssd      = true
+      aio     = "io_uring"
+      cache   = "none"
+      discard = "on"
+      ssd     = true
     }
   }
 
   cdrom {
-    file_id   = "local:iso/nocloud-amd64.iso"
+    file_id   = local.cluster.iso_file_id
     interface = "scsi2"
   }
 
   network_device {
-    bridge = "vmbr0"
+    bridge = each.value.network_interface.bridge
     model  = "virtio"
   }
 

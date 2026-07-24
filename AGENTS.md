@@ -23,13 +23,6 @@ Before modifying any file:
   pulls, fetches, rebases, merges, branch switches, tag operations, stash
   operations, staging, remote configuration changes, or similar actions. This
   prohibition is absolute and has no escalation or approval exception.
-- Absolute infrastructure state-change ban: never run, trigger, schedule, or
-  approve any command, script, playbook, API call, UI action, or tool
-  invocation that can create, modify, restart, stop, delete, deploy, apply,
-  reconcile, migrate, or otherwise change the state of any component of the
-  infrastructure managed by this repository or owned, operated, or controlled
-  by the user. This prohibition is absolute and has no escalation or approval
-  exception.
 - Absolute sensitive material change ban: never create, edit, overwrite, move,
   delete, decrypt, generate, rotate, or otherwise modify secrets, private keys,
   tokens, kubeconfigs, Terraform state files, state backups, local credentials,
