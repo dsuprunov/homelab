@@ -1,7 +1,7 @@
 $ORIGIN home.arpa.
 $TTL 300
 @       IN SOA  ns.home.arpa. admin.home.arpa. (
-                2026061401 ; serial
+                2026073101 ; serial
                 3600       ; refresh
                 600        ; retry
                 604800     ; expire
@@ -33,6 +33,7 @@ argocd.k8s                            IN A      192.168.178.246
 lldap.k8s                             IN A      192.168.178.246
 vault.k8s                             IN A      192.168.178.246
 opensearch.k8s                        IN A      192.168.178.246
+otel-demo.k8s                         IN A      192.168.178.246
 
 demo-website.k8s                      IN A      192.168.178.246
 demo-website-blue-green.k8s           IN A      192.168.178.246
