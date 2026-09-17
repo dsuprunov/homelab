@@ -1,4 +1,19 @@
 ---
+- name: k8s | wait for cloud-init
+  ansible.builtin.command: timeout 600 cloud-init status --wait --format json
+  register: cloud_init_result
+  changed_when: false
+  failed_when: cloud_init_result.rc not in [0, 2]
+
+- name: k8s | check cloud-init result
+  ansible.builtin.assert:
+    that:
+      - cloud_init_status.status == 'done'
+    fail_msg: "{{ cloud_init_result.stdout }}"
+    quiet: true
+  vars:
+    cloud_init_status: "{{ cloud_init_result.stdout | from_json }}"
+
 - ansible.builtin.import_tasks: swap.yaml
 - ansible.builtin.import_tasks: kernel.yaml
 - ansible.builtin.import_tasks: sysctl.yaml

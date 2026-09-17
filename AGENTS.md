@@ -62,13 +62,3 @@ When asked for commit message text:
   `refactor`, or `chore`.
 - Use `<scope>` for the affected area or component.
 - Use `<description>` for a short summary.
-
-## Repository Notes
-
-- Terraform code is in `terraform/`.
-- Ansible code is in `ansible/`.
-- Setup and common commands are in `INSTALL.md`.
-
-## Additional Instructions
-
-Add new repository instructions below this line.
