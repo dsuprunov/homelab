@@ -1,5 +1,12 @@
 # TODO
 
+## VM Initialization
+
+- Wait for cloud-init to finish on VMs before Ansible configuration.
+
+  `playbooks/k8s.yaml` completed successfully on retry. The first run failed
+  on APT locks on all four Kubernetes VMs. The lock owner was not identified.
+
 ## Argo CD AppProject Permissions
 
 - Review wildcard project permissions and destinations:

@@ -20,7 +20,7 @@ source "qemu" "ubuntu_26_04" {
   memory           = 1024
   output_directory = local.ubuntu_26_04_output_dir
   qemu_binary      = "/usr/bin/qemu-system-x86_64"
-  shutdown_command = "sudo passwd --lock ${local.ubuntu_26_04_ssh_username} && sudo cloud-init clean --logs --seed && sudo shutdown -P now"
+  shutdown_command = "sudo passwd --lock ${local.ubuntu_26_04_ssh_username} && sudo cloud-init clean --logs --seed --machine-id && sudo shutdown -P now"
   ssh_password     = var.ssh_password
   ssh_timeout      = "35m"
   ssh_username     = local.ubuntu_26_04_ssh_username

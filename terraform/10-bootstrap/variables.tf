@@ -35,8 +35,8 @@ variable "vms" {
       expose_xattr = optional(bool, null)
     })), [])
 
-    datastore_id           = optional(string, "local-lvm")
-    cloudinit_datastore_id = optional(string, "local-lvm")
+    datastore_id           = optional(string, "local")
+    cloudinit_datastore_id = optional(string, "local")
 
     network_interfaces = list(object({
       bridge       = string

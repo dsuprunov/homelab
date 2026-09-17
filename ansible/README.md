@@ -3,7 +3,7 @@
 ## Deploy
 
 ```bash
-cd /homelab/ansible
+cd ~/git-homelab/ansible
 
 ansible --version
 ansible-galaxy collection list

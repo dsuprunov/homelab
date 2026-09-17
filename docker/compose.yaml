@@ -2,23 +2,33 @@ name: homelab
 
 services:
   homelab:
+    image: homelab-dev:local
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       args:
-        HOST_UID: ${HOST_UID:?Set HOST_UID in the shell environment}
-        HOST_GID: ${HOST_GID:?Set HOST_GID in the shell environment}
-    env_file:
-      - ${HOME}/.homelab/.env
-    container_name: homelab
-    hostname: homelab
-    working_dir: /home/homelab
-    stdin_open: true
-    tty: true
-    environment:
-      ANSIBLE_CONFIG: /homelab/ansible/ansible.cfg
-      SSH_AUTH_SOCK: /ssh-agent
+        USER_UID: ${HOST_UID:-1000}
+        USER_GID: ${HOST_GID:-1000}
+    init: true
+    dns:
+      - 192.168.178.206
+      - 1.1.1.1
     volumes:
-      - ${HOME}/homelab:/homelab
-      - ${HOME}/.homelab:/home/homelab
-      - ${SSH_AUTH_SOCK:?Start ssh-agent and export SSH_AUTH_SOCK}:/ssh-agent
+      - ..:/home/homelab/git-homelab
+      - ${HOME}/.homelab/kube:/home/homelab/.kube
+      - ${HOME}/.homelab/ssh:/home/homelab/.ssh
+      - type: bind
+        source: ${SSH_AUTH_SOCK:?Start ssh-agent and load the infrastructure key}
+        target: /run/host-ssh-agent
+        bind:
+          create_host_path: false
+      - packer-cache:/home/homelab/.cache/packer
+    environment:
+      SSH_AUTH_SOCK: /run/host-ssh-agent
+      ANSIBLE_CONFIG: /home/homelab/git-homelab/ansible/ansible.cfg
+      KUBECONFIG: /home/homelab/.kube/config
+      PACKER_CACHE_DIR: /home/homelab/.cache/packer
+
+volumes:
+  packer-cache:
+    name: homelab-packer-cache

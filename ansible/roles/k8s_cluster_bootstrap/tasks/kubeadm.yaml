@@ -43,6 +43,7 @@
 
         - name: k8s | init cluster
           ansible.builtin.command: kubeadm init --config /etc/kubernetes/kubeadm/kubeadm.yaml --upload-certs
+          no_log: true
           args:
             creates: /etc/kubernetes/admin.conf
 

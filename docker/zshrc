@@ -1,0 +1,33 @@
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+
+autoload -Uz colors && colors
+autoload -Uz compinit
+compinit
+
+setopt PROMPT_SUBST
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+
+git_prompt_info() {
+  local -x GIT_OPTIONAL_LOCKS=0
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return
+
+  local branch dirty
+  branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null) || return
+
+  if ! git diff --no-ext-diff --quiet --ignore-submodules 2>/dev/null || \
+     ! git diff --no-ext-diff --cached --quiet --ignore-submodules 2>/dev/null; then
+    dirty='*'
+  fi
+
+  printf ' %%F{magenta}[%s%s]%%f' "$branch" "$dirty"
+}
+
+PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f$(git_prompt_info) %F{green}%#%f '
+
+source <(kubectl completion zsh)
+source <(kubeadm completion zsh)
+source <(helm completion zsh)

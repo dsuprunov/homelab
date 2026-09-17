@@ -12,11 +12,11 @@ variable "image_versions" {
     artifact_file_name     = optional(string, null)
     artifact_path          = string
     boot_disk_size         = number
-    cloudinit_datastore_id = optional(string, "local-lvm")
+    cloudinit_datastore_id = optional(string, "local")
     import_datastore_id    = optional(string, "local")
     node_name              = optional(string, "pve-01")
     tags                   = optional(list(string), [])
-    template_datastore_id  = optional(string, "local-lvm")
+    template_datastore_id  = optional(string, "local")
     template_name          = string
     template_vm_id         = number
   }))

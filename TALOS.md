@@ -26,17 +26,17 @@
 ## Lifecycle
 
 ```bash
-terraform -chdir=/homelab/terraform/30-talos init
-terraform -chdir=/homelab/terraform/30-talos plan -var-file=../credentials.auto.tfvars
-terraform -chdir=/homelab/terraform/30-talos apply -var-file=../credentials.auto.tfvars
-terraform -chdir=/homelab/terraform/30-talos destroy -var-file=../credentials.auto.tfvars
+terraform -chdir="$HOME/git-homelab/terraform/30-talos" init
+terraform -chdir="$HOME/git-homelab/terraform/30-talos" plan -var-file=../credentials.auto.tfvars
+terraform -chdir="$HOME/git-homelab/terraform/30-talos" apply -var-file=../credentials.auto.tfvars
+terraform -chdir="$HOME/git-homelab/terraform/30-talos" destroy -var-file=../credentials.auto.tfvars
 ```
 
 ## Write Kubeconfig
 
 ```bash
 mkdir -p ~/.kube
-terraform -chdir=/homelab/terraform/30-talos output -raw kubeconfig > ~/.kube/config
+terraform -chdir="$HOME/git-homelab/terraform/30-talos" output -raw kubeconfig > ~/.kube/config
 chmod 600 ~/.kube/config
 ```
 
@@ -44,7 +44,7 @@ chmod 600 ~/.kube/config
 
 ```bash
 mkdir -p ~/.talos
-terraform -chdir=/homelab/terraform/30-talos output -raw talosconfig > ~/.talos/config
+terraform -chdir="$HOME/git-homelab/terraform/30-talos" output -raw talosconfig > ~/.talos/config
 chmod 600 ~/.talos/config
 ```
 
